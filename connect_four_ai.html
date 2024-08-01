@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Four AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        main {
+            padding-bottom: 100px; /* Add padding to avoid content being covered by the footer */
+        }
+
+
+        p {
+            margin-bottom: 15px;
+            text-indent: 20px; /* Indent paragraphs */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">About Me</a></li>
+                <li><span class="nav-non-clickable">Resume</span>
+                    <ul>
+                        <li><a href="recent_resume.html">Condensed Resume</a></li>
+                        <li><a href="full_resume.html">Full Resume</a></li>
+                    </ul>
+                </li>
+                <li><span class="nav-non-clickable">Projects</span>
+                    <ul>
+                        <li><a href="connect_four_ai.html">Connect Four AI</a></li>
+                        <li><a href="bb_fantasy_draft.html">BB Fantasy Draft</a></li>
+                        <li><a href="flexi_calendar.html">Flexi Calendar</a></li>
+                        <li><a href="real_expense.html">Real Expense</a></li>
+                    </ul>
+                </li>
+                <li><a href="links.html">Links</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h1>Connect Four AI</h1>
+        <h3>Overview</h3>
+        <p>In this <a href="https://github.com/rclavey/connect_four_ai" target="_blank">project</a>, I implemented a Double Dueling Deep Q-Learning (DQN) algorithm for playing Connect Four. A deep Q-learning algorithm is a reinforcement learning technique that uses deep neural networks to approximate the Q-value function, which estimates the expected future rewards for taking a given action in a particular state. This approach allows the agent to learn complex strategies and improve its performance over time by interacting with the environment.</p>
+
+        <h3>Architecture</h3>
+        <p>I incorporated a double and dueling architecture to enhance the stability and accuracy of the Q-value estimations. The double DQN helps to mitigate the overestimation bias that traditional Q-learning algorithms face by using separate networks for action selection and evaluation. The dueling network architecture, on the other hand, has two separate streams to estimate the state value and the advantage function for each action. These two streams are then combined to produce the Q-values, which helps the agent to distinguish between valuable and less valuable states more effectively.</p>
+
+        <h3>Prioritized Replay Buffer</h3>
+        <p>To improve the efficiency of the learning process, I implemented a prioritized replay buffer. This buffer stores experiences and assigns priorities based on the temporal difference (TD) error. Experiences with higher TD errors are sampled more frequently, which allows the agent to learn from more significant experiences first. The buffer is initialized with a maximum size and an alpha parameter that determines the level of prioritization. This approach ensures that the agent learns efficiently and stabilizes faster.</p>
+
+        <h3>Gradient Accumulation</h3>
+        <p>Additionally, I introduced gradient accumulation to address the issue of computational overhead and memory usage during training. This was actually implemented to an early version of the code that had a memory leak in an attempt to mitigate the memory needed. The custom optimizer accumulates gradients over multiple steps before applying them, which reduces the strain on computational resources. This method is particularly useful for large models or long training durations, as it ensures that the gradients are properly accumulated and applied, improving the stability and performance of the training process.</p>
+
+        <h3>Reward Function</h3>
+        <p>The reward function is one of the most important components of a DQN, as it guides the agent's learning process. In this implementation, the reward function is designed to encourage the agent to win the game while penalizing it for losing. The specific details of the reward function are tailored to the Connect Four environment, ensuring that the agent learns the optimal strategy for playing the game. Intermediate rewards (such as getting points for having three in a row) have also helped model performance.</p>
+
+        <h3>Multi-Processing</h3>
+        <p>To further enhance the computational efficiency, I leveraged multi-processing. After purchasing a new computer with GPUs, I implemented the `Pool` class from the multiprocessing module to parallelize various tasks such as data preprocessing, experience sampling, and training multiple agents simultaneously. This approach dramatically improved the overall training speed and made better use of the newly available computational resources.</p>
+
+        <h3>Scenario Training</h3>
+        <p>Finally, I included specific scenario training at the end of the code. This involves training the agent on specific game scenarios that are likely to occur during play. By focusing on these scenarios, the agent can learn more effectively and improve its performance in real games. This addition helped to significantly enhance the results by training on scenarios I noticed prior versions were struggling with when testing.</p>
+
+        <h3>Evolutionary Algorithm</h3>
+        <p>During the project I also created an algorithm inspired by evolutionary mechanisms used to fine-tune the hyperparameters in the DQN. After extensive testing and configuring of the evolutionary algorithm I found that it did not produce desirable results. I believe this algorithm did not work due to the lack of computational power I had at my disposal during this project as I was running the algorithms natively on my own computer. This algorithm made several agents with varying hyperparameters play against a random agent and used the percentage of wins as a fitness score. The algorithm was designed such that if the random agent was beaten a high enough percentage of the time the first agent that beat the random agent would take its place as the benchmark agent (although this never occured). I tested several different versions of this algorithm before concluding it would not work with my current hardware.</p>
+        
+        <h3>Conclusion</h3>
+        <p>In summary, by combining the double and dueling architecture, prioritized replay buffer, gradient accumulation, reward function, and multi-processing, along with specific scenario training, I created a robust and efficient Double Dueling DQN agent capable of playing Connect Four such that it could beat a random agent approximately 85% of the time. I learned about the pros and cons of different activation functions and different architectures. In the future I would love to revisit the project and invest more time into trying to beat the random agent 100% of the time. </p>
+   
+    </main>
+    <footer>
+        <p>&copy; 2024 Richard Lavey</p>
+    </footer>
+    <script src="js/scripts.js"></script>
+</body>
+</html>

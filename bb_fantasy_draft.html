@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BB Fantasy Draft</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        main {
+            padding-bottom: 100px; /* Add padding to avoid content being covered by the footer */
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 2em;
+            color: #0277bd;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-indent: 20px; /* Indent paragraphs */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">About Me</a></li>
+                <li><span class="nav-non-clickable">Resume</span>
+                    <ul>
+                        <li><a href="recent_resume.html">Condensed Resume</a></li>
+                        <li><a href="full_resume.html">Full Resume</a></li>
+                    </ul>
+                </li>
+                <li><span class="nav-non-clickable">Projects</span>
+                    <ul>
+                        <li><a href="connect_four_ai.html">Connect Four AI</a></li>
+                        <li><a href="bb_fantasy_draft.html">BB Fantasy Draft</a></li>
+                        <li><a href="flexi_calendar.html">Flexi Calendar</a></li>
+                        <li><a href="real_expense.html">Real Expense</a></li>
+                    </ul>
+                </li>
+                <li><a href="links.html">Links</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h1>Big Brother Fantasy Draft</h1>
+        <p>This <a href="https://github.com/rclavey/big_brother" target="_blank">project</a> started as a fun <a href="https://laveybbdraft.onrender.com" target="_blank">game</a> with a couple of friends and family members where we drafted contestants from the reality TV show Big Brother. Initially, I did all the calculations by hand, tracking each player's points based on the performance of their drafted contestants. This manual process was quite time-consuming and prone to errors.</p>
+
+        <p>To streamline the process, I decided to automate it using Google Sheets. This allowed me to easily input data and perform calculations without the risk of manual errors. The automation in Google Sheets helped in managing the game more efficiently, but I wanted to take it a step further and enhance the experience for everyone involved, and by this time more and more people were getting involved.</p>
+
+        <p>The next improvement was to automate the communication of results. I wrote a script in Python that would calculate each player's points and generate a graph showing the points of each player and points over time. This script would then send an email to all participants with their points and the graphs attached. This automation not only saved time but also made the game more engaging by providing visual feedback on each player's standing.</p>
+
+        <p>Eventually, I developed a website to further improve the user experience. The website allowed participants to view their points and see the performance graphs directly online whenever they pleased. This move to a web-based platform made it easier for everyone to access their information and stay updated on the game.</p>
+
+        <p>The email automation script reads the picks and winners from CSV files, calculates the points for each player, and sends out emails with the results. It uses libraries like CSV for data handling, Matplotlib for generating graphs, and smtplib for sending emails. This script ensures that everyone receives timely updates with detailed information on their performance.</p>
+
+        <p>The website, built with Flask and Flask-SocketIO, provides a user-friendly interface for viewing points and performance graphs. It reads data from CSV files, generates visualizations using Matplotlib, and updates the points for each player. The website also includes real-time updates and a chat feature, making it a comprehensive platform for managing the fantasy draft game.</p>
+
+        <p>Overall, this project evolved from a simple manual game into a sophisticated automated system with a web interface, real-time updates, and efficient processing. By combining automation, visualization, and web development, I created an engaging and user-friendly platform for the Big Brother fantasy draft game, making it more enjoyable and accessible for everyone involved.</p>
+    </main>
+    <footer>
+        <p>&copy; 2024 Richard Lavey</p>
+    </footer>
+    <script src="js/scripts.js"></script>
+</body>
+</html>

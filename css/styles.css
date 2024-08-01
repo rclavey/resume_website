@@ -1,0 +1,92 @@
+body {
+    font-family: "Times New Roman", Calibri, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #e0f7fa; /* Light blue background */
+}
+
+header {
+    background: #0277bd; /* Blue color */
+    color: #fff;
+    padding: 15px 0;
+    text-align: center;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    background: #0277bd;
+}
+
+nav ul li {
+    position: relative;
+    margin: 0 15px;
+}
+
+nav ul li a,
+nav ul li span.nav-non-clickable {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    display: block;
+    cursor: default; /* Change cursor to default for non-clickable items */
+}
+
+nav ul li ul {
+    display: none;
+    position: absolute;
+    background-color: #0277bd;
+    padding: 0;
+    list-style: none;
+    margin: 0;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+}
+
+nav ul li:hover ul {
+    display: block;
+}
+
+nav ul li ul li {
+    width: 200px;
+    text-align: left;
+}
+
+nav ul li ul li a {
+    padding: 10px 20px;
+}
+
+main {
+    padding: 100px 20px 20px; /* Add padding to avoid content being hidden behind the fixed header */
+    background: #fff;
+    margin: 0 auto;
+    max-width: 1200px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+footer {
+    background: #0277bd;
+    color: #fff;
+    text-align: center;
+    padding: 10px 0;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+pre {
+    white-space: pre-wrap; /* Makes sure the text wraps */
+    word-wrap: break-word; /* Prevents overflow */
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 5px;
+    overflow: auto;
+}

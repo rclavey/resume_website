@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Condensed Resume</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .resume-section {
+            margin-bottom: 20px;
+        }
+
+        .resume-section h2 {
+            border-bottom: 2px solid #0277bd;
+            padding-bottom: 5px;
+        }
+
+        .resume-section h3 {
+            margin-top: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .resume-section p {
+            margin: 5px 0;
+        }
+
+        .resume-header {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .contact-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .contact-info a {
+            color: #0277bd;
+            text-decoration: none;
+        }
+
+        main {
+            padding-bottom: 100px; /* Add padding to avoid content being covered by the footer */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">About Me</a></li>
+                <li><span class="nav-non-clickable">Resume</span>
+                    <ul>
+                        <li><a href="recent_resume.html">Condensed Resume</a></li>
+                        <li><a href="full_resume.html">Full Resume</a></li>
+                    </ul>
+                </li>
+                <li><span class="nav-non-clickable">Projects</span>
+                    <ul>
+                        <li><a href="connect_four_ai.html">Connect Four AI</a></li>
+                        <li><a href="bb_fantasy_draft.html">BB Fantasy Draft</a></li>
+                        <li><a href="flexi_calendar.html">Flexi Calendar</a></li>
+                        <li><a href="real_expense.html">Real Expense</a></li>
+                    </ul>
+                </li>
+                <li><a href="links.html">Links</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <div class="resume-header">Richard Lavey III</div>
+        <div class="contact-info">
+            <p>Email: <a href="mailto:rclavey415@gmail.com">rclavey415@gmail.com</a> | 
+            <a href="https://www.linkedin.com/in/richie-lavey-828150278" target="_blank">LinkedIn | <a href="https://github.com/rclavey" target="_blank">GitHub</a>  
+            </p>
+        </div>
+        <div class="resume-section">
+            <h2>Education</h2>
+            <h3>Southern New Hampshire University</h3>
+            <p>Bachelor of Science in Information Technologies, Data Analytics Concentration</p>
+            <p>Minors: Mathematics, Project Management</p>
+            <p>May 2024</p>
+
+            <h3>University of Massachusetts Boston</h3>
+            <p>Bachelor of Science in Criminal Justice</p>
+            <p>May 2022</p>
+
+            <h3>Somerville High School</h3>
+            <p>High School Diploma</p>
+            <p>Varsity sports: Hockey (Captain), Crew, Ultimate Frisbee</p>
+            <p>May 2017</p>
+        </div>
+
+        <div class="resume-section">
+            <h2>Projects</h2>
+            <h3>Connect Four AI</h3>
+            <p>I have been developing an agent to play the game of Connect Four in order to practice using machine learning algorithms. The algorithm I am currently using is a double dueling deep Q-learning network that uses an experience replay buffer and a gradient accumulator. I also use an evolutionary algorithm in order to fine-tune the hyperparameters. I developed this algorithm in Python using the TensorFlow library and have made the code available on my GitHub account which can be found above.</p>
+        </div>
+
+        <div class="resume-section">
+            <h2>Professional Experience</h2>
+            <h3>Police Officer</h3>
+            <p>Jan. 2021 - Present</p>
+            <p>Somerville Housing Authority, North Reading, and Somerville</p>
+            <p>As a police officer, I have been responsible for patrolling and responding to calls-for-service in the appropriate jurisdictions. These responsibilities have required me to develop superb communication skills as well as the ability to develop solutions for problems in a timely manner.</p>
+        </div>
+
+        <div class="resume-section">
+            <h2>Skills, Certifications, & Interests</h2>
+            <h3>Skills</h3>
+            <p>Python, Swift, Excel, Google Spreadsheets, SQL (Intermediate level)</p>
+
+            <h3>Certifications</h3>
+            <p>MPTC Police Academy, APCO Dispatch & 911, Law Enforcement Deaf & Hard of Hearing, Critical Incident Training</p>
+
+            <h3>Interests</h3>
+            <p>Learning languages (Spanish & Russian), Programming, Hockey, Triathlons, Jiu-Jitsu</p>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2024 Richard Lavey</p>
+    </footer>
+    <script src="js/scripts.js"></script>
+</body>
+</html>
