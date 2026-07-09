@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Connect Four AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header></header>
+    <main class="connect-four-page">
+        <h1>Play Connect Four AI</h1>
+        <p class="page-kicker">Play against a browser-ready version of the Connect Four AI model from the project.</p>
+        <p class="game-note" role="note"><strong>Website version:</strong> This is an abbreviated version made to fit and run in this website, not the full-strength AI from the original project.</p>
+
+        <section class="game-shell" aria-label="Connect Four game">
+            <div class="game-toolbar">
+                <div>
+                    <h2>Connect Four</h2>
+                    <p id="game-status" class="game-status" aria-live="polite">Loading the abbreviated AI...</p>
+                </div>
+                <button id="new-game" class="button-link" type="button">New Game</button>
+            </div>
+
+            <div id="connect-four-board" class="game-board" aria-label="Connect Four board"></div>
+
+            <div class="game-legend" aria-label="Game legend">
+                <span><i class="legend-disc human-disc"></i>You</span>
+                <span><i class="legend-disc ai-disc"></i>AI</span>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Richard Lavey</p>
+    </footer>
+    <script src="js/includeHeader.js"></script>
+    <script src="js/vendor/tf.min.js?v=4.22.0"></script>
+    <script src="js/connectFourGame.js?v=5"></script>
+</body>
+</html>
