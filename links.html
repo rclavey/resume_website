@@ -45,20 +45,58 @@
 </head>
 <body>
     <header></header>
-    <main>
+    <main class="links-page">
         <h1>Links</h1>
-        <h2>My Websites and Apps</h2>
-        <ul>
-            <li><a href="https://apps.apple.com/us/app/flexi-calendar/id6475564896" target="_blank">Flexi App on the App Store</a></li>
-            <li>Real Expense on the App Store (link tbd)</li>
-            <li><a href="https://laveybbdraft.onrender.com" target="_blank">Big Brother Fantasy Draft</a></li>
-        </ul>
-        <h2>Socials</h2>
-        <ul>
-            <li><a href="https://www.linkedin.com/in/richie-lavey-828150278/" target="_blank">LinkedIn</a></li>
-            <li><a href="https://github.com/rclavey" target="_blank">GitHub</a></li>
-            <li><a href="https://www.instagram.com/rclavey/" target="_blank">Instagram</a></li>
-        </ul>
+
+        <section class="links-section" aria-labelledby="apps-heading">
+            <h2 id="apps-heading">My Websites and Apps</h2>
+            <div class="app-grid">
+                <article class="app-card">
+                    <div class="app-icon">RE</div>
+                    <h3>Real Expense</h3>
+                    <p>Expense tracking app for professionals managing deductible expenses, with categories, receipt images, charts, PDF export, and CSV export.</p>
+                    <a class="app-store-link" href="https://apps.apple.com/us/app/real-expense/id6596779002" target="_blank" rel="noopener">App Store</a>
+                </article>
+
+                <article class="app-card">
+                    <div class="app-icon">FC</div>
+                    <h3>Flexi Calendar</h3>
+                    <p>Calendar app tailored to police officers and other professionals with non-standard schedules, built to be simple to use with no paywalls.</p>
+                    <a class="app-store-link" href="https://apps.apple.com/us/app/flexi-calendar/id6475564896" target="_blank" rel="noopener">App Store</a>
+                </article>
+
+                <article class="app-card">
+                    <div class="app-icon">WW</div>
+                    <h3>Wisdom Web</h3>
+                    <p>Knowledge graph app for building connected maps of ideas and information.</p>
+                    <a class="app-store-link" href="https://apps.apple.com/us/app/wisdom-web/id6766549625" target="_blank" rel="noopener">App Store</a>
+                </article>
+            </div>
+        </section>
+
+        <section class="links-section" aria-labelledby="websites-heading">
+            <h2 id="websites-heading">Websites</h2>
+            <div class="link-grid">
+                <article class="link-card">
+                    <h3>Big Brother Fantasy Draft</h3>
+                    <p>Developed an automated system to manage a Big Brother fantasy draft game, including a website for real-time updates and a Python script for calculating and emailing player scores and performance graphs.</p>
+                    <a class="button-link" href="https://rclavey.github.io/big_brother/#overview" target="_blank" rel="noopener">Open Website</a>
+                </article>
+            </div>
+        </section>
+
+        <section class="links-section" aria-labelledby="socials-heading">
+            <h2 id="socials-heading">Socials</h2>
+            <div class="link-grid">
+                <article class="link-card">
+                    <ul>
+                        <li><a href="https://www.linkedin.com/in/richie-lavey-828150278/" target="_blank" rel="noopener">LinkedIn</a></li>
+                        <li><a href="https://github.com/rclavey" target="_blank" rel="noopener">GitHub</a></li>
+                        <li><a href="https://www.instagram.com/rclavey/" target="_blank" rel="noopener">Instagram</a></li>
+                    </ul>
+                </article>
+            </div>
+        </section>
     </main>
     <footer>
         <p>&copy; 2024 Richard Lavey</p>

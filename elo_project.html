@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UFC Elo Analytics | Richard Lavey</title>
+    <meta name="description" content="Interactive UFC Elo ratings, fighter matchup projections, and generated fight-card analytics.">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/ufc-dashboard.css">
+</head>
+<body>
+    <header></header>
+    <main class="ufc-dashboard">
+        <section class="ufc-masthead" aria-labelledby="ufc-title">
+            <div>
+                <p class="dashboard-eyebrow">UFC Elo Project</p>
+                <h1 id="ufc-title">UFC Elo Analytics</h1>
+                <p class="dashboard-intro">Fighter ratings, historical peaks, matchup probabilities, and model-ranked fight cards from the latest locally generated data.</p>
+            </div>
+            <dl class="snapshot-meta">
+                <div>
+                    <dt>Data generated</dt>
+                    <dd id="snapshot-generated">Loading</dd>
+                </div>
+                <div>
+                    <dt>Latest recorded fight</dt>
+                    <dd id="snapshot-latest">Loading</dd>
+                </div>
+            </dl>
+        </section>
+
+        <aside class="analytics-disclaimer" role="note">
+            <strong>Model disclaimer</strong>
+            <span>These estimates are an analytical project, not betting advice. Historical performance does not guarantee future results.</span>
+        </aside>
+
+        <nav class="dashboard-tabs" aria-label="UFC analytics sections" role="tablist">
+            <button type="button" role="tab" aria-selected="true" aria-controls="overview-panel" data-dashboard-view="overview">Overview</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="leaderboard-panel" data-dashboard-view="leaderboard">Leaderboard</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="matchup-panel" data-dashboard-view="matchup">Matchup Lab</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="cards-panel" data-dashboard-view="cards">Fight Cards</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="methodology-panel" data-dashboard-view="methodology">Methodology</button>
+        </nav>
+
+        <div id="dashboard-loading" class="dashboard-loading" role="status" aria-live="polite">Loading UFC analytics data...</div>
+
+        <section id="overview-panel" class="dashboard-panel" role="tabpanel" data-dashboard-panel="overview">
+            <div class="panel-heading">
+                <div>
+                    <p class="dashboard-eyebrow">Rating landscape</p>
+                    <h2>Snapshot Overview</h2>
+                </div>
+            </div>
+
+            <div class="metric-strip" aria-label="Dataset summary">
+                <article>
+                    <span>Rated fighters</span>
+                    <strong id="metric-fighters">-</strong>
+                    <small>Complete generated history</small>
+                </article>
+                <article>
+                    <span>Established ratings</span>
+                    <strong id="metric-established">-</strong>
+                    <small>Five or more UFC fights</small>
+                </article>
+                <article>
+                    <span>Fight cards</span>
+                    <strong id="metric-cards">-</strong>
+                    <small>Latest generated slate</small>
+                </article>
+                <article>
+                    <span>Model predictions</span>
+                    <strong id="metric-predictions">-</strong>
+                    <small>Scenario model available</small>
+                </article>
+                <article>
+                    <span>Insufficient data</span>
+                    <strong id="metric-insufficient">-</strong>
+                    <small>Separated from predictions</small>
+                </article>
+            </div>
+
+            <div class="overview-chart-grid">
+                <article class="chart-frame chart-frame-wide">
+                    <header>
+                        <div>
+                            <p class="chart-kicker">Leaderboard</p>
+                            <h3>Highest Current Ratings</h3>
+                        </div>
+                    </header>
+                    <div class="chart-canvas chart-canvas-tall"><canvas id="top-ratings-chart" aria-label="Top current UFC Elo ratings"></canvas></div>
+                </article>
+                <article class="chart-frame">
+                    <header>
+                        <div>
+                            <p class="chart-kicker">Distribution</p>
+                            <h3>Current Elo Range</h3>
+                        </div>
+                    </header>
+                    <div class="chart-canvas"><canvas id="rating-distribution-chart" aria-label="Distribution of UFC Elo ratings"></canvas></div>
+                </article>
+                <article class="chart-frame">
+                    <header>
+                        <div>
+                            <p class="chart-kicker">Career arc</p>
+                            <h3>Current vs. Peak</h3>
+                        </div>
+                    </header>
+                    <div class="chart-canvas"><canvas id="rating-scatter-chart" aria-label="Current versus peak UFC Elo rating"></canvas></div>
+                </article>
+                <article class="chart-frame">
+                    <header>
+                        <div>
+                            <p class="chart-kicker">Experience</p>
+                            <h3>Fighter Sample Depth</h3>
+                        </div>
+                    </header>
+                    <div class="chart-canvas"><canvas id="experience-chart" aria-label="Fighters grouped by UFC fight count"></canvas></div>
+                </article>
+            </div>
+        </section>
+
+        <section id="leaderboard-panel" class="dashboard-panel" role="tabpanel" data-dashboard-panel="leaderboard" hidden>
+            <div class="panel-heading">
+                <div>
+                    <p class="dashboard-eyebrow">All fighters</p>
+                    <h2>Fighter Leaderboard</h2>
+                </div>
+                <p id="leaderboard-count" class="panel-count">- fighters</p>
+            </div>
+
+            <form id="leaderboard-filters" class="analytics-toolbar">
+                <label class="filter-search">
+                    <span>Fighter</span>
+                    <input id="fighter-search" type="search" placeholder="Search by name" autocomplete="off">
+                </label>
+                <label>
+                    <span>Weight class</span>
+                    <select id="weight-class-filter"><option value="all">All divisions</option></select>
+                </label>
+                <label>
+                    <span>Activity</span>
+                    <select id="activity-filter">
+                        <option value="all">All history</option>
+                        <option value="1">Within 1 year</option>
+                        <option value="2">Within 2 years</option>
+                        <option value="5">Within 5 years</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Form</span>
+                    <select id="form-filter">
+                        <option value="all">Any form</option>
+                        <option value="winning">Winning streak</option>
+                        <option value="losing">Losing streak</option>
+                        <option value="positive">Positive 3-fight trend</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Rating metric</span>
+                    <select id="rating-metric-filter">
+                        <option value="currentRating">Current Elo</option>
+                        <option value="peakRating">Highest Elo</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Sort</span>
+                    <select id="leaderboard-sort">
+                        <option value="rating-desc">Rating: high to low</option>
+                        <option value="rating-asc">Rating: low to high</option>
+                        <option value="fights-desc">Most UFC fights</option>
+                        <option value="win-desc">Highest win rate</option>
+                        <option value="trend-desc">Strongest recent trend</option>
+                        <option value="recent-desc">Most recent fight</option>
+                        <option value="name-asc">Fighter name</option>
+                    </select>
+                </label>
+                <label class="range-filter">
+                    <span>Minimum fights <output id="minimum-fights-output">0</output></span>
+                    <input id="minimum-fights" type="range" min="0" max="25" value="0" step="1">
+                </label>
+                <label>
+                    <span>Minimum rating</span>
+                    <input id="minimum-rating" type="number" inputmode="numeric" min="500" max="1800" step="25" placeholder="Any">
+                </label>
+                <label>
+                    <span>Rows</span>
+                    <select id="leaderboard-page-size">
+                        <option value="25">25</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                    </select>
+                </label>
+                <button id="clear-leaderboard-filters" class="secondary-button" type="reset">Clear filters</button>
+            </form>
+
+            <div class="leaderboard-visuals">
+                <article class="chart-frame">
+                    <header><div><p class="chart-kicker">Filtered field</p><h3>Top 12 Ratings</h3></div></header>
+                    <div class="chart-canvas"><canvas id="leaderboard-top-chart" aria-label="Filtered top UFC fighters"></canvas></div>
+                </article>
+                <article class="chart-frame">
+                    <header><div><p class="chart-kicker">Filtered field</p><h3>Rating Histogram</h3></div></header>
+                    <div class="chart-canvas"><canvas id="leaderboard-histogram-chart" aria-label="Filtered UFC Elo histogram"></canvas></div>
+                </article>
+            </div>
+
+            <div class="data-table-wrap">
+                <table class="analytics-table" aria-label="UFC fighter Elo leaderboard">
+                    <thead>
+                        <tr>
+                            <th scope="col">Rank</th>
+                            <th scope="col">Fighter</th>
+                            <th scope="col">Division</th>
+                            <th scope="col">Current</th>
+                            <th scope="col">Peak</th>
+                            <th scope="col">Record</th>
+                            <th scope="col">Win rate</th>
+                            <th scope="col">Fights</th>
+                            <th scope="col">3-fight trend</th>
+                            <th scope="col">Form</th>
+                            <th scope="col">Last fight</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body"></tbody>
+                </table>
+            </div>
+            <div class="table-pagination">
+                <button id="leaderboard-previous" type="button" class="icon-button" title="Previous page" aria-label="Previous page">&larr;</button>
+                <span id="leaderboard-page-status">Page 1</span>
+                <button id="leaderboard-next" type="button" class="icon-button" title="Next page" aria-label="Next page">&rarr;</button>
+            </div>
+        </section>
+
+        <section id="matchup-panel" class="dashboard-panel" role="tabpanel" data-dashboard-panel="matchup" hidden>
+            <div class="panel-heading">
+                <div>
+                    <p class="dashboard-eyebrow">Hypothetical matchup</p>
+                    <h2>Matchup Lab</h2>
+                </div>
+            </div>
+
+            <div class="matchup-controls">
+                <label>
+                    <span>Fighter A</span>
+                    <select id="matchup-fighter-one"></select>
+                </label>
+                <button id="swap-matchup" class="icon-button swap-button" type="button" title="Swap fighters" aria-label="Swap fighters">&#8644;</button>
+                <label>
+                    <span>Fighter B</span>
+                    <select id="matchup-fighter-two"></select>
+                </label>
+            </div>
+
+            <section class="matchup-projection" aria-labelledby="projection-heading">
+                <header>
+                    <div>
+                        <p class="chart-kicker">Elo projection</p>
+                        <h3 id="projection-heading">Projected win probability</h3>
+                    </div>
+                    <span id="matchup-reliability" class="reliability-badge">-</span>
+                </header>
+                <div class="probability-labels">
+                    <strong id="probability-name-one">Fighter A</strong>
+                    <strong id="probability-name-two">Fighter B</strong>
+                </div>
+                <div class="probability-track" aria-label="Projected win probability">
+                    <div id="probability-bar-one" class="probability-one"><span id="probability-one">50%</span></div>
+                    <div id="probability-bar-two" class="probability-two"><span id="probability-two">50%</span></div>
+                </div>
+                <div class="projection-meta">
+                    <span id="matchup-elo-gap">0 Elo difference</span>
+                    <span id="matchup-confidence">95% interval unavailable</span>
+                </div>
+            </section>
+
+            <div class="matchup-chart-grid">
+                <article class="chart-frame chart-frame-wide">
+                    <header><div><p class="chart-kicker">Career history</p><h3>Rating Trajectory</h3></div></header>
+                    <div class="chart-canvas"><canvas id="matchup-history-chart" aria-label="Selected fighters' Elo histories"></canvas></div>
+                </article>
+                <article class="chart-frame">
+                    <header><div><p class="chart-kicker">Style profile</p><h3>Comparative Strengths</h3></div></header>
+                    <div class="chart-canvas"><canvas id="matchup-radar-chart" aria-label="Selected fighters' comparative statistics"></canvas></div>
+                </article>
+            </div>
+
+            <div class="data-table-wrap">
+                <table class="analytics-table comparison-table" aria-label="Selected fighter statistics comparison">
+                    <thead><tr><th scope="col" id="compare-heading-one">Fighter A</th><th scope="col">Metric</th><th scope="col" id="compare-heading-two">Fighter B</th></tr></thead>
+                    <tbody id="matchup-comparison-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="cards-panel" class="dashboard-panel" role="tabpanel" data-dashboard-panel="cards" hidden>
+            <div class="panel-heading card-panel-heading">
+                <div>
+                    <p class="dashboard-eyebrow">Latest generated slate</p>
+                    <h2>Fight Card Rankings</h2>
+                </div>
+                <label class="card-selector">
+                    <span>Fight card</span>
+                    <select id="fight-card-select"></select>
+                </label>
+            </div>
+
+            <div class="card-summary-bar">
+                <div><span>Card date</span><strong id="selected-card-date">-</strong></div>
+                <div><span>Ranked fights</span><strong id="selected-card-predicted">-</strong></div>
+                <div><span>Insufficient data</span><strong id="selected-card-insufficient">-</strong></div>
+            </div>
+
+            <article class="chart-frame card-edge-chart">
+                <header><div><p class="chart-kicker">Model separation</p><h3>Win Probability Gap by Fight</h3></div></header>
+                <div class="chart-canvas"><canvas id="fight-card-edge-chart" aria-label="Fight card ranked by win probability difference"></canvas></div>
+            </article>
+
+            <div class="fight-analysis-grid">
+                <section aria-labelledby="ranked-fights-heading">
+                    <div class="subsection-heading">
+                        <h3 id="ranked-fights-heading">Ranked Fights</h3>
+                        <span>Largest probability gap first</span>
+                    </div>
+                    <div id="ranked-fights-list" class="ranked-fights-list"></div>
+                </section>
+                <aside id="fight-detail" class="fight-detail" aria-live="polite">
+                    <p class="chart-kicker">Selected fight</p>
+                    <h3 id="fight-detail-title">Select a ranked fight</h3>
+                    <div id="fight-detail-probabilities"></div>
+                    <dl id="fight-detail-stats" class="fight-detail-stats"></dl>
+                    <div class="chart-canvas chart-canvas-compact"><canvas id="fight-signals-chart" aria-label="Selected fight model signals"></canvas></div>
+                </aside>
+            </div>
+
+            <section class="insufficient-section" aria-labelledby="insufficient-heading">
+                <div class="subsection-heading">
+                    <div>
+                        <p class="dashboard-eyebrow">Held out</p>
+                        <h3 id="insufficient-heading">Not Enough Fights for a Prediction</h3>
+                    </div>
+                    <span id="insufficient-count">0 fights</span>
+                </div>
+                <div id="insufficient-fights-list" class="insufficient-fights-list"></div>
+            </section>
+        </section>
+
+        <section id="methodology-panel" class="dashboard-panel" role="tabpanel" data-dashboard-panel="methodology" hidden>
+            <div class="panel-heading">
+                <div>
+                    <p class="dashboard-eyebrow">Model notes</p>
+                    <h2>Methodology & Calibration</h2>
+                </div>
+            </div>
+
+            <div class="methodology-grid">
+                <article>
+                    <h3>Elo ratings</h3>
+                    <p>Ratings update after each recorded UFC fight. The expected score uses the standard Elo logistic curve, while rating movement accounts for experience, inactivity decay, and result type in the generated advanced dataset.</p>
+                </article>
+                <article>
+                    <h3>Matchup projections</h3>
+                    <p>The Matchup Lab converts the current Elo difference into complementary win probabilities. Its interval uses the smaller fighter sample as a conservative uncertainty input.</p>
+                </article>
+                <article>
+                    <h3>Fight-card model</h3>
+                    <p>Generated card probabilities combine base logistic, style matchup, moving form windows, gradient boosting, and neural-network scores through experience-specific scenario models. Opposite-direction outputs are reconciled into complementary matchup probabilities.</p>
+                </article>
+                <article>
+                    <h3>Insufficient data</h3>
+                    <p>Fights marked <code>nef</code> by the source pipeline are not assigned a probability. They remain visible in a separate section instead of being mixed into the ranked predictions.</p>
+                </article>
+            </div>
+
+            <div class="methodology-analytics">
+                <article class="chart-frame">
+                    <header><div><p class="chart-kicker">Historical calibration</p><h3>Higher-Rated Fighter Win Rate</h3></div></header>
+                    <div class="chart-canvas"><canvas id="elo-calibration-chart" aria-label="Historical win rate by Elo difference"></canvas></div>
+                </article>
+                <div class="data-table-wrap calibration-table-wrap">
+                    <table class="analytics-table" aria-label="Historical Elo calibration table">
+                        <thead><tr><th scope="col">Elo gap</th><th scope="col">Fights</th><th scope="col">Win rate</th><th scope="col">95% interval</th></tr></thead>
+                        <tbody id="elo-calibration-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <aside class="analytics-disclaimer methodology-disclaimer" role="note">
+                <strong>Not betting advice</strong>
+                <span>Predictions are experimental outputs based on a fixed historical snapshot. Injuries, late replacements, weight cuts, judging, and new information are not represented unless the local pipeline is regenerated.</span>
+            </aside>
+        </section>
+    </main>
+    <footer><p>&copy; 2024 Richard Lavey</p></footer>
+    <script src="js/includeHeader.js"></script>
+    <script src="js/vendor/chart.umd.min.js?v=4.5.1"></script>
+    <script src="js/ufcDashboard.js?v=4"></script>
+</body>
+</html>
