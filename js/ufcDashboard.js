@@ -1,5 +1,6 @@
-const UFC_DATA_URL = 'data/ufc-dashboard.json?v=2025-10-14-2';
-const UFC_MODEL_URL = 'data/ufc-model.json?v=2025-10-14-1';
+const UFC_CACHE_KEY = Date.now();
+const UFC_DATA_URL = `data/ufc-dashboard.json?v=${UFC_CACHE_KEY}`;
+const UFC_MODEL_URL = `data/ufc-model.json?v=${UFC_CACHE_KEY}`;
 
 const dashboardState = {
     data: null,

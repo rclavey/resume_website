@@ -1,4 +1,4 @@
-const HOCKEY_DATA_URL = 'data/hockey-dashboard.json?v=2026-03-19-3';
+const HOCKEY_DATA_URL = `data/hockey-dashboard.json?v=${Date.now()}`;
 
 const hockeyState = {
     data: null,
