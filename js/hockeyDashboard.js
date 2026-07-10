@@ -1,14 +1,17 @@
-const HOCKEY_DATA_URL = 'data/hockey-dashboard.json?v=2026-03-19-1';
+const HOCKEY_DATA_URL = 'data/hockey-dashboard.json?v=2026-03-19-2';
 
 const hockeyState = {
     data: null,
     teamMap: new Map(),
     playoffMap: new Map(),
+    currentPlayerMap: new Map(),
     charts: new Map(),
     currentView: 'overview',
     renderedViews: new Set(),
     playerPage: 1,
-    simulationResult: null
+    simulationResult: null,
+    rosterChanges: { one: [], two: [] },
+    nextRosterChangeId: 1
 };
 
 const hockeyColors = {
@@ -50,6 +53,107 @@ const parameterCatalog = {
     league_average_save_pct: ['League average save rate', 'Goalie baseline']
 };
 
+const chartInfoCatalog = {
+    'overview-team-chart': {
+        title: 'Highest Team Ratings',
+        description: 'Ranks the twelve strongest frozen team snapshots by player-derived Elo before the prediction window.',
+        xAxis: 'Team Elo rating. A larger value indicates a stronger current roster snapshot.',
+        yAxis: 'NHL teams, ordered from the highest rating to the lowest rating shown.',
+        note: 'This is a strength rating, not standings points. Team Elo is rebuilt from player ratings.'
+    },
+    'overview-scatter-chart': {
+        title: 'Rating vs. Standings Points',
+        description: 'Compares model-assessed roster strength with actual standings points at the frozen snapshot.',
+        xAxis: 'Team Elo rating.',
+        yAxis: 'Standings points accumulated through the snapshot date.',
+        note: 'Teams far above or below the overall pattern have a larger disagreement between rating strength and season results.'
+    },
+    'overview-calibration-chart': {
+        title: 'Prediction Calibration',
+        description: 'Checks whether historical favorites won as often as their predicted probabilities implied.',
+        xAxis: 'Favorite win-probability bucket.',
+        yAxis: 'Average predicted or observed win rate within each bucket.',
+        note: 'Closer lines indicate better calibration. Buckets with fewer than 25 games are excluded from this graph.'
+    },
+    'team-ratings-chart': {
+        title: 'Filtered Team Ratings',
+        description: 'Displays team Elo for the clubs remaining after the active team filters and sort order are applied.',
+        xAxis: 'Team Elo rating.',
+        yAxis: 'Filtered NHL teams.',
+        note: 'Eastern teams are teal and Western teams are red.'
+    },
+    'team-playoff-chart': {
+        title: 'Playoff Probability',
+        description: 'Shows each filtered team\'s chance of reaching the playoffs in the published 20,000-run simulation.',
+        xAxis: 'Probability of making the playoffs.',
+        yAxis: 'Filtered NHL teams.',
+        note: 'These probabilities use the frozen March 19, 2026 standings and remaining schedule.'
+    },
+    'player-ratings-chart': {
+        title: 'Player Ratings',
+        description: 'Ranks the leading players in the currently filtered player dataset.',
+        xAxis: 'Current Elo or all-time peak Elo, depending on the selected leaderboard.',
+        yAxis: 'Filtered NHL players.',
+        note: 'Colors identify forwards, defensemen, and goalies.'
+    },
+    'goalie-ratings-chart': {
+        title: 'Goalie Ratings',
+        description: 'Provides a goalie-only ranking without mixing goalie Elo values with skater ratings.',
+        xAxis: 'Current goalie Elo or all-time peak goalie Elo.',
+        yAxis: 'Filtered goalies, ordered from highest to lowest rating.',
+        note: 'Goalie updates use team results plus saves above or below the tuned league-average save percentage.'
+    },
+    'matchup-comparison-chart': {
+        title: 'Team Profile Comparison',
+        description: 'Compares the selected teams across league-relative strength and published postseason probabilities.',
+        xAxis: 'Profile category: scenario Elo percentile, points percentile, playoff probability, Cup Final probability, and Cup probability.',
+        yAxis: 'Relative score or probability from 0% to 100%.',
+        note: 'Roster edits affect the Elo percentile. Published playoff fields remain tied to the frozen original simulation.'
+    },
+    'schedule-chart': {
+        title: 'Most Decisive Forecasts',
+        description: 'Ranks the strongest favorites among games remaining after schedule filters are applied.',
+        xAxis: 'Favorite win probability.',
+        yAxis: 'Model pick and opponent for each matchup.',
+        note: 'Teal bars are home-team picks; red bars are away-team picks.'
+    },
+    'simulation-standings-chart': {
+        title: 'Average Final Standings',
+        description: 'Ranks teams by average final point total across the most recent browser simulation run.',
+        xAxis: 'Average simulated final standings points.',
+        yAxis: 'Top sixteen projected NHL teams.',
+        note: 'The browser simulation starts from the frozen standings and replays all 230 remaining games.'
+    },
+    'simulation-cup-chart': {
+        title: 'Stanley Cup Probability',
+        description: 'Ranks teams by how often they won the Stanley Cup in the most recent browser simulation run.',
+        xAxis: 'Share of simulations ending in a Stanley Cup championship.',
+        yAxis: 'The sixteen teams with the highest simulated championship probability.',
+        note: 'Playoffs use NHL division and wildcard seeding followed by best-of-seven series.'
+    },
+    'published-playoff-chart': {
+        title: 'Generated Playoff Progression',
+        description: 'Compares advancement probabilities from the locally generated 20,000-run engine benchmark.',
+        xAxis: 'Probability of reaching the selected postseason stage.',
+        yAxis: 'Teams ordered by published championship probability.',
+        note: 'Each group separates making the playoffs, reaching the Cup Final, and winning the championship.'
+    },
+    'model-validation-chart': {
+        title: 'Accuracy by Validation Season',
+        description: 'Shows favorite-pick accuracy across the four chronological validation folds used during tuning.',
+        xAxis: 'NHL validation season.',
+        yAxis: 'Percentage of games where the higher-probability team won.',
+        note: 'Model selection minimized probability error rather than maximizing accuracy alone.'
+    },
+    'model-weights-chart': {
+        title: 'Optimized Position Weights',
+        description: 'Shows the tuned share assigned to forwards, defensemen, and goalies when constructing pregame team Elo.',
+        xAxis: 'Not applicable; this is a composition chart.',
+        yAxis: 'Not applicable; slice area represents each positional weight.',
+        note: 'The three normalized production weights sum to 100%.'
+    }
+};
+
 const byId = (id) => document.getElementById(id);
 const formatNumber = (value, digits = 0) => Number(value).toLocaleString('en-US', {
     minimumFractionDigits: digits,
@@ -66,7 +170,7 @@ const escapeHtml = (value) => String(value)
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
 
-function chartBaseOptions({ horizontal = false, percentage = false } = {}) {
+function chartBaseOptions({ horizontal = false, percentage = false, xTitle = '', yTitle = '' } = {}) {
     const valueScale = horizontal ? 'x' : 'y';
     const categoryScale = horizontal ? 'y' : 'x';
     return {
@@ -86,9 +190,14 @@ function chartBaseOptions({ horizontal = false, percentage = false } = {}) {
                 ticks: {
                     color: hockeyColors.muted,
                     callback: percentage ? (value) => `${value}%` : undefined
-                }
+                },
+                title: { display: Boolean(horizontal ? xTitle : yTitle), text: horizontal ? xTitle : yTitle, color: hockeyColors.muted, font: { size: 11, weight: 700 } }
             },
-            [categoryScale]: { grid: { display: false }, ticks: { color: hockeyColors.muted } }
+            [categoryScale]: {
+                grid: { display: false },
+                ticks: { color: hockeyColors.muted },
+                title: { display: Boolean(horizontal ? yTitle : xTitle), text: horizontal ? yTitle : xTitle, color: hockeyColors.muted, font: { size: 11, weight: 700 } }
+            }
         }
     };
 }
@@ -134,6 +243,35 @@ function populateSelect(select, values, selectedValue) {
     if (selectedValue && values.includes(selectedValue)) select.value = selectedValue;
 }
 
+function setupChartInfo() {
+    document.querySelectorAll('.hockey-chart-frame canvas').forEach((canvas) => {
+        if (!chartInfoCatalog[canvas.id]) return;
+        const header = canvas.closest('.hockey-chart-frame')?.querySelector(':scope > header');
+        if (!header || header.querySelector(`[data-chart-info="${canvas.id}"]`)) return;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'hockey-info-button';
+        button.dataset.chartInfo = canvas.id;
+        button.textContent = 'i';
+        button.title = `More information about ${chartInfoCatalog[canvas.id].title}`;
+        button.setAttribute('aria-label', `More information about ${chartInfoCatalog[canvas.id].title}`);
+        header.append(button);
+    });
+}
+
+function openChartInfo(chartId) {
+    const info = chartInfoCatalog[chartId];
+    if (!info) return;
+    byId('chart-info-title').textContent = info.title;
+    byId('chart-info-description').textContent = info.description;
+    byId('chart-info-x-axis').textContent = info.xAxis;
+    byId('chart-info-y-axis').textContent = info.yAxis;
+    byId('chart-info-note').textContent = info.note;
+    const dialog = byId('chart-info-dialog');
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open', '');
+}
+
 function setupMetadata() {
     const { meta, backtest, teams, currentPlayers, schedule, model } = hockeyState.data;
     const generated = new Date(meta.generatedAt);
@@ -150,6 +288,7 @@ function setupMetadata() {
 
     const teamNames = teams.map((team) => team.name).sort();
     populateSelect(byId('player-team'), teamNames);
+    populateSelect(byId('goalie-team'), teamNames);
     populateSelect(byId('schedule-team'), teamNames);
     populateSelect(byId('matchup-team-one'), teamNames, 'Tampa Bay Lightning');
     populateSelect(byId('matchup-team-two'), teamNames, 'Colorado Avalanche');
@@ -199,12 +338,12 @@ function renderOverview() {
             datasets: [{ label: 'Team Elo', data: top.map((team) => team.rating), backgroundColor: hockeyColors.ice }]
         },
         options: {
-            ...chartBaseOptions({ horizontal: true }),
+            ...chartBaseOptions({ horizontal: true, xTitle: 'Team Elo rating', yTitle: 'NHL team' }),
             indexAxis: 'y',
             plugins: { ...chartBaseOptions().plugins, legend: { display: false } },
             scales: {
-                x: { min: 900, grid: { color: hockeyColors.line }, ticks: { color: hockeyColors.muted } },
-                y: { grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 11, weight: 700 } } }
+                x: { min: 900, title: { display: true, text: 'Team Elo rating' }, grid: { color: hockeyColors.line }, ticks: { color: hockeyColors.muted } },
+                y: { title: { display: true, text: 'NHL team' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 11, weight: 700 } } }
             }
         }
     });
@@ -223,8 +362,8 @@ function renderOverview() {
                 tooltip: { callbacks: { label: (context) => `${context.raw.team}: ${context.raw.x.toFixed(1)} Elo, ${context.raw.y} pts` } }
             },
             scales: {
-                x: { title: { display: true, text: 'Team Elo' }, grid: { color: hockeyColors.line }, ticks: { color: hockeyColors.muted } },
-                y: { title: { display: true, text: 'Standings points' }, grid: { color: hockeyColors.line }, ticks: { color: hockeyColors.muted } }
+                x: { title: { display: true, text: 'Team Elo rating' }, grid: { color: hockeyColors.line }, ticks: { color: hockeyColors.muted } },
+                y: { title: { display: true, text: 'Standings points at snapshot' }, grid: { color: hockeyColors.line }, ticks: { color: hockeyColors.muted } }
             }
         }
     });
@@ -238,7 +377,7 @@ function renderOverview() {
                 { label: 'Observed', data: calibration.map((bucket) => bucket.hitRate * 100), borderColor: hockeyColors.red, backgroundColor: hockeyColors.redSoft, tension: 0.25, pointRadius: 4 }
             ]
         },
-        options: chartBaseOptions({ percentage: true })
+        options: chartBaseOptions({ percentage: true, xTitle: 'Favorite win-probability bucket', yTitle: 'Predicted or observed win rate' })
     });
 }
 
@@ -278,11 +417,11 @@ function renderTeams() {
     const chartRows = rows.slice(0, 16);
     renderChart('teamRatings', 'team-ratings-chart', {
         type: 'bar', data: { labels: chartRows.map((team) => team.name), datasets: [{ data: chartRows.map((team) => team.rating), backgroundColor: chartRows.map((team) => team.conference === 'Eastern' ? hockeyColors.ice : hockeyColors.red) }] },
-        options: { ...chartBaseOptions({ horizontal: true }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: Math.max(0, Math.floor(Math.min(...chartRows.map((team) => team.rating), 900) / 50) * 50), grid: { color: hockeyColors.line } }, y: { grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
+        options: { ...chartBaseOptions({ horizontal: true, xTitle: 'Team Elo rating', yTitle: 'NHL team' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: Math.max(0, Math.floor(Math.min(...chartRows.map((team) => team.rating), 900) / 50) * 50), title: { display: true, text: 'Team Elo rating' }, grid: { color: hockeyColors.line } }, y: { title: { display: true, text: 'NHL team' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
     });
     renderChart('teamPlayoffs', 'team-playoff-chart', {
         type: 'bar', data: { labels: chartRows.map((team) => team.name), datasets: [{ data: chartRows.map((team) => (hockeyState.playoffMap.get(team.name)?.makePlayoffs || 0) * 100), backgroundColor: hockeyColors.lime }] },
-        options: { ...chartBaseOptions({ horizontal: true, percentage: true }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } } }
+        options: { ...chartBaseOptions({ horizontal: true, percentage: true, xTitle: 'Probability of making playoffs', yTitle: 'NHL team' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } } }
     });
 }
 
@@ -326,16 +465,166 @@ function renderPlayers() {
     const chartRows = rows.slice(0, 15);
     renderChart('playerRatings', 'player-ratings-chart', {
         type: 'bar', data: { labels: chartRows.map((player) => player.name), datasets: [{ data: chartRows.map((player) => player.rating), backgroundColor: chartRows.map((player) => player.position === 'Forward' ? hockeyColors.ice : player.position === 'Defense' ? hockeyColors.blue : hockeyColors.red) }] },
-        options: { ...chartBaseOptions({ horizontal: true }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: Math.max(0, Math.floor(Math.min(...chartRows.map((player) => player.rating), 900) / 100) * 100), grid: { color: hockeyColors.line } }, y: { grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
+        options: { ...chartBaseOptions({ horizontal: true, xTitle: historic ? 'All-time peak player Elo' : 'Current player Elo', yTitle: 'NHL player' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: Math.max(0, Math.floor(Math.min(...chartRows.map((player) => player.rating), 900) / 100) * 100), title: { display: true, text: historic ? 'All-time peak player Elo' : 'Current player Elo' }, grid: { color: hockeyColors.line } }, y: { title: { display: true, text: 'NHL player' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
+    });
+    renderGoalies();
+}
+
+function renderGoalies() {
+    const historic = byId('goalie-mode').value === 'historic';
+    const team = byId('goalie-team').value;
+    const query = byId('goalie-search').value.trim().toLowerCase();
+    const source = historic ? hockeyState.data.historicPlayers : hockeyState.data.currentPlayers;
+    const goalies = source.filter((player) =>
+        player.position === 'Goalie' &&
+        (team === 'all' || player.team === team) &&
+        (!query || player.name.toLowerCase().includes(query))
+    ).sort((a, b) => b.rating - a.rating || a.name.localeCompare(b.name));
+    byId('goalie-count').textContent = `${formatNumber(goalies.length)} goalies`;
+    byId('goalie-chart-title').textContent = historic ? 'Highest All-Time Goalie Peaks' : 'Highest Current Goalie Ratings';
+    byId('goalie-rating-heading').textContent = historic ? 'Peak Elo' : 'Current Elo';
+    byId('goalie-date-heading').textContent = historic ? 'Peak date' : 'Last game';
+    byId('goalie-country-heading').hidden = !historic;
+    byId('goalie-table-body').innerHTML = goalies.length ? goalies.slice(0, 50).map((goalie, index) => `<tr>
+        <td class="hockey-rank">${index + 1}</td><td class="hockey-player-name">${escapeHtml(goalie.name)}</td>
+        <td>${escapeHtml(goalie.team)}</td><td class="hockey-rating">${formatNumber(goalie.rating, 1)}</td>
+        <td>${formatDate(historic ? goalie.peakDate : goalie.lastGame)}</td>${historic ? `<td>${goalie.nationality}</td>` : ''}
+    </tr>`).join('') : `<tr><td class="hockey-empty" colspan="${historic ? 6 : 5}">No goalies match these filters.</td></tr>`;
+    const chartRows = goalies.slice(0, 15);
+    const chartMinimum = Math.max(0, Math.floor(Math.min(...chartRows.map((goalie) => goalie.rating), 700) / 100) * 100);
+    renderChart('goalieRatings', 'goalie-ratings-chart', {
+        type: 'bar',
+        data: {
+            labels: chartRows.map((goalie) => goalie.name),
+            datasets: [{ data: chartRows.map((goalie) => goalie.rating), backgroundColor: hockeyColors.red }]
+        },
+        options: {
+            ...chartBaseOptions({ horizontal: true, xTitle: historic ? 'All-time peak goalie Elo' : 'Current goalie Elo', yTitle: 'NHL goalie' }),
+            indexAxis: 'y',
+            plugins: { ...chartBaseOptions().plugins, legend: { display: false } },
+            scales: {
+                x: { min: chartMinimum, title: { display: true, text: historic ? 'All-time peak goalie Elo' : 'Current goalie Elo' }, grid: { color: hockeyColors.line } },
+                y: { title: { display: true, text: 'NHL goalie' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } }
+            }
+        }
     });
 }
 
+function currentTeamRoster(teamName) {
+    return hockeyState.data.currentPlayers.filter((player) => player.team === teamName);
+}
+
+function meanRating(players) {
+    if (!players.length) return 1000;
+    return players.reduce((sum, player) => sum + player.rating, 0) / players.length;
+}
+
+function rosterComponentRating(players) {
+    const params = hockeyState.data.model.params;
+    const forwards = players.filter((player) => player.position === 'Forward');
+    const defense = players.filter((player) => player.position === 'Defense');
+    const goalies = players.filter((player) => player.position === 'Goalie');
+    return params.w_f * meanRating(forwards) + params.w_d * meanRating(defense) + params.w_g * meanRating(goalies);
+}
+
+function scenarioTeam(team, side) {
+    const baseRoster = currentTeamRoster(team.name);
+    const changes = hockeyState.rosterChanges[side];
+    const outgoingNames = new Set(changes.map((change) => change.outgoingName));
+    const scenarioRoster = baseRoster.filter((player) => !outgoingNames.has(player.name));
+    changes.forEach((change) => {
+        const incoming = hockeyState.currentPlayerMap.get(change.incomingName);
+        if (incoming && !scenarioRoster.some((player) => player.name === incoming.name)) scenarioRoster.push(incoming);
+    });
+    const delta = rosterComponentRating(scenarioRoster) - rosterComponentRating(baseRoster);
+    return { ...team, baseRating: team.rating, rating: team.rating + delta, ratingDelta: delta, scenarioRoster };
+}
+
+function rosterPlayerOptions(players, selectedName) {
+    return players.map((player) => `<option value="${escapeHtml(player.name)}"${player.name === selectedName ? ' selected' : ''}>${escapeHtml(player.name)} (${player.position}, ${formatNumber(player.rating, 0)})</option>`).join('');
+}
+
+function incomingCandidates(outgoing, teamName, side, currentChangeId) {
+    const usedIncoming = new Set(hockeyState.rosterChanges[side]
+        .filter((change) => change.id !== currentChangeId)
+        .map((change) => change.incomingName));
+    return hockeyState.data.currentPlayers.filter((player) =>
+        player.position === outgoing.position &&
+        player.team !== teamName &&
+        !usedIncoming.has(player.name)
+    ).sort((a, b) => b.rating - a.rating || a.name.localeCompare(b.name));
+}
+
+function renderRosterChanges(side, team, scenario) {
+    const changes = hockeyState.rosterChanges[side];
+    const container = byId(`roster-changes-${side}`);
+    const roster = currentTeamRoster(team.name).sort((a, b) => a.position.localeCompare(b.position) || a.name.localeCompare(b.name));
+    const usedOutgoing = new Set(changes.map((change) => change.outgoingName));
+    container.innerHTML = changes.length ? changes.map((change) => {
+        const outgoing = hockeyState.currentPlayerMap.get(change.outgoingName) || roster[0];
+        const outgoingOptions = roster.filter((player) => player.name === change.outgoingName || !usedOutgoing.has(player.name));
+        const incoming = incomingCandidates(outgoing, team.name, side, change.id);
+        if (!incoming.some((player) => player.name === change.incomingName) && hockeyState.currentPlayerMap.has(change.incomingName)) {
+            incoming.push(hockeyState.currentPlayerMap.get(change.incomingName));
+        }
+        return `<div class="hockey-roster-change" data-change-id="${change.id}" data-side="${side}">
+            <label><span>Replace</span><select data-roster-field="outgoing">${rosterPlayerOptions(outgoingOptions, change.outgoingName)}</select></label>
+            <span class="hockey-roster-arrow">&rarr;</span>
+            <label><span>With</span><select data-roster-field="incoming">${rosterPlayerOptions(incoming, change.incomingName)}</select></label>
+            <button class="hockey-remove-change" type="button" data-remove-roster-change="${change.id}" data-side="${side}" title="Remove roster change" aria-label="Remove roster change">&times;</button>
+        </div>`;
+    }).join('') : '<div class="hockey-roster-empty">Current frozen roster</div>';
+    byId(`roster-team-${side}`).textContent = team.name;
+    const delta = scenario.ratingDelta;
+    const deltaClass = delta > 0.05 ? 'hockey-rating-delta-positive' : delta < -0.05 ? 'hockey-rating-delta-negative' : '';
+    const deltaText = Math.abs(delta) < 0.05 ? 'base' : `${delta > 0 ? '+' : ''}${formatNumber(delta, 1)}`;
+    byId(`roster-rating-${side}`).innerHTML = `${formatNumber(scenario.rating, 1)} <span class="${deltaClass}">(${deltaText})</span>`;
+}
+
+function addRosterChange(side) {
+    const team = hockeyState.teamMap.get(byId(`matchup-team-${side}`).value);
+    if (!team) return;
+    const usedOutgoing = new Set(hockeyState.rosterChanges[side].map((change) => change.outgoingName));
+    const outgoing = currentTeamRoster(team.name)
+        .filter((player) => !usedOutgoing.has(player.name))
+        .sort((a, b) => a.position.localeCompare(b.position) || a.name.localeCompare(b.name))[0];
+    if (!outgoing) return;
+    const candidates = incomingCandidates(outgoing, team.name, side, -1);
+    if (!candidates.length) return;
+    hockeyState.rosterChanges[side].push({
+        id: hockeyState.nextRosterChangeId++,
+        outgoingName: outgoing.name,
+        incomingName: candidates[0].name
+    });
+    renderMatchup();
+}
+
+function updateRosterChange(side, changeId, field, value) {
+    const change = hockeyState.rosterChanges[side].find((item) => item.id === changeId);
+    if (!change) return;
+    if (field === 'outgoing') {
+        change.outgoingName = value;
+        const team = hockeyState.teamMap.get(byId(`matchup-team-${side}`).value);
+        const outgoing = hockeyState.currentPlayerMap.get(value);
+        const candidates = incomingCandidates(outgoing, team.name, side, changeId);
+        change.incomingName = candidates[0]?.name || '';
+    } else {
+        change.incomingName = value;
+    }
+    renderMatchup();
+}
+
 function renderMatchup() {
-    const teamA = hockeyState.teamMap.get(byId('matchup-team-one').value);
-    const teamB = hockeyState.teamMap.get(byId('matchup-team-two').value);
-    if (!teamA || !teamB) return;
+    const baseTeamA = hockeyState.teamMap.get(byId('matchup-team-one').value);
+    const baseTeamB = hockeyState.teamMap.get(byId('matchup-team-two').value);
+    if (!baseTeamA || !baseTeamB) return;
+    const teamA = scenarioTeam(baseTeamA, 'one');
+    const teamB = scenarioTeam(baseTeamB, 'two');
+    renderRosterChanges('one', baseTeamA, teamA);
+    renderRosterChanges('two', baseTeamB, teamB);
+    const hasScenario = hockeyState.rosterChanges.one.length > 0 || hockeyState.rosterChanges.two.length > 0;
     let probabilityA = expectedScore(teamA.rating, teamB.rating);
-    if (teamA.name === teamB.name) probabilityA = 0.5;
+    if (teamA.name === teamB.name && !hasScenario) probabilityA = 0.5;
     const probabilityB = 1 - probabilityA;
     const calibration = getCalibration(probabilityA);
     const aIsFavorite = probabilityA >= 0.5;
@@ -348,6 +637,10 @@ function renderMatchup() {
     byId('matchup-bar-one').style.width = `${probabilityA * 100}%`;
     byId('matchup-bar-two').style.width = `${probabilityB * 100}%`;
     byId('matchup-confidence-badge').textContent = `${formatNumber(calibration.games)} comparable games`;
+    byId('matchup-projection-kicker').textContent = hasScenario ? 'Roster-adjusted Elo' : 'Elo baseline';
+    byId('matchup-projection-note').textContent = hasScenario
+        ? 'The neutral-ice projection now includes the displayed roster substitutions. Schedule context and published playoff odds remain tied to the original frozen snapshot.'
+        : 'The hypothetical matchup isolates team Elo on neutral ice. Generated schedule forecasts additionally account for home ice, rest, back-to-backs, and travel.';
     byId('matchup-ranges').innerHTML = [
         [teamA, probabilityA, rangeA], [teamB, probabilityB, rangeB]
     ].map(([team, probability, range]) => `<div><strong>${escapeHtml(team.name)}: ${formatPercent(range[0])}-${formatPercent(range[1])}</strong><span>Historical 95% interval | fair odds ${fairAmericanOdds(probability)}</span></div>`).join('');
@@ -355,7 +648,7 @@ function renderMatchup() {
     const cards = [teamA, teamB].map((team) => {
         const odds = hockeyState.playoffMap.get(team.name) || {};
         return `<article><h3>${escapeHtml(team.name)}</h3><div class="hockey-comparison-stats">
-            <div><span>Elo</span><strong>${formatNumber(team.rating, 1)}</strong></div><div><span>League rank</span><strong>#${team.rank}</strong></div>
+            <div><span>Scenario Elo</span><strong>${formatNumber(team.rating, 1)}</strong></div><div><span>Change</span><strong class="${team.ratingDelta > 0.05 ? 'hockey-rating-delta-positive' : team.ratingDelta < -0.05 ? 'hockey-rating-delta-negative' : ''}">${team.ratingDelta > 0 ? '+' : ''}${formatNumber(team.ratingDelta, 1)}</strong></div>
             <div><span>Points</span><strong>${team.points}</strong></div><div><span>Cup odds</span><strong>${formatPercent(odds.champion || 0)}</strong></div>
         </div></article>`;
     }).join('');
@@ -371,7 +664,7 @@ function renderMatchup() {
         type: 'bar', data: { labels: ['Elo percentile', 'Points percentile', 'Make playoffs', 'Cup Final', 'Win Cup'], datasets: [
             { label: teamA.name, data: profile(teamA), backgroundColor: hockeyColors.ice },
             { label: teamB.name, data: profile(teamB), backgroundColor: hockeyColors.red }
-        ] }, options: chartBaseOptions({ percentage: true })
+        ] }, options: chartBaseOptions({ percentage: true, xTitle: 'Team profile metric', yTitle: 'League-relative score or probability' })
     });
 }
 
@@ -416,7 +709,7 @@ function renderSchedule() {
     const chartRows = [...rows].sort((a, b) => b.favoriteProbability - a.favoriteProbability).slice(0, 14);
     renderChart('schedule', 'schedule-chart', {
         type: 'bar', data: { labels: chartRows.map((game) => `${game.pick} vs ${game.pick === game.homeTeam ? game.awayTeam : game.homeTeam}`), datasets: [{ data: chartRows.map((game) => game.favoriteProbability * 100), backgroundColor: chartRows.map((game) => game.pick === game.homeTeam ? hockeyColors.ice : hockeyColors.red) }] },
-        options: { ...chartBaseOptions({ horizontal: true, percentage: true }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: 50, max: 100, grid: { color: hockeyColors.line }, ticks: { callback: (value) => `${value}%` } }, y: { grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
+        options: { ...chartBaseOptions({ horizontal: true, percentage: true, xTitle: 'Favorite win probability', yTitle: 'Model pick vs. opponent' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: 50, max: 100, title: { display: true, text: 'Favorite win probability' }, grid: { color: hockeyColors.line }, ticks: { callback: (value) => `${value}%` } }, y: { title: { display: true, text: 'Model pick vs. opponent' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
     });
 }
 
@@ -573,12 +866,12 @@ function renderSimulationResult() {
 
     renderChart('simulationStandings', 'simulation-standings-chart', {
         type: 'bar', data: { labels: result.teams.slice(0, 16).map((team) => team.name), datasets: [{ label: 'Average final points', data: result.teams.slice(0, 16).map((team) => team.projectedPoints), backgroundColor: result.teams.slice(0, 16).map((team) => team.conference === 'Eastern' ? hockeyColors.ice : hockeyColors.red) }] },
-        options: { ...chartBaseOptions({ horizontal: true }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: 75, grid: { color: hockeyColors.line } }, y: { grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
+        options: { ...chartBaseOptions({ horizontal: true, xTitle: 'Average simulated final points', yTitle: 'NHL team' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: 75, title: { display: true, text: 'Average simulated final points' }, grid: { color: hockeyColors.line } }, y: { title: { display: true, text: 'NHL team' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
     });
     const cupRows = [...result.teams].sort((a, b) => b.cupProbability - a.cupProbability).slice(0, 16);
     renderChart('simulationCup', 'simulation-cup-chart', {
         type: 'bar', data: { labels: cupRows.map((team) => team.name), datasets: [{ data: cupRows.map((team) => team.cupProbability * 100), backgroundColor: hockeyColors.gold }] },
-        options: { ...chartBaseOptions({ horizontal: true, percentage: true }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } } }
+        options: { ...chartBaseOptions({ horizontal: true, percentage: true, xTitle: 'Stanley Cup win probability', yTitle: 'NHL team' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } } }
     });
 }
 
@@ -597,12 +890,13 @@ function renderPublishedPlayoffs() {
             { label: 'Make playoffs', data: rows.map((team) => team.makePlayoffs * 100), backgroundColor: hockeyColors.ice },
             { label: 'Cup Final', data: rows.map((team) => team.cupFinal * 100), backgroundColor: hockeyColors.blue },
             { label: 'Champion', data: rows.map((team) => team.champion * 100), backgroundColor: hockeyColors.gold }
-        ] }, options: { ...chartBaseOptions({ horizontal: true, percentage: true }), indexAxis: 'y', scales: { x: { stacked: false, min: 0, max: 100, grid: { color: hockeyColors.line }, ticks: { callback: (value) => `${value}%` } }, y: { grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
+        ] }, options: { ...chartBaseOptions({ horizontal: true, percentage: true, xTitle: 'Postseason advancement probability', yTitle: 'NHL team' }), indexAxis: 'y', scales: { x: { stacked: false, min: 0, max: 100, title: { display: true, text: 'Postseason advancement probability' }, grid: { color: hockeyColors.line }, ticks: { callback: (value) => `${value}%` } }, y: { title: { display: true, text: 'NHL team' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
     });
 }
 
 function renderModel() {
     const { backtest, model } = hockeyState.data;
+    const params = model.params;
     byId('model-accuracy').textContent = formatPercent(backtest.accuracy);
     byId('model-accuracy-ci').textContent = `95% CI ${formatPercent(backtest.accuracyLow)}-${formatPercent(backtest.accuracyHigh)}`;
     byId('model-auc').textContent = formatNumber(backtest.auc, 4);
@@ -610,6 +904,19 @@ function renderModel() {
     byId('model-brier').textContent = formatNumber(backtest.brier, 4);
     byId('model-ece').textContent = formatNumber(backtest.ece, 4);
     byId('selected-trial').textContent = `Production trial ${model.selectedTrial} | regression ${formatPercent(model.regressionRate)}`;
+    byId('model-development-range').textContent = `${model.trainingSeasons[0]}-${model.holdoutSeasons.at(-1)} seasons`;
+    byId('creation-game-count').textContent = formatNumber(model.gamesProcessed);
+    byId('creation-validation-seasons').textContent = model.validationSeasons.join(', ');
+    byId('creation-holdout-seasons').textContent = model.holdoutSeasons.join(', ');
+    byId('creation-trials').textContent = `${formatNumber(model.completedTrials)} trials (seed ${model.searchSeed})`;
+    byId('creation-stability').textContent = `${formatNumber(model.stabilityLambda, 2)} x fold standard deviation`;
+    byId('creation-finalists').textContent = formatNumber(model.topCandidatesEvaluated);
+    byId('team-weight-forward').textContent = formatNumber(params.w_f, 4);
+    byId('team-weight-defense').textContent = formatNumber(params.w_d, 4);
+    byId('team-weight-goalie').textContent = formatNumber(params.w_g, 4);
+    byId('forward-impact-equation').textContent = `${formatNumber(params.forward_goal_weight, 4)} x goals + ${formatNumber(params.forward_assist_weight, 4)} x assists + ${formatNumber(params.forward_plus_minus_weight, 4)} x clipped +/- + ${formatNumber(params.forward_toi_share_weight, 4)} x TOI z-score`;
+    byId('defense-impact-equation').textContent = `${formatNumber(params.defense_goal_weight, 4)} x goals + ${formatNumber(params.defense_assist_weight, 4)} x assists + ${formatNumber(params.defense_plus_minus_weight, 4)} x clipped +/- + ${formatNumber(params.defense_toi_share_weight, 4)} x TOI z-score`;
+    byId('goalie-impact-equation').textContent = `shots faced x (save% - ${formatNumber(params.league_average_save_pct, 4)}); ${formatNumber(params.goalie_save_pct_multiplier, 2)} x the save% gap when shots faced are unavailable`;
     byId('parameter-table-body').innerHTML = Object.entries(model.params).map(([key, value]) => {
         const [label, role] = parameterCatalog[key] || [key.replaceAll('_', ' '), 'Model configuration'];
         return `<tr><td class="hockey-team-name">${escapeHtml(label)}</td><td>${escapeHtml(role)}</td><td class="hockey-rating">${formatNumber(value, 4)}</td></tr>`;
@@ -617,10 +924,10 @@ function renderModel() {
     const folds = model.validationMetrics.folds;
     renderChart('modelValidation', 'model-validation-chart', {
         type: 'line', data: { labels: folds.map((fold) => fold.validation_season), datasets: [{ label: 'Accuracy', data: folds.map((fold) => fold.accuracy * 100), borderColor: hockeyColors.ice, backgroundColor: hockeyColors.iceSoft, fill: true, tension: 0.25, pointRadius: 5 }] },
-        options: { ...chartBaseOptions({ percentage: true }), scales: { x: { grid: { display: false } }, y: { min: 50, max: 65, grid: { color: hockeyColors.line }, ticks: { callback: (value) => `${value}%` } } } }
+        options: { ...chartBaseOptions({ percentage: true, xTitle: 'Validation season', yTitle: 'Favorite-pick accuracy' }), scales: { x: { title: { display: true, text: 'Validation season' }, grid: { display: false } }, y: { min: 50, max: 65, title: { display: true, text: 'Favorite-pick accuracy' }, grid: { color: hockeyColors.line }, ticks: { callback: (value) => `${value}%` } } } }
     });
     renderChart('modelWeights', 'model-weights-chart', {
-        type: 'doughnut', data: { labels: ['Forwards', 'Defense', 'Goalies'], datasets: [{ data: [model.params.w_f, model.params.w_d, model.params.w_g], backgroundColor: [hockeyColors.ice, hockeyColors.blue, hockeyColors.red], borderWidth: 0 }] },
+        type: 'doughnut', data: { labels: ['Forwards', 'Defense', 'Goalies'], datasets: [{ data: [params.w_f, params.w_d, params.w_g], backgroundColor: [hockeyColors.ice, hockeyColors.blue, hockeyColors.red], borderWidth: 0 }] },
         options: { responsive: true, maintainAspectRatio: false, cutout: '58%', plugins: chartBaseOptions().plugins }
     });
 }
@@ -634,16 +941,49 @@ function setupEvents() {
     byId('player-filters').addEventListener('reset', () => window.setTimeout(() => { hockeyState.playerPage = 1; renderPlayers(); }));
     byId('player-previous').addEventListener('click', () => { hockeyState.playerPage -= 1; renderPlayers(); });
     byId('player-next').addEventListener('click', () => { hockeyState.playerPage += 1; renderPlayers(); });
-    ['matchup-team-one', 'matchup-team-two'].forEach((id) => byId(id).addEventListener('change', renderMatchup));
+    ['goalie-mode', 'goalie-team', 'goalie-search'].forEach((id) => byId(id).addEventListener('input', renderGoalies));
+    byId('goalie-filters').addEventListener('reset', () => window.setTimeout(renderGoalies));
+    byId('matchup-team-one').addEventListener('change', () => { hockeyState.rosterChanges.one = []; renderMatchup(); });
+    byId('matchup-team-two').addEventListener('change', () => { hockeyState.rosterChanges.two = []; renderMatchup(); });
     byId('swap-matchup').addEventListener('click', () => {
         const first = byId('matchup-team-one').value;
         byId('matchup-team-one').value = byId('matchup-team-two').value;
         byId('matchup-team-two').value = first;
+        const firstChanges = hockeyState.rosterChanges.one;
+        hockeyState.rosterChanges.one = hockeyState.rosterChanges.two;
+        hockeyState.rosterChanges.two = firstChanges;
+        renderMatchup();
+    });
+    document.querySelectorAll('[data-add-roster-change]').forEach((button) => button.addEventListener('click', () => addRosterChange(button.dataset.addRosterChange)));
+    byId('reset-roster-scenarios').addEventListener('click', () => {
+        hockeyState.rosterChanges = { one: [], two: [] };
+        renderMatchup();
+    });
+    byId('roster-scenario-heading').closest('.hockey-roster-scenarios').addEventListener('change', (event) => {
+        const field = event.target.closest('[data-roster-field]');
+        const row = event.target.closest('.hockey-roster-change');
+        if (!field || !row) return;
+        updateRosterChange(row.dataset.side, Number(row.dataset.changeId), field.dataset.rosterField, field.value);
+    });
+    byId('roster-scenario-heading').closest('.hockey-roster-scenarios').addEventListener('click', (event) => {
+        const button = event.target.closest('[data-remove-roster-change]');
+        if (!button) return;
+        const side = button.dataset.side;
+        const id = Number(button.dataset.removeRosterChange);
+        hockeyState.rosterChanges[side] = hockeyState.rosterChanges[side].filter((change) => change.id !== id);
         renderMatchup();
     });
     ['schedule-date', 'schedule-team', 'schedule-confidence', 'schedule-sort'].forEach((id) => byId(id).addEventListener('input', renderSchedule));
     byId('schedule-filters').addEventListener('reset', () => window.setTimeout(renderSchedule));
     byId('run-simulation').addEventListener('click', runSeasonSimulation);
+    document.addEventListener('click', (event) => {
+        const infoButton = event.target.closest('[data-chart-info]');
+        if (infoButton) openChartInfo(infoButton.dataset.chartInfo);
+    });
+    byId('close-chart-info').addEventListener('click', () => byId('chart-info-dialog').close());
+    byId('chart-info-dialog').addEventListener('click', (event) => {
+        if (event.target === byId('chart-info-dialog')) byId('chart-info-dialog').close();
+    });
 }
 
 async function initializeHockeyDashboard() {
@@ -653,7 +993,9 @@ async function initializeHockeyDashboard() {
         hockeyState.data = await response.json();
         hockeyState.teamMap = new Map(hockeyState.data.teams.map((team) => [team.name, team]));
         hockeyState.playoffMap = new Map(hockeyState.data.playoffs.advancement.map((team) => [team.team, team]));
+        hockeyState.currentPlayerMap = new Map(hockeyState.data.currentPlayers.map((player) => [player.name, player]));
         setupMetadata();
+        setupChartInfo();
         setupEvents();
         byId('hockey-loading').hidden = true;
         setView(window.location.hash.slice(1) || 'overview', false);

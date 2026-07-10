@@ -6,7 +6,7 @@
     <title>Hockey Elo Engine | Richard Lavey</title>
     <meta name="description" content="Interactive NHL team and player Elo ratings, matchup projections, schedule analytics, and Monte Carlo season simulation.">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/hockey-dashboard.css?v=1">
+    <link rel="stylesheet" href="css/hockey-dashboard.css?v=2">
 </head>
 <body>
     <header></header>
@@ -130,6 +130,28 @@
                 <span id="player-page-status">Page 1</span>
                 <button id="player-next" type="button" class="hockey-icon-button" title="Next page" aria-label="Next page">&rarr;</button>
             </div>
+            <section class="hockey-goalie-section" aria-labelledby="goalie-leaderboard-heading">
+                <div class="hockey-subsection-heading">
+                    <div><p class="hockey-eyebrow">Dedicated position view</p><h3 id="goalie-leaderboard-heading">Goalie Leaderboard</h3></div>
+                    <span id="goalie-count">- goalies</span>
+                </div>
+                <form id="goalie-filters" class="hockey-goalie-toolbar">
+                    <label><span>Leaderboard</span><select id="goalie-mode"><option value="current">Current rosters</option><option value="historic">All-time peaks</option></select></label>
+                    <label><span>Team</span><select id="goalie-team"><option value="all">All teams</option></select></label>
+                    <label class="hockey-search"><span>Goalie</span><input id="goalie-search" type="search" placeholder="Search goalies" autocomplete="off"></label>
+                    <button class="hockey-secondary-button" type="reset">Clear filters</button>
+                </form>
+                <article class="hockey-chart-frame">
+                    <header><div><p class="hockey-chart-kicker">Goalie ratings</p><h3 id="goalie-chart-title">Highest Current Goalie Ratings</h3></div></header>
+                    <div class="hockey-chart-canvas hockey-chart-tall"><canvas id="goalie-ratings-chart" aria-label="Highest NHL goalie Elo ratings"></canvas></div>
+                </article>
+                <div class="hockey-table-wrap">
+                    <table class="hockey-table" aria-label="NHL goalie Elo leaderboard">
+                        <thead><tr><th>Rank</th><th>Goalie</th><th>Team at rating</th><th id="goalie-rating-heading">Current Elo</th><th id="goalie-date-heading">Last game</th><th id="goalie-country-heading" hidden>Country</th></tr></thead>
+                        <tbody id="goalie-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
         </section>
 
         <section id="matchup-panel" class="hockey-panel" role="tabpanel" data-hockey-panel="matchup" hidden>
@@ -142,15 +164,35 @@
                 <button id="swap-matchup" class="hockey-icon-button" type="button" title="Swap teams" aria-label="Swap teams">&#8644;</button>
                 <label><span>Team B</span><select id="matchup-team-two"></select></label>
             </div>
+            <section class="hockey-roster-scenarios" aria-labelledby="roster-scenario-heading">
+                <div class="hockey-subsection-heading">
+                    <div><p class="hockey-eyebrow">What-if roster builder</p><h3 id="roster-scenario-heading">Roster Scenarios</h3></div>
+                    <button id="reset-roster-scenarios" class="hockey-secondary-button" type="button">Reset rosters</button>
+                </div>
+                <p class="hockey-roster-intro">Replace players with another current NHL player at the same position to measure the resulting change in team rating and neutral-ice win probability.</p>
+                <div class="hockey-roster-grid">
+                    <article data-roster-side="one">
+                        <header><div><span>Team A roster</span><strong id="roster-team-one">Team A</strong></div><div><span>Scenario Elo</span><strong id="roster-rating-one">-</strong></div></header>
+                        <div id="roster-changes-one" class="hockey-roster-changes"></div>
+                        <button class="hockey-add-change" type="button" data-add-roster-change="one">+ Add roster change</button>
+                    </article>
+                    <article data-roster-side="two">
+                        <header><div><span>Team B roster</span><strong id="roster-team-two">Team B</strong></div><div><span>Scenario Elo</span><strong id="roster-rating-two">-</strong></div></header>
+                        <div id="roster-changes-two" class="hockey-roster-changes"></div>
+                        <button class="hockey-add-change" type="button" data-add-roster-change="two">+ Add roster change</button>
+                    </article>
+                </div>
+                <p class="hockey-roster-method">Scenario ratings are anchored to the published team snapshot, then adjusted by the change in the tuned forward, defense, and goalie roster components. Because no starter is assigned in this tool, goalie scenario changes use the mean of the rostered goalies.</p>
+            </section>
             <section class="hockey-projection" aria-labelledby="matchup-projection-heading">
-                <header><div><p class="hockey-chart-kicker">Elo baseline</p><h3 id="matchup-projection-heading">Projected win probability</h3></div><span id="matchup-confidence-badge">Historical interval</span></header>
+                <header><div><p id="matchup-projection-kicker" class="hockey-chart-kicker">Elo baseline</p><h3 id="matchup-projection-heading">Projected win probability</h3></div><span id="matchup-confidence-badge">Historical interval</span></header>
                 <div class="hockey-probability-labels"><strong id="matchup-name-one">Team A</strong><strong id="matchup-name-two">Team B</strong></div>
                 <div class="hockey-probability-track" aria-label="Projected neutral-ice win probability">
                     <div id="matchup-bar-one"><span id="matchup-probability-one">50%</span></div>
                     <div id="matchup-bar-two"><span id="matchup-probability-two">50%</span></div>
                 </div>
                 <div id="matchup-ranges" class="hockey-probability-ranges"></div>
-                <p class="hockey-projection-note">The hypothetical matchup isolates team Elo on neutral ice. Generated schedule forecasts additionally account for home ice, rest, back-to-backs, and travel.</p>
+                <p id="matchup-projection-note" class="hockey-projection-note">The hypothetical matchup isolates team Elo on neutral ice. Generated schedule forecasts additionally account for home ice, rest, back-to-backs, and travel.</p>
             </section>
             <div id="matchup-team-cards" class="hockey-comparison-grid"></div>
             <article class="hockey-chart-frame">
@@ -241,6 +283,31 @@
                 <article><span>04</span><h3>Add context</h3><p>Calibrate game probabilities with home ice, rest, back-to-back status, and travel, preserving chronological order.</p></article>
                 <article><span>05</span><h3>Simulate season</h3><p>Replay the frozen schedule, seed each conference, and resolve best-of-seven rounds through the Stanley Cup.</p></article>
             </div>
+            <section class="hockey-method-section" aria-labelledby="model-created-heading">
+                <div class="hockey-subsection-heading"><div><p class="hockey-eyebrow">Development process</p><h3 id="model-created-heading">How the Model Was Created</h3></div><span id="model-development-range">-</span></div>
+                <div class="hockey-creation-grid">
+                    <article><span>01</span><h3>Historical game dataset</h3><p><strong id="creation-game-count">-</strong> completed NHL games were processed in chronological order. Each row includes lineups, position groups, time on ice, scoring, plus-minus, shots faced, and saves.</p></article>
+                    <article><span>02</span><h3>Time-aware evaluation</h3><p>Earlier seasons train the ratings, <strong id="creation-validation-seasons">-</strong> form walk-forward validation folds, and <strong id="creation-holdout-seasons">-</strong> remains the final holdout. Future games never influence earlier ratings.</p></article>
+                    <article><span>03</span><h3>Bayesian parameter search</h3><p><strong id="creation-trials">-</strong> seeded Optuna TPE trials search positional weights, team and individual K factors, performance weights, scales, and season regression.</p></article>
+                    <article><span>04</span><h3>Stable production selection</h3><p>The objective minimizes mean validation log loss plus a <strong id="creation-stability">-</strong> stability penalty. The best <strong id="creation-finalists">-</strong> candidates are then compared on holdout generalization.</p></article>
+                </div>
+            </section>
+            <section class="hockey-method-section" aria-labelledby="rating-build-heading">
+                <div class="hockey-subsection-heading"><div><p class="hockey-eyebrow">Rating construction</p><h3 id="rating-build-heading">How Player and Team Scores Are Built</h3></div><span>One chronological update per game</span></div>
+                <div class="hockey-score-flow">
+                    <article><span>1</span><div><h3>Initialize player ratings</h3><p>Every previously unseen player begins at <strong>1000 Elo</strong>. At a new season, existing ratings regress toward the current player mean.</p></div></article>
+                    <article><span>2</span><div><h3>Build the pregame team score</h3><p>Average the current Elo of dressed forwards, defensemen, and the starting goalie, then combine those groups using the tuned weights shown below.</p><code>Team Elo = <strong id="team-weight-forward">-</strong> F + <strong id="team-weight-defense">-</strong> D + <strong id="team-weight-goalie">-</strong> G</code></div></article>
+                    <article><span>3</span><div><h3>Convert the gap to an expectation</h3><p>The two team ratings enter the standard 400-point Elo curve to estimate each team's pregame expected result.</p><code>E_home = 1 / (1 + 10 ^ ((R_away - R_home) / 400))</code></div></article>
+                    <article><span>4</span><div><h3>Apply the shared team result</h3><p>Players receive a position-specific team update from the difference between the actual result and the expected result.</p><code>Team component = K_position x (actual - expected)</code></div></article>
+                    <article><span>5</span><div><h3>Add individual game impact</h3><p>Within each position group, performance is centered around teammates, bounded with <code>tanh</code>, and added to the shared result so individual credit cannot dominate the outcome.</p></div></article>
+                    <article><span>6</span><div><h3>Carry ratings forward</h3><p>The updated player ratings become the input to the next chronological game. Team ratings are rebuilt from the players dressing for that game rather than stored as permanent club ratings.</p></div></article>
+                </div>
+                <div class="hockey-impact-grid">
+                    <article><p class="hockey-chart-kicker">Forwards</p><h3>Skater impact signal</h3><code id="forward-impact-equation">Loading tuned coefficients...</code><p>Goals, assists, clipped plus-minus, and standardized time-on-ice share are centered within the forward group.</p></article>
+                    <article><p class="hockey-chart-kicker">Defense</p><h3>Defense impact signal</h3><code id="defense-impact-equation">Loading tuned coefficients...</code><p>The same four inputs use separately tuned defense coefficients, K factor, and nonlinear scale.</p></article>
+                    <article><p class="hockey-chart-kicker">Goalies</p><h3>Goalie impact signal</h3><code id="goalie-impact-equation">Loading tuned coefficients...</code><p>Goalie impact measures saves above or below the tuned league-average save percentage, scaled by shots faced when available.</p></article>
+                </div>
+            </section>
             <div class="hockey-model-metrics">
                 <article><span>Favorite accuracy</span><strong id="model-accuracy">-</strong><small id="model-accuracy-ci">-</small></article>
                 <article><span>ROC AUC</span><strong id="model-auc">-</strong><small>Home win positive class</small></article>
@@ -248,6 +315,7 @@
                 <article><span>Brier score</span><strong id="model-brier">-</strong><small>Mean squared probability error</small></article>
                 <article><span>Calibration error</span><strong id="model-ece">-</strong><small>Expected absolute gap</small></article>
             </div>
+            <div class="hockey-subsection-heading hockey-equation-heading"><div><p class="hockey-eyebrow">Reference</p><h3>Core Equations</h3></div><span>Production formulas</span></div>
             <div class="hockey-formula-grid">
                 <article><p class="hockey-chart-kicker">Expected result</p><h3>Elo probability</h3><code>P(A) = 1 / (1 + 10 ^ ((R_B - R_A) / 400))</code><p>Rating differences become neutral-ice win probabilities on the familiar Elo logistic curve.</p></article>
                 <article><p class="hockey-chart-kicker">Roster strength</p><h3>Team rating</h3><code>R_team = w_F R_F + w_D R_D + w_G R_G</code><p>Current player ratings are averaged by position group and joined with optimized positional weights.</p></article>
@@ -263,10 +331,21 @@
                 <div class="hockey-table-wrap"><table class="hockey-table" aria-label="Tuned NHL Elo model parameters"><thead><tr><th>Parameter</th><th>Model role</th><th>Value</th></tr></thead><tbody id="parameter-table-body"></tbody></table></div>
             </section>
         </section>
+        <dialog id="chart-info-dialog" class="hockey-info-dialog" aria-labelledby="chart-info-title">
+            <button id="close-chart-info" class="hockey-dialog-close" type="button" title="Close" aria-label="Close graph information">&times;</button>
+            <p class="hockey-eyebrow">Graph information</p>
+            <h2 id="chart-info-title">Graph details</h2>
+            <p id="chart-info-description"></p>
+            <dl class="hockey-axis-details">
+                <div><dt>X-axis</dt><dd id="chart-info-x-axis"></dd></div>
+                <div><dt>Y-axis</dt><dd id="chart-info-y-axis"></dd></div>
+            </dl>
+            <p id="chart-info-note" class="hockey-info-note"></p>
+        </dialog>
     </main>
     <footer><p>&copy; 2024 Richard Lavey</p></footer>
     <script src="js/includeHeader.js"></script>
     <script src="js/vendor/chart.umd.min.js"></script>
-    <script src="js/hockeyDashboard.js?v=1"></script>
+    <script src="js/hockeyDashboard.js?v=2"></script>
 </body>
 </html>
