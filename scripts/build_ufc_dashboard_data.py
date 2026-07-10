@@ -17,10 +17,10 @@ DEFAULT_OUTPUT = Path(__file__).resolve().parents[1] / "data" / "ufc-dashboard.j
 SIGNAL_FIELDS = [
     ("Base logistic", "base_logistic_score"),
     ("Style matchup", "style_matchup_score"),
-    ("Recent form (3)", "moving_avg_3_score"),
-    ("Recent form (5)", "moving_avg_5_score"),
-    ("Recent form (7)", "moving_avg_7_score"),
-    ("Recent form (10)", "moving_avg_10_score"),
+    ("3-fight window", "moving_avg_3_score"),
+    ("5-fight window", "moving_avg_5_score"),
+    ("7-fight window", "moving_avg_7_score"),
+    ("10-fight window", "moving_avg_10_score"),
     ("Gradient boost", "gradient_boost_score"),
     ("Neural network", "multi_layer_perceptron_score"),
 ]
