@@ -243,6 +243,56 @@
     font-size: 0.72rem;
 }
 
+.ensemble-overview {
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--ink);
+    overflow: hidden;
+}
+
+.ensemble-overview div {
+    min-width: 0;
+    padding: 15px 18px;
+    display: grid;
+    gap: 3px;
+    border-right: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.ensemble-overview span,
+.ensemble-overview small {
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.68rem;
+}
+
+.ensemble-overview span {
+    font-weight: 780;
+    text-transform: uppercase;
+}
+
+.ensemble-overview strong {
+    color: white;
+    font-size: 1rem;
+}
+
+.ensemble-overview button {
+    min-width: 138px;
+    border: 0;
+    color: var(--ink);
+    background: var(--gold);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.ensemble-overview button:hover,
+.ensemble-overview button:focus-visible {
+    background: #d99a32;
+}
+
 .overview-chart-grid,
 .matchup-chart-grid,
 .leaderboard-visuals,
@@ -263,9 +313,8 @@
     grid-column: span 4;
 }
 
-.overview-chart-grid .chart-frame:nth-child(3),
-.overview-chart-grid .chart-frame:nth-child(4) {
-    grid-column: span 6;
+.overview-chart-grid .chart-frame:nth-child(3) {
+    grid-column: span 12;
 }
 
 .chart-frame {
@@ -314,7 +363,10 @@
 
 .analytics-toolbar label,
 .matchup-controls label,
-.card-selector {
+.card-selector,
+.matchup-model-toolbar label,
+.model-panel-heading label,
+.model-score-controls label {
     min-width: 0;
     display: grid;
     gap: 6px;
@@ -322,7 +374,10 @@
 
 .analytics-toolbar label > span,
 .matchup-controls label > span,
-.card-selector > span {
+.card-selector > span,
+.matchup-model-toolbar label > span,
+.model-panel-heading label > span,
+.model-score-controls label > span {
     color: var(--muted);
     font-size: 0.72rem;
     font-weight: 790;
@@ -332,7 +387,10 @@
 .analytics-toolbar input,
 .analytics-toolbar select,
 .matchup-controls select,
-.card-selector select {
+.card-selector select,
+.matchup-model-toolbar select,
+.model-panel-heading select,
+.model-score-controls select {
     width: 100%;
     height: 42px;
     min-width: 0;
@@ -348,9 +406,44 @@
 .analytics-toolbar input:focus,
 .analytics-toolbar select:focus,
 .matchup-controls select:focus,
-.card-selector select:focus {
+.card-selector select:focus,
+.matchup-model-toolbar select:focus,
+.model-panel-heading select:focus,
+.model-score-controls select:focus {
     outline: 2px solid rgba(0, 138, 122, 0.22);
     border-color: var(--teal);
+}
+
+.matchup-model-toolbar {
+    margin: 0 0 14px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: minmax(220px, 1.4fr) repeat(2, minmax(150px, 0.7fr));
+    gap: 14px;
+    align-items: end;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.88);
+}
+
+.matchup-model-toolbar > div {
+    min-height: 42px;
+    padding-left: 14px;
+    display: grid;
+    align-content: center;
+    gap: 2px;
+    border-left: 2px solid var(--line-strong);
+}
+
+.matchup-model-toolbar > div span {
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 780;
+    text-transform: uppercase;
+}
+
+.matchup-model-toolbar > div strong {
+    font-size: 0.84rem;
 }
 
 .analytics-toolbar .range-filter {
@@ -729,6 +822,18 @@
     text-align: left;
 }
 
+.model-unavailable {
+    grid-column: 1 / -1;
+    padding: 14px;
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--muted);
+    background: #f7f8f9;
+    font-size: 0.82rem;
+    font-weight: 720;
+    text-align: center;
+}
+
 .reliability-badge {
     padding: 5px 9px;
     border: 1px solid var(--line-strong);
@@ -1046,6 +1151,226 @@
     text-align: center;
 }
 
+.model-panel-heading label {
+    width: min(280px, 100%);
+}
+
+.model-pipeline {
+    margin-bottom: 30px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.88);
+}
+
+.model-pipeline article {
+    min-width: 0;
+    min-height: 168px;
+    padding: 20px;
+    border-right: 1px solid var(--line);
+}
+
+.model-pipeline article:last-child {
+    border-right: 0;
+}
+
+.model-pipeline article > span {
+    display: block;
+    margin-bottom: 22px;
+    color: var(--coral);
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.model-pipeline article strong {
+    display: block;
+    font-size: 0.92rem;
+}
+
+.model-pipeline article p {
+    margin: 8px 0 0 !important;
+    color: var(--muted) !important;
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.scenario-section,
+.model-score-lab,
+.model-catalog-section {
+    margin-top: 30px;
+}
+
+.scenario-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.scenario-card {
+    min-width: 0;
+    padding: 17px;
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--violet);
+    border-radius: 0 0 var(--radius) var(--radius);
+    background: rgba(255, 255, 255, 0.88);
+}
+
+.scenario-card span,
+.scenario-card small {
+    display: block;
+    color: var(--muted);
+    font-size: 0.7rem;
+}
+
+.scenario-card strong {
+    display: block;
+    margin: 4px 0 12px;
+    font-size: 1.1rem;
+}
+
+.scenario-card dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 5px 10px;
+    font-size: 0.72rem;
+}
+
+.scenario-card dt { color: var(--muted); }
+.scenario-card dd { margin: 0; font-weight: 800; }
+
+.model-score-lab {
+    padding: 22px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.62);
+}
+
+.model-score-controls {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.model-score-controls label {
+    width: min(470px, 100%);
+}
+
+.model-score-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(460px, 1.1fr);
+    gap: 14px;
+}
+
+.model-score-table-wrap {
+    max-height: 474px;
+}
+
+.model-score-table-wrap td:first-child {
+    font-weight: 800;
+}
+
+.model-score-table-wrap tr.primary-model td {
+    color: var(--ink);
+    background: rgba(183, 120, 19, 0.1);
+    font-weight: 850;
+}
+
+.model-catalog {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.model-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.86);
+}
+
+.model-card.primary {
+    grid-column: span 2;
+    color: white;
+    border-color: var(--ink);
+    background: var(--ink);
+}
+
+.model-card header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.model-card header span {
+    padding: 3px 6px;
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    color: var(--muted);
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.model-card.primary header span {
+    color: rgba(255, 255, 255, 0.72);
+    border-color: rgba(255, 255, 255, 0.28);
+}
+
+.model-card p {
+    margin: 10px 0 14px !important;
+    color: var(--muted) !important;
+    font-size: 0.8rem;
+    line-height: 1.48;
+}
+
+.model-card.primary p {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.model-equation {
+    margin-bottom: 14px;
+    padding: 10px;
+    overflow-x: auto;
+    border-left: 3px solid var(--teal);
+    color: var(--ink);
+    background: #f0f4f6;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.model-card.primary .model-equation {
+    color: white;
+    border-color: var(--gold);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.model-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.model-metrics span {
+    padding: 4px 7px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 780;
+}
+
+.model-card.primary .model-metrics span {
+    color: rgba(255, 255, 255, 0.75);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
 .methodology-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1107,6 +1432,23 @@
     .methodology-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .model-pipeline,
+    .scenario-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .model-pipeline article:nth-child(2) {
+        border-right: 0;
+    }
+
+    .model-pipeline article:nth-child(-n + 2) {
+        border-bottom: 1px solid var(--line);
+    }
+
+    .model-score-layout {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 920px) {
@@ -1149,6 +1491,23 @@
     }
 
     .insufficient-fights-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ensemble-overview {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ensemble-overview div:nth-child(2) {
+        border-right: 0;
+    }
+
+    .ensemble-overview button {
+        min-height: 50px;
+        grid-column: 1 / -1;
+    }
+
+    .model-catalog {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -1211,6 +1570,33 @@
     .methodology-grid {
         grid-template-columns: 1fr;
     }
+
+    .matchup-model-toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .matchup-model-toolbar label {
+        grid-column: 1 / -1;
+    }
+
+    .model-panel-heading,
+    .model-score-controls {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .model-panel-heading label,
+    .model-score-controls label {
+        width: 100%;
+    }
+
+    .model-catalog {
+        grid-template-columns: 1fr;
+    }
+
+    .model-card.primary {
+        grid-column: auto;
+    }
 }
 
 @media (max-width: 520px) {
@@ -1222,8 +1608,46 @@
     .metric-strip,
     .analytics-toolbar,
     .card-summary-bar,
-    .insufficient-fights-list {
+    .insufficient-fights-list,
+    .ensemble-overview,
+    .matchup-model-toolbar,
+    .model-pipeline,
+    .scenario-cards {
         grid-template-columns: 1fr;
+    }
+
+    .ensemble-overview div {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .ensemble-overview button {
+        grid-column: auto;
+    }
+
+    .matchup-model-toolbar label {
+        grid-column: auto;
+    }
+
+    .matchup-model-toolbar > div {
+        padding: 10px 0 0;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+    }
+
+    .model-pipeline article,
+    .model-pipeline article:nth-child(2) {
+        min-height: 0;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .model-pipeline article:last-child {
+        border-bottom: 0;
+    }
+
+    .model-score-lab {
+        padding: 14px;
     }
 
     .snapshot-meta div {
