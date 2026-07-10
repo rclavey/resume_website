@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery | Richard Lavey</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/gallery.css">
+</head>
+<body>
+    <header></header>
+    <main class="gallery-main">
+        <section class="gallery-hero" aria-labelledby="gallery-title">
+            <img src="images/gallery/full/summit-sunset.webp" alt="" aria-hidden="true">
+            <div class="gallery-hero-shade"></div>
+            <div class="gallery-hero-copy">
+                <p>Personal archive</p>
+                <h1 id="gallery-title">Gallery</h1>
+                <p>People, places, and the pursuits that have shaped life beyond the resume.</p>
+            </div>
+        </section>
+
+        <section class="gallery-collection" aria-labelledby="gallery-collection-title">
+            <div class="gallery-intro">
+                <div>
+                    <p>Selected moments</p>
+                    <h2 id="gallery-collection-title">The full collection</h2>
+                </div>
+                <span id="gallery-count" aria-live="polite">68 moments</span>
+            </div>
+
+            <div class="gallery-filter-bar" role="toolbar" aria-label="Filter gallery">
+                <button class="gallery-filter is-active" type="button" data-gallery-filter="All" aria-pressed="true">All</button>
+                <button class="gallery-filter" type="button" data-gallery-filter="People" aria-pressed="false">People</button>
+                <button class="gallery-filter" type="button" data-gallery-filter="Endurance" aria-pressed="false">Endurance</button>
+                <button class="gallery-filter" type="button" data-gallery-filter="Outdoors" aria-pressed="false">Outdoors</button>
+                <button class="gallery-filter" type="button" data-gallery-filter="Hockey" aria-pressed="false">Hockey</button>
+                <button class="gallery-filter" type="button" data-gallery-filter="Activities" aria-pressed="false">Activities</button>
+                <button class="gallery-filter" type="button" data-gallery-filter="Earlier Chapters" aria-pressed="false">Earlier Chapters</button>
+                <button class="gallery-filter" type="button" data-gallery-filter="Life" aria-pressed="false">Life</button>
+            </div>
+
+            <div class="gallery-grid" id="gallery-grid"></div>
+        </section>
+    </main>
+
+    <dialog class="gallery-lightbox" id="gallery-lightbox" aria-labelledby="lightbox-title">
+        <div class="gallery-lightbox-shell">
+            <button class="gallery-lightbox-close" type="button" aria-label="Close gallery viewer" title="Close">&times;</button>
+            <button class="gallery-lightbox-nav gallery-lightbox-prev" type="button" aria-label="Previous image" title="Previous">&larr;</button>
+            <div class="gallery-lightbox-media" id="lightbox-media"></div>
+            <button class="gallery-lightbox-nav gallery-lightbox-next" type="button" aria-label="Next image" title="Next">&rarr;</button>
+            <div class="gallery-lightbox-caption">
+                <span id="lightbox-category"></span>
+                <h2 id="lightbox-title"></h2>
+                <span id="lightbox-position"></span>
+            </div>
+        </div>
+    </dialog>
+
+    <footer><p>&copy; 2024 Richard Lavey</p></footer>
+    <script src="js/includeHeader.js"></script>
+    <script src="js/gallery.js"></script>
+</body>
+</html>
