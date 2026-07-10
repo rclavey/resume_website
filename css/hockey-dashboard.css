@@ -328,9 +328,35 @@
 }
 
 .hockey-chart-frame > header > span {
+    margin-left: auto;
     color: var(--hockey-muted);
     font-size: 0.76rem;
     font-weight: 760;
+}
+
+.hockey-info-button {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid var(--hockey-line-strong);
+    border-radius: 50%;
+    color: var(--hockey-ice);
+    background: #ffffff;
+    font: inherit;
+    font-family: Georgia, serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.hockey-info-button:hover,
+.hockey-info-button:focus-visible {
+    color: #ffffff;
+    border-color: var(--hockey-ice);
+    background: var(--hockey-ice);
 }
 
 .hockey-chart-canvas {
@@ -509,6 +535,50 @@
     font-weight: 760;
 }
 
+.hockey-goalie-section {
+    margin-top: 44px;
+    padding-top: 28px;
+    border-top: 1px solid var(--hockey-line-strong);
+}
+
+.hockey-goalie-toolbar {
+    margin-bottom: 14px;
+    padding: 15px;
+    display: grid;
+    grid-template-columns: minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(220px, 1.4fr) auto;
+    gap: 12px;
+    align-items: end;
+    border: 1px solid var(--hockey-line);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.hockey-goalie-toolbar label {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.hockey-goalie-toolbar label > span {
+    color: var(--hockey-muted);
+    font-size: 0.7rem;
+    font-weight: 790;
+    text-transform: uppercase;
+}
+
+.hockey-goalie-toolbar input,
+.hockey-goalie-toolbar select {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid var(--hockey-line-strong);
+    border-radius: 5px;
+    color: var(--hockey-ink);
+    background: #ffffff;
+    font: inherit;
+    font-size: 0.84rem;
+}
+
 .hockey-icon-button {
     width: 42px;
     height: 42px;
@@ -542,6 +612,169 @@
     gap: 12px;
     align-items: end;
 }
+
+.hockey-roster-scenarios {
+    margin-bottom: 16px;
+    padding: 18px;
+    border: 1px solid var(--hockey-line);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: var(--hockey-shadow);
+}
+
+.hockey-roster-scenarios .hockey-subsection-heading {
+    margin-bottom: 10px;
+}
+
+.hockey-roster-intro,
+.hockey-roster-method {
+    color: var(--hockey-muted) !important;
+    font-size: 0.78rem;
+}
+
+.hockey-roster-intro {
+    margin: 0 0 14px !important;
+}
+
+.hockey-roster-method {
+    margin: 12px 0 0 !important;
+}
+
+.hockey-roster-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.hockey-roster-grid > article {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--hockey-line);
+    border-top: 3px solid var(--hockey-ice);
+    border-radius: 6px;
+    background: #f8fafb;
+}
+
+.hockey-roster-grid > article:last-child {
+    border-top-color: var(--hockey-red);
+}
+
+.hockey-roster-grid > article > header {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.hockey-roster-grid > article > header div:last-child {
+    text-align: right;
+}
+
+.hockey-roster-grid > article > header span,
+.hockey-roster-grid > article > header strong {
+    display: block;
+}
+
+.hockey-roster-grid > article > header span,
+.hockey-roster-change label > span {
+    color: var(--hockey-muted);
+    font-size: 0.65rem;
+    font-weight: 780;
+    text-transform: uppercase;
+}
+
+.hockey-roster-grid > article > header strong {
+    margin-top: 2px;
+    color: var(--hockey-ink);
+    font-size: 0.84rem;
+}
+
+.hockey-roster-changes {
+    display: grid;
+    gap: 9px;
+}
+
+.hockey-roster-empty {
+    min-height: 42px;
+    display: grid;
+    place-items: center;
+    color: var(--hockey-muted);
+    border: 1px dashed var(--hockey-line-strong);
+    border-radius: 5px;
+    font-size: 0.73rem;
+}
+
+.hockey-roster-change {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 16px minmax(0, 1fr) 32px;
+    gap: 7px;
+    align-items: end;
+}
+
+.hockey-roster-change label {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.hockey-roster-change select {
+    width: 100%;
+    min-height: 36px;
+    padding: 6px 8px;
+    border: 1px solid var(--hockey-line-strong);
+    border-radius: 4px;
+    color: var(--hockey-ink);
+    background: #ffffff;
+    font: inherit;
+    font-size: 0.72rem;
+}
+
+.hockey-roster-arrow {
+    height: 36px;
+    display: grid;
+    place-items: center;
+    color: var(--hockey-muted);
+    font-size: 0.8rem;
+}
+
+.hockey-remove-change {
+    width: 32px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--hockey-line-strong);
+    border-radius: 4px;
+    color: var(--hockey-red);
+    background: #ffffff;
+    font: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.hockey-add-change {
+    width: 100%;
+    min-height: 36px;
+    margin-top: 10px;
+    border: 1px dashed var(--hockey-line-strong);
+    border-radius: 4px;
+    color: var(--hockey-ice);
+    background: #ffffff;
+    font: inherit;
+    font-size: 0.73rem;
+    font-weight: 820;
+    cursor: pointer;
+}
+
+.hockey-add-change:hover,
+.hockey-add-change:focus-visible {
+    border-style: solid;
+    border-color: var(--hockey-ice);
+    background: #eef7f8;
+}
+
+.hockey-rating-delta-positive { color: var(--hockey-lime) !important; }
+.hockey-rating-delta-negative { color: var(--hockey-red) !important; }
 
 .hockey-projection {
     margin-bottom: 16px;
@@ -901,6 +1134,141 @@
     gap: 10px;
 }
 
+.hockey-method-section {
+    margin: 38px 0;
+}
+
+.hockey-creation-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border: 1px solid var(--hockey-line);
+    border-radius: 7px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.hockey-creation-grid article {
+    min-width: 0;
+    padding: 18px;
+    border-right: 1px solid var(--hockey-line);
+}
+
+.hockey-creation-grid article:last-child {
+    border-right: 0;
+}
+
+.hockey-creation-grid article > span {
+    color: var(--hockey-ice);
+    font-size: 0.68rem;
+    font-weight: 900;
+}
+
+.hockey-creation-grid h3 {
+    margin: 7px 0 10px;
+    font-size: 0.92rem !important;
+}
+
+.hockey-creation-grid p {
+    margin: 0 !important;
+    color: var(--hockey-muted) !important;
+    font-size: 0.75rem;
+    line-height: 1.55;
+}
+
+.hockey-creation-grid p strong {
+    color: var(--hockey-ink);
+}
+
+.hockey-score-flow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.hockey-score-flow article {
+    min-width: 0;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 12px;
+    border: 1px solid var(--hockey-line);
+    border-radius: 7px;
+    background: #ffffff;
+}
+
+.hockey-score-flow article > span {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 5px;
+    color: #ffffff;
+    background: var(--hockey-ink);
+    font-size: 0.75rem;
+    font-weight: 900;
+}
+
+.hockey-score-flow h3 {
+    margin-bottom: 7px;
+    font-size: 0.92rem !important;
+}
+
+.hockey-score-flow p {
+    margin: 0 !important;
+    color: var(--hockey-muted) !important;
+    font-size: 0.76rem;
+}
+
+.hockey-score-flow code {
+    margin-top: 9px;
+    padding: 7px 9px;
+    display: block;
+    overflow-x: auto;
+    border-left: 3px solid var(--hockey-ice);
+    color: #143f45;
+    background: #eef5f6;
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.hockey-impact-grid {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.hockey-impact-grid article {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--hockey-line);
+    border-radius: 7px;
+    background: #ffffff;
+}
+
+.hockey-impact-grid code {
+    min-height: 78px;
+    margin: 12px 0;
+    padding: 9px;
+    display: block;
+    overflow-x: auto;
+    border-left: 3px solid var(--hockey-blue);
+    color: #253b61;
+    background: #f0f3f8;
+    font-size: 0.69rem;
+    white-space: normal;
+}
+
+.hockey-impact-grid p:last-child {
+    margin: 0 !important;
+    color: var(--hockey-muted) !important;
+    font-size: 0.74rem;
+}
+
+.hockey-equation-heading {
+    margin: 34px 0 14px;
+}
+
 .hockey-model-metrics article {
     min-height: 105px;
     padding: 15px;
@@ -951,6 +1319,86 @@
     font-size: 0.78rem;
 }
 
+.hockey-info-dialog {
+    width: min(560px, calc(100% - 28px));
+    max-height: min(680px, calc(100vh - 32px));
+    padding: 24px;
+    border: 1px solid var(--hockey-line-strong);
+    border-radius: 7px;
+    color: var(--hockey-ink);
+    background: #ffffff;
+    box-shadow: 0 24px 70px rgba(18, 24, 32, 0.24);
+}
+
+.hockey-info-dialog::backdrop {
+    background: rgba(18, 24, 32, 0.52);
+    backdrop-filter: blur(3px);
+}
+
+.hockey-info-dialog h2 {
+    margin: 0 36px 12px 0 !important;
+    font-size: 1.45rem !important;
+}
+
+.hockey-info-dialog > p:not(.hockey-eyebrow) {
+    color: var(--hockey-muted) !important;
+    font-size: 0.86rem;
+}
+
+.hockey-dialog-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--hockey-line-strong);
+    border-radius: 5px;
+    color: var(--hockey-ink);
+    background: #ffffff;
+    font: inherit;
+    font-size: 1.15rem;
+    cursor: pointer;
+}
+
+.hockey-axis-details {
+    margin: 18px 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.hockey-axis-details div {
+    padding: 12px;
+    border-left: 3px solid var(--hockey-ice);
+    background: #eef5f6;
+}
+
+.hockey-axis-details div:last-child {
+    border-left-color: var(--hockey-red);
+    background: #faf0f1;
+}
+
+.hockey-axis-details dt {
+    color: var(--hockey-muted);
+    font-size: 0.67rem;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.hockey-axis-details dd {
+    margin: 4px 0 0;
+    font-size: 0.8rem;
+    font-weight: 760;
+}
+
+.hockey-info-note {
+    margin: 0 !important;
+    padding-top: 14px;
+    border-top: 1px solid var(--hockey-line);
+}
+
 .hockey-empty {
     padding: 32px !important;
     color: var(--hockey-muted);
@@ -965,6 +1413,18 @@
 
     .hockey-player-toolbar {
         grid-template-columns: repeat(4, minmax(130px, 1fr));
+    }
+
+    .hockey-creation-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hockey-creation-grid article:nth-child(2) {
+        border-right: 0;
+    }
+
+    .hockey-creation-grid article:nth-child(-n+2) {
+        border-bottom: 1px solid var(--hockey-line);
     }
 
     .hockey-bracket-grid {
@@ -1029,8 +1489,18 @@
     }
 
     .hockey-toolbar,
-    .hockey-player-toolbar {
+    .hockey-player-toolbar,
+    .hockey-goalie-toolbar {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hockey-roster-grid,
+    .hockey-impact-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hockey-score-flow {
+        grid-template-columns: 1fr;
     }
 
     .hockey-winner-strip,
@@ -1096,11 +1566,57 @@
     .hockey-model-metrics,
     .hockey-toolbar,
     .hockey-player-toolbar,
+    .hockey-goalie-toolbar,
     .hockey-comparison-grid,
     .hockey-probability-ranges,
     .hockey-formula-grid,
-    .hockey-bracket-grid {
+    .hockey-bracket-grid,
+    .hockey-creation-grid,
+    .hockey-axis-details {
         grid-template-columns: 1fr;
+    }
+
+    .hockey-creation-grid article,
+    .hockey-creation-grid article:nth-child(2) {
+        border-right: 0;
+        border-bottom: 1px solid var(--hockey-line);
+    }
+
+    .hockey-creation-grid article:last-child {
+        border-bottom: 0;
+    }
+
+    .hockey-roster-scenarios {
+        padding: 14px;
+    }
+
+    .hockey-roster-change {
+        grid-template-columns: minmax(0, 1fr) 28px;
+    }
+
+    .hockey-roster-change label:first-child {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .hockey-roster-change .hockey-roster-arrow {
+        display: none;
+    }
+
+    .hockey-roster-change label:nth-of-type(2) {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .hockey-remove-change {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        align-self: center;
+    }
+
+    .hockey-score-flow article {
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 9px;
     }
 
     .engine-summary,
