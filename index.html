@@ -10,6 +10,9 @@
     <header></header>
     <main class="home-page">
         <section class="hero-band" aria-labelledby="home-title">
+            <div class="hero-media" aria-hidden="true">
+                <img src="images/gallery/full/winter-summit.webp" alt="">
+            </div>
             <div class="hero-inner">
                 <div class="hero-copy">
                     <p class="home-eyebrow">About Me</p>
@@ -26,9 +29,9 @@
                     <a href="projects.html">View All Projects <span aria-hidden="true">&rarr;</span></a>
                 </div>
                 <div class="featured-project-list">
-                    <a href="elo_project.html"><span>01</span><strong>UFC Predictor Project</strong><small>Ensemble fight analytics</small></a>
-                    <a href="bb_fantasy_draft.html"><span>02</span><strong>Big Brother Fantasy Draft</strong><small>Fantasy draft platform</small></a>
-                    <a href="connect_four_ai.html"><span>03</span><strong>Connect Four AI</strong><small>Reinforcement learning</small></a>
+                    <a href="elo_project.html"><strong>UFC Predictor Project</strong><small>Ensemble fight analytics</small></a>
+                    <a href="bb_fantasy_draft.html"><strong>Big Brother Fantasy Draft</strong><small>Fantasy draft platform</small></a>
+                    <a href="connect_four_ai.html"><strong>Connect Four AI</strong><small>Reinforcement learning</small></a>
                 </div>
             </div>
         </section>
@@ -43,6 +46,10 @@
                         <p>My educational journey began with a focus on civil engineering, but after a few semesters, I realized it wasn't the right fit for me. I then switched to Criminal Justice, transferring from UMass Lowell to UMass Boston, where I graduated in May 2022. While working full-time as a police officer, I decided to pursue further education to expand my career opportunities. I am set to graduate in October with a Bachelor's degree in Information Technology, concentrating on data analysis, and minors in applied mathematics and project management from Southern New Hampshire University.</p>
                     </article>
 
+                    <figure class="about-media about-media-work scroll-grow-media" aria-label="Richard at the beginning of his policing career">
+                        <img src="images/gallery/full/police-portrait.webp" alt="Richard standing in police uniform." loading="lazy">
+                    </figure>
+
                     <article class="about-card">
                         <p>Throughout my policing career, I have developed strong communication skills and proficiency in report writing. Additionally, I have honed my technical skills, becoming very familiar with Python and acquiring knowledge in Swift, SQL, and HTML. My passion for data analysis is reflected in several projects showcased on this website, including a Connect Four AI, a Big Brother fantasy draft, and a couple of iPhone apps.</p>
                     </article>
@@ -51,6 +58,15 @@
                         <p>I am particularly interested in statistics, with a focus on optimization problems. My aim is to leverage data analysis and machine learning to derive insights that can help people on a larger scale. The potential to use data-driven insights to make impactful decisions fascinates me, and I am eager to contribute to this field.</p>
                     </article>
 
+                    <div class="about-media-triptych" aria-label="Richard's athletic and outdoor interests">
+                        <figure class="about-media about-media-wide scroll-grow-media">
+                            <img src="images/gallery/full/triathlon-bike.webp" alt="Richard cycling during the Hyannis Triathlon." loading="lazy">
+                        </figure>
+                        <figure class="about-media about-media-tall scroll-grow-media">
+                            <img src="images/gallery/full/hockey-portrait.webp" alt="Richard posing in his Somerville hockey uniform." loading="lazy">
+                        </figure>
+                    </div>
+
                     <article class="about-card">
                         <p>In my personal life, I have a wide array of hobbies. I often joke that my true hobby is discovering new ones. Some of my interests include hockey, jiu-jitsu, frisbee, rock climbing, triathlon training, learning languages (currently Spanish and Russian), coding, chess, and other tabletop games. Many of these hobbies involve continuous learning and being part of a team to achieve common goals.</p>
                     </article>
@@ -58,6 +74,12 @@
                     <article class="about-card">
                         <p>I believe that the analytical skills and insights I've gained from my diverse experiences can bring significant value to a data analysis role. I am excited about the opportunity to apply my skills and passion for data analysis in a professional setting.</p>
                     </article>
+
+                    <a class="about-gallery-link" href="gallery.html">
+                        <span>Beyond the resume</span>
+                        <strong>View the gallery</strong>
+                        <span aria-hidden="true">&rarr;</span>
+                    </a>
                 </div>
             </div>
         </section>
@@ -66,5 +88,6 @@
         <p>&copy; 2024 Richard Lavey</p>
     </footer>
     <script src="js/includeHeader.js"></script>
+    <script src="js/aboutMedia.js"></script>
 </body>
 </html>
