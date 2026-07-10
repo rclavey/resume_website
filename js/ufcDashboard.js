@@ -99,6 +99,42 @@ function wilsonInterval(probability, sampleSize, z = 1.96) {
     return [Math.max(0, center - margin), Math.min(1, center + margin)];
 }
 
+function fairOdds(probability) {
+    const bounded = Math.min(0.999, Math.max(0.001, probability));
+    const decimal = 1 / bounded;
+    const american = bounded >= 0.5
+        ? -Math.round((100 * bounded) / (1 - bounded))
+        : Math.round((100 * (1 - bounded)) / bounded);
+    return {
+        american: american > 0 ? `+${american}` : String(american),
+        decimal: decimal.toFixed(2)
+    };
+}
+
+function fairOddsText(probability) {
+    const odds = fairOdds(probability);
+    return `${odds.american} | ${odds.decimal} decimal`;
+}
+
+function probabilityRangeMarkup(name, probability, interval, tone) {
+    const range = interval || [probability, probability];
+    const lower = Math.max(0, range[0]);
+    const upper = Math.min(1, range[1]);
+    const rangeLabel = `${formatPercent(lower * 100, 1)}-${formatPercent(upper * 100, 1)}`;
+    return `
+        <div class="probability-range-row">
+            <div class="probability-range-label">
+                <strong>${escapeHtml(name)}</strong>
+                <span>${formatPercent(probability * 100, 1)} | Fair ${escapeHtml(fairOddsText(probability))}</span>
+            </div>
+            <div class="probability-range-track" role="img" aria-label="${escapeHtml(name)} projected at ${formatPercent(probability * 100, 1)} with a 95% range of ${rangeLabel}">
+                <span class="probability-range-line ${tone}" style="left:${lower * 100}%;width:${Math.max(0, (upper - lower) * 100)}%"></span>
+                <i class="probability-range-point ${tone}" style="left:${probability * 100}%"></i>
+            </div>
+            <div class="probability-range-scale"><span>0%</span><strong>95% range ${rangeLabel}</strong><span>100%</span></div>
+        </div>`;
+}
+
 function formDots(form) {
     if (!form) {
         return '<span>-</span>';
@@ -231,7 +267,7 @@ function renderOverview() {
 
 function renderOverviewCharts() {
     const fighters = dashboardState.data.fighters;
-    const topFighters = [...fighters].sort((a, b) => b.currentRating - a.currentRating).slice(0, 15).reverse();
+    const topFighters = [...fighters].sort((a, b) => b.currentRating - a.currentRating).slice(0, 15);
     createChart('overview-top', 'top-ratings-chart', {
         type: 'bar',
         data: {
@@ -239,7 +275,7 @@ function renderOverviewCharts() {
             datasets: [{
                 label: 'Current Elo',
                 data: topFighters.map(fighter => fighter.currentRating),
-                backgroundColor: topFighters.map((_, index) => index >= 12 ? dashboardColors.coral : dashboardColors.teal),
+                backgroundColor: topFighters.map((_, index) => index < 3 ? dashboardColors.coral : dashboardColors.teal),
                 borderRadius: 3
             }]
         },
@@ -268,30 +304,27 @@ function renderOverviewCharts() {
         options: chartOptions({ plugins: { legend: { display: false } } })
     });
 
-    createChart('overview-scatter', 'rating-scatter-chart', {
-        type: 'scatter',
+    const momentumFighters = [...fighters]
+        .filter(fighter => Number.isFinite(fighter.trend3))
+        .sort((a, b) => b.trend3 - a.trend3)
+        .slice(0, 12);
+    createChart('overview-momentum', 'rating-momentum-chart', {
+        type: 'bar',
         data: {
+            labels: momentumFighters.map(fighter => fighter.name),
             datasets: [{
-                label: 'Fighters',
-                data: fighters.map(fighter => ({ x: fighter.currentRating, y: fighter.peakRating, fighter: fighter.name })),
-                backgroundColor: dashboardColors.coralSoft,
-                borderColor: dashboardColors.coral,
-                pointRadius: 2,
-                pointHoverRadius: 5
+                label: '3-fight Elo change',
+                data: momentumFighters.map(fighter => fighter.trend3),
+                backgroundColor: dashboardColors.gold,
+                borderRadius: 3
             }]
         },
         options: chartOptions({
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: context => `${context.raw.fighter}: ${formatNumber(context.raw.x)} current / ${formatNumber(context.raw.y)} peak`
-                    }
-                }
-            },
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
             scales: {
-                x: { title: { display: true, text: 'Current Elo', color: dashboardColors.muted }, ticks: { color: dashboardColors.muted } },
-                y: { title: { display: true, text: 'Peak Elo', color: dashboardColors.muted }, ticks: { color: dashboardColors.muted } }
+                x: { grid: { color: 'rgba(102,113,125,.12)' }, ticks: { color: dashboardColors.muted, callback: value => `+${value}` } },
+                y: { grid: { display: false }, ticks: { color: dashboardColors.ink, font: { size: 9 } } }
             }
         })
     });
@@ -428,7 +461,7 @@ function renderLeaderboard() {
 function renderLeaderboardCharts(rows) {
     const metric = element('rating-metric-filter').value;
     const label = metric === 'currentRating' ? 'Current Elo' : 'Peak Elo';
-    const top = [...rows].sort((a, b) => b[metric] - a[metric]).slice(0, 12).reverse();
+    const top = [...rows].sort((a, b) => b[metric] - a[metric]).slice(0, 12);
     createChart('leaderboard-top', 'leaderboard-top-chart', {
         type: 'bar',
         data: {
@@ -497,6 +530,7 @@ function renderMatchup() {
     const probabilityOne = ratingProbability(fighterOne.currentRating, fighterTwo.currentRating);
     const probabilityTwo = 1 - probabilityOne;
     const interval = wilsonInterval(probabilityOne, Math.min(fighterOne.fights, fighterTwo.fights));
+    const intervalTwo = interval ? [1 - interval[1], 1 - interval[0]] : null;
     const [reliability, reliabilityClass] = matchupReliability(fighterOne, fighterTwo);
 
     element('probability-name-one').textContent = fighterOne.name;
@@ -505,10 +539,14 @@ function renderMatchup() {
     element('probability-two').textContent = formatPercent(probabilityTwo * 100, 1);
     element('probability-bar-one').style.width = `${probabilityOne * 100}%`;
     element('probability-bar-two').style.width = `${probabilityTwo * 100}%`;
+    element('matchup-probability-ranges').innerHTML = [
+        probabilityRangeMarkup(fighterOne.name, probabilityOne, interval, 'teal'),
+        probabilityRangeMarkup(fighterTwo.name, probabilityTwo, intervalTwo, 'violet')
+    ].join('');
     const ratingGap = fighterOne.currentRating - fighterTwo.currentRating;
     element('matchup-elo-gap').textContent = `${ratingGap >= 0 ? '+' : ''}${formatNumber(ratingGap, 0)} Elo for ${ratingGap >= 0 ? fighterOne.name : fighterTwo.name}`;
     element('matchup-confidence').textContent = interval
-        ? `Fighter A 95% interval: ${formatPercent(interval[0] * 100, 1)}-${formatPercent(interval[1] * 100, 1)}`
+        ? `95% model range using the smaller ${Math.min(fighterOne.fights, fighterTwo.fights)}-fight UFC sample`
         : '95% interval unavailable';
     element('matchup-reliability').textContent = reliability;
     element('matchup-reliability').className = `reliability-badge ${reliabilityClass}`;
@@ -674,7 +712,7 @@ function renderFightCard() {
 }
 
 function renderCardEdgeChart(card) {
-    const fights = [...card.predicted].slice(0, 12).reverse();
+    const fights = [...card.predicted].slice(0, 12);
     createChart('card-edge', 'fight-card-edge-chart', {
         type: 'bar',
         data: {
@@ -713,32 +751,46 @@ function renderFightDetail(fight) {
     const eloProbability = fighterOne && fighterTwo
         ? ratingProbability(fighterOne.currentRating, fighterTwo.currentRating)
         : null;
+    const sampleSize = fighterOne && fighterTwo ? Math.min(fighterOne.fights, fighterTwo.fights) : 0;
+    const intervalOne = wilsonInterval(fight.probabilityOne, sampleSize);
+    const intervalTwo = intervalOne ? [1 - intervalOne[1], 1 - intervalOne[0]] : null;
 
     element('fight-detail-title').textContent = `${fight.fighterOne} vs ${fight.fighterTwo}`;
     element('fight-detail-probabilities').innerHTML = `
         <div class="fight-probability-row">
             <div><span>${escapeHtml(fight.fighterOne)} ${formatPercent(fight.probabilityOne * 100, 1)}</span><span>${escapeHtml(fight.fighterTwo)} ${formatPercent(fight.probabilityTwo * 100, 1)}</span></div>
             <div class="fight-probability-mini"><i style="width:${fight.probabilityOne * 100}%"></i><i style="width:${fight.probabilityTwo * 100}%"></i></div>
+        </div>
+        <div class="probability-ranges probability-ranges-compact">
+            ${probabilityRangeMarkup(fight.fighterOne, fight.probabilityOne, intervalOne, 'teal')}
+            ${probabilityRangeMarkup(fight.fighterTwo, fight.probabilityTwo, intervalTwo, 'violet')}
         </div>`;
 
     const stats = [
         ['Model favorite', fight.favorite],
         ['Probability gap', `${formatNumber(fight.probabilityGap, 1)} pts`],
         ['Signal agreement', `${fight.agreement}/${fight.availableSignals}`],
+        [`Fair odds: ${fight.fighterOne}`, fairOddsText(fight.probabilityOne)],
+        [`Fair odds: ${fight.fighterTwo}`, fairOddsText(fight.probabilityTwo)],
         ['Elo projection', eloProbability === null ? '-' : `${formatPercent(eloProbability * 100, 1)} / ${formatPercent((1 - eloProbability) * 100, 1)}`],
         ['Current Elo', fighterOne && fighterTwo ? `${formatNumber(fighterOne.currentRating, 0)} / ${formatNumber(fighterTwo.currentRating, 0)}` : '-'],
         ['UFC samples', fighterOne && fighterTwo ? `${fighterOne.fights} / ${fighterTwo.fights}` : '-']
     ];
     element('fight-detail-stats').innerHTML = stats.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
 
+    const rankedSignals = [...fight.signals].sort((a, b) => {
+        if (a.value === null) return 1;
+        if (b.value === null) return -1;
+        return b.value - a.value;
+    });
     createChart('fight-signals', 'fight-signals-chart', {
         type: 'bar',
         data: {
-            labels: fight.signals.map(signal => signal.label),
+            labels: rankedSignals.map(signal => signal.label),
             datasets: [{
                 label: `${fight.favorite} signal`,
-                data: fight.signals.map(signal => signal.value === null ? 0 : signal.value * 100),
-                backgroundColor: fight.signals.map(signal => signal.value === null ? dashboardColors.line : signal.value >= 0.5 ? dashboardColors.teal : dashboardColors.coral),
+                data: rankedSignals.map(signal => signal.value === null ? 0 : signal.value * 100),
+                backgroundColor: rankedSignals.map(signal => signal.value === null ? dashboardColors.line : signal.value >= 0.5 ? dashboardColors.teal : dashboardColors.coral),
                 borderRadius: 3
             }]
         },
@@ -746,7 +798,7 @@ function renderFightDetail(fight) {
             indexAxis: 'y',
             plugins: {
                 legend: { display: false },
-                tooltip: { callbacks: { label: context => fight.signals[context.dataIndex].value === null ? 'Not enough fights' : formatPercent(context.raw, 1) } }
+                tooltip: { callbacks: { label: context => rankedSignals[context.dataIndex].value === null ? 'Not enough fights' : formatPercent(context.raw, 1) } }
             },
             scales: {
                 x: { min: 0, max: 100, ticks: { color: dashboardColors.muted, callback: value => `${value}%` } },

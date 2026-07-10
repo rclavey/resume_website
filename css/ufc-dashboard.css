@@ -622,6 +622,113 @@
     font-weight: 730;
 }
 
+.probability-ranges {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.probability-range-row {
+    min-width: 0;
+}
+
+.probability-range-label {
+    margin-bottom: 7px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.probability-range-label strong {
+    overflow: hidden;
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.probability-range-label span {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 760;
+    text-align: right;
+}
+
+.probability-range-track {
+    position: relative;
+    height: 18px;
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    background:
+        linear-gradient(90deg, transparent 49.75%, rgba(102, 113, 125, 0.25) 49.75%, rgba(102, 113, 125, 0.25) 50.25%, transparent 50.25%),
+        #f4f6f8;
+}
+
+.probability-range-line {
+    position: absolute;
+    top: 7px;
+    height: 3px;
+    min-width: 2px;
+}
+
+.probability-range-line::before,
+.probability-range-line::after {
+    position: absolute;
+    top: -4px;
+    width: 2px;
+    height: 11px;
+    background: inherit;
+    content: '';
+}
+
+.probability-range-line::before { left: 0; }
+.probability-range-line::after { right: 0; }
+
+.probability-range-point {
+    position: absolute;
+    top: 2px;
+    width: 4px;
+    height: 14px;
+    border-radius: 2px;
+    transform: translateX(-2px);
+}
+
+.probability-range-line.teal,
+.probability-range-point.teal { background: var(--teal); }
+.probability-range-line.violet,
+.probability-range-point.violet { background: var(--violet); }
+
+.probability-range-scale {
+    margin-top: 4px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.62rem;
+}
+
+.probability-range-scale strong {
+    color: var(--ink-soft);
+    font-weight: 720;
+}
+
+.probability-ranges-compact {
+    margin: 14px 0 18px;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.probability-ranges-compact .probability-range-label {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.probability-ranges-compact .probability-range-label span {
+    text-align: left;
+}
+
 .reliability-badge {
     padding: 5px 9px;
     border: 1px solid var(--line-strong);
@@ -1148,6 +1255,21 @@
         align-items: flex-start;
         flex-direction: column;
         gap: 2px;
+    }
+
+    .probability-ranges {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .probability-range-label {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .probability-range-label span {
+        text-align: left;
     }
 
     .card-summary-bar div,

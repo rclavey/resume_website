@@ -6,7 +6,7 @@
     <title>UFC Elo Analytics | Richard Lavey</title>
     <meta name="description" content="Interactive UFC Elo ratings, fighter matchup projections, and generated fight-card analytics.">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/ufc-dashboard.css">
+    <link rel="stylesheet" href="css/ufc-dashboard.css?v=2">
 </head>
 <body>
     <header></header>
@@ -102,11 +102,11 @@
                 <article class="chart-frame">
                     <header>
                         <div>
-                            <p class="chart-kicker">Career arc</p>
-                            <h3>Current vs. Peak</h3>
+                            <p class="chart-kicker">Recent form</p>
+                            <h3>Highest 3-Fight Elo Momentum</h3>
                         </div>
                     </header>
-                    <div class="chart-canvas"><canvas id="rating-scatter-chart" aria-label="Current versus peak UFC Elo rating"></canvas></div>
+                    <div class="chart-canvas"><canvas id="rating-momentum-chart" aria-label="Highest recent three-fight UFC Elo rating momentum"></canvas></div>
                 </article>
                 <article class="chart-frame">
                     <header>
@@ -268,6 +268,7 @@
                     <div id="probability-bar-one" class="probability-one"><span id="probability-one">50%</span></div>
                     <div id="probability-bar-two" class="probability-two"><span id="probability-two">50%</span></div>
                 </div>
+                <div id="matchup-probability-ranges" class="probability-ranges" aria-label="Projected probability uncertainty and fair odds"></div>
                 <div class="projection-meta">
                     <span id="matchup-elo-gap">0 Elo difference</span>
                     <span id="matchup-confidence">95% interval unavailable</span>
@@ -363,6 +364,10 @@
                     <p>The Matchup Lab converts the current Elo difference into complementary win probabilities. Its interval uses the smaller fighter sample as a conservative uncertainty input.</p>
                 </article>
                 <article>
+                    <h3>Fair implied odds</h3>
+                    <p>Fair American and decimal odds are calculated directly from each projected probability with no sportsbook margin. The displayed 95% ranges visualize model uncertainty and are not guarantees.</p>
+                </article>
+                <article>
                     <h3>Fight-card model</h3>
                     <p>Generated card probabilities combine base logistic, style matchup, moving form windows, gradient boosting, and neural-network scores through experience-specific scenario models. Opposite-direction outputs are reconciled into complementary matchup probabilities.</p>
                 </article>
@@ -394,6 +399,6 @@
     <footer><p>&copy; 2024 Richard Lavey</p></footer>
     <script src="js/includeHeader.js"></script>
     <script src="js/vendor/chart.umd.min.js?v=4.5.1"></script>
-    <script src="js/ufcDashboard.js?v=4"></script>
+    <script src="js/ufcDashboard.js?v=5"></script>
 </body>
 </html>
