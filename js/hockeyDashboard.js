@@ -61,7 +61,7 @@ const chartInfoCatalog = {
         description: 'Ranks the twelve strongest frozen team snapshots by player-derived Elo before the prediction window.',
         xAxis: 'Team Elo rating. A larger value indicates a stronger current roster snapshot.',
         yAxis: 'NHL teams, ordered from the highest rating to the lowest rating shown.',
-        note: 'This is a strength rating, not standings points. Team Elo is rebuilt from player ratings.'
+        note: 'The bar axis begins at zero so bar lengths remain proportional. This is a strength rating, not standings points.'
     },
     'overview-scatter-chart': {
         title: 'Rating vs. Standings Points',
@@ -82,7 +82,7 @@ const chartInfoCatalog = {
         description: 'Displays team Elo for the clubs remaining after the active team filters and sort order are applied.',
         xAxis: 'Team Elo rating.',
         yAxis: 'Filtered NHL teams.',
-        note: 'Eastern teams are teal and Western teams are red.'
+        note: 'The rating bars use a zero baseline. Eastern teams are teal and Western teams are red.'
     },
     'team-playoff-chart': {
         title: 'Playoff Probability',
@@ -96,14 +96,14 @@ const chartInfoCatalog = {
         description: 'Ranks the leading players in the currently filtered player dataset.',
         xAxis: 'Current Elo or all-time peak Elo, depending on the selected leaderboard.',
         yAxis: 'Filtered NHL players.',
-        note: 'Colors identify forwards, defensemen, and goalies.'
+        note: 'The rating bars use a zero baseline. Colors identify forwards, defensemen, and goalies.'
     },
     'goalie-ratings-chart': {
         title: 'Goalie Ratings',
         description: 'Provides a goalie-only ranking without mixing goalie Elo values with skater ratings.',
         xAxis: 'Current goalie Elo or all-time peak goalie Elo.',
         yAxis: 'Filtered goalies, ordered from highest to lowest rating.',
-        note: 'Goalie updates use team results plus saves above or below the tuned league-average save percentage.'
+        note: 'The rating bars use a zero baseline. Goalie updates also include saves above or below the tuned league-average save percentage.'
     },
     'matchup-comparison-chart': {
         title: 'Team Profile Comparison',
@@ -117,14 +117,14 @@ const chartInfoCatalog = {
         description: 'Ranks the strongest favorites among games remaining after schedule filters are applied.',
         xAxis: 'Favorite win probability.',
         yAxis: 'Model pick and opponent for each matchup.',
-        note: 'Teal bars are home-team picks; red bars are away-team picks.'
+        note: 'The axis begins at 50% because every displayed value is the favorite side of a two-team forecast. Teal bars are home-team picks; red bars are away-team picks.'
     },
     'simulation-standings-chart': {
         title: 'Average Final Standings',
         description: 'Ranks teams by average final point total across the most recent browser simulation run.',
         xAxis: 'Average simulated final standings points.',
         yAxis: 'Top sixteen projected NHL teams.',
-        note: 'The browser simulation starts from the frozen standings and replays all 230 remaining games.'
+        note: 'The points bars use a zero baseline. The browser simulation starts from the frozen standings and replays all 230 remaining games.'
     },
     'simulation-cup-chart': {
         title: 'Stanley Cup Probability',
@@ -145,7 +145,7 @@ const chartInfoCatalog = {
         description: 'Shows favorite-pick accuracy across the four chronological validation folds used during tuning.',
         xAxis: 'NHL validation season.',
         yAxis: 'Percentage of games where the higher-probability team won.',
-        note: 'Model selection minimized probability error rather than maximizing accuracy alone.'
+        note: 'Because this is a line chart comparing a narrow validation band, the y-axis focuses on 50%-65%. Model selection minimized probability error rather than maximizing accuracy alone.'
     },
     'model-weights-chart': {
         title: 'Optimized Position Weights',
@@ -172,12 +172,13 @@ const escapeHtml = (value) => String(value)
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
 
-function chartBaseOptions({ horizontal = false, percentage = false, xTitle = '', yTitle = '' } = {}) {
+function chartBaseOptions({ horizontal = false, percentage = false, zeroBaseline = false, xTitle = '', yTitle = '' } = {}) {
     const valueScale = horizontal ? 'x' : 'y';
     const categoryScale = horizontal ? 'y' : 'x';
     return {
         responsive: true,
         maintainAspectRatio: false,
+        indexAxis: horizontal ? 'y' : 'x',
         animation: { duration: 300 },
         interaction: { mode: 'nearest', intersect: false },
         plugins: {
@@ -186,7 +187,8 @@ function chartBaseOptions({ horizontal = false, percentage = false, xTitle = '',
         },
         scales: {
             [valueScale]: {
-                beginAtZero: percentage,
+                beginAtZero: percentage || zeroBaseline,
+                min: percentage || zeroBaseline ? 0 : undefined,
                 max: percentage ? 100 : undefined,
                 grid: { color: hockeyColors.line },
                 ticks: {
@@ -348,7 +350,7 @@ function renderOverview() {
             indexAxis: 'y',
             plugins: { ...chartBaseOptions().plugins, legend: { display: false } },
             scales: {
-                x: { min: 900, title: { display: true, text: 'Team Elo rating' }, grid: { color: hockeyColors.line }, ticks: { color: hockeyColors.muted } },
+                x: { min: 0, title: { display: true, text: 'Team Elo rating' }, grid: { color: hockeyColors.line }, ticks: { color: hockeyColors.muted } },
                 y: { title: { display: true, text: 'NHL team' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 11, weight: 700 } } }
             }
         }
@@ -423,7 +425,7 @@ function renderTeams() {
     const chartRows = rows.slice(0, 16);
     renderChart('teamRatings', 'team-ratings-chart', {
         type: 'bar', data: { labels: chartRows.map((team) => team.name), datasets: [{ data: chartRows.map((team) => team.rating), backgroundColor: chartRows.map((team) => team.conference === 'Eastern' ? hockeyColors.ice : hockeyColors.red) }] },
-        options: { ...chartBaseOptions({ horizontal: true, xTitle: 'Team Elo rating', yTitle: 'NHL team' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: Math.max(0, Math.floor(Math.min(...chartRows.map((team) => team.rating), 900) / 50) * 50), title: { display: true, text: 'Team Elo rating' }, grid: { color: hockeyColors.line } }, y: { title: { display: true, text: 'NHL team' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
+        options: { ...chartBaseOptions({ horizontal: true, zeroBaseline: true, xTitle: 'Team Elo rating', yTitle: 'NHL team' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: 0, title: { display: true, text: 'Team Elo rating' }, grid: { color: hockeyColors.line } }, y: { title: { display: true, text: 'NHL team' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
     });
     renderChart('teamPlayoffs', 'team-playoff-chart', {
         type: 'bar', data: { labels: chartRows.map((team) => team.name), datasets: [{ data: chartRows.map((team) => (hockeyState.playoffMap.get(team.name)?.makePlayoffs || 0) * 100), backgroundColor: hockeyColors.lime }] },
@@ -471,7 +473,7 @@ function renderPlayers() {
     const chartRows = rows.slice(0, 15);
     renderChart('playerRatings', 'player-ratings-chart', {
         type: 'bar', data: { labels: chartRows.map((player) => player.name), datasets: [{ data: chartRows.map((player) => player.rating), backgroundColor: chartRows.map((player) => player.position === 'Forward' ? hockeyColors.ice : player.position === 'Defense' ? hockeyColors.blue : hockeyColors.red) }] },
-        options: { ...chartBaseOptions({ horizontal: true, xTitle: historic ? 'All-time peak player Elo' : 'Current player Elo', yTitle: 'NHL player' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: Math.max(0, Math.floor(Math.min(...chartRows.map((player) => player.rating), 900) / 100) * 100), title: { display: true, text: historic ? 'All-time peak player Elo' : 'Current player Elo' }, grid: { color: hockeyColors.line } }, y: { title: { display: true, text: 'NHL player' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
+        options: { ...chartBaseOptions({ horizontal: true, zeroBaseline: true, xTitle: historic ? 'All-time peak player Elo' : 'Current player Elo', yTitle: 'NHL player' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: 0, title: { display: true, text: historic ? 'All-time peak player Elo' : 'Current player Elo' }, grid: { color: hockeyColors.line } }, y: { title: { display: true, text: 'NHL player' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
     });
     renderGoalies();
 }
@@ -497,7 +499,6 @@ function renderGoalies() {
         <td>${formatDate(historic ? goalie.peakDate : goalie.lastGame)}</td>${historic ? `<td>${goalie.nationality}</td>` : ''}
     </tr>`).join('') : `<tr><td class="hockey-empty" colspan="${historic ? 6 : 5}">No goalies match these filters.</td></tr>`;
     const chartRows = goalies.slice(0, 15);
-    const chartMinimum = Math.max(0, Math.floor(Math.min(...chartRows.map((goalie) => goalie.rating), 700) / 100) * 100);
     renderChart('goalieRatings', 'goalie-ratings-chart', {
         type: 'bar',
         data: {
@@ -509,7 +510,7 @@ function renderGoalies() {
             indexAxis: 'y',
             plugins: { ...chartBaseOptions().plugins, legend: { display: false } },
             scales: {
-                x: { min: chartMinimum, title: { display: true, text: historic ? 'All-time peak goalie Elo' : 'Current goalie Elo' }, grid: { color: hockeyColors.line } },
+                x: { min: 0, title: { display: true, text: historic ? 'All-time peak goalie Elo' : 'Current goalie Elo' }, grid: { color: hockeyColors.line } },
                 y: { title: { display: true, text: 'NHL goalie' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } }
             }
         }
@@ -960,7 +961,7 @@ function renderSimulationResult() {
 
     renderChart('simulationStandings', 'simulation-standings-chart', {
         type: 'bar', data: { labels: result.teams.slice(0, 16).map((team) => team.name), datasets: [{ label: 'Average final points', data: result.teams.slice(0, 16).map((team) => team.projectedPoints), backgroundColor: result.teams.slice(0, 16).map((team) => team.conference === 'Eastern' ? hockeyColors.ice : hockeyColors.red) }] },
-        options: { ...chartBaseOptions({ horizontal: true, xTitle: 'Average simulated final points', yTitle: 'NHL team' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: 75, title: { display: true, text: 'Average simulated final points' }, grid: { color: hockeyColors.line } }, y: { title: { display: true, text: 'NHL team' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
+        options: { ...chartBaseOptions({ horizontal: true, zeroBaseline: true, xTitle: 'Average simulated final points', yTitle: 'NHL team' }), indexAxis: 'y', plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { min: 0, title: { display: true, text: 'Average simulated final points' }, grid: { color: hockeyColors.line } }, y: { title: { display: true, text: 'NHL team' }, grid: { display: false }, ticks: { color: hockeyColors.ink, font: { size: 10 } } } } }
     });
     const cupRows = [...result.teams].sort((a, b) => b.cupProbability - a.cupProbability).slice(0, 16);
     renderChart('simulationCup', 'simulation-cup-chart', {

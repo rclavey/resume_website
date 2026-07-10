@@ -5,47 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Richard Lavey's Resume</title>
     <link rel="stylesheet" href="css/styles.css">
-    <style>
-        main {
-            padding-bottom: 200px; /* Add padding to avoid content being covered by the footer */
-        }
-
-        h1 {
-            margin-top: 20px;
-            font-size: 2em;
-            color: #0277bd;
-        }
-
-        p {
-            margin-bottom: 15px;
-            text-indent: 20px; /* Indent paragraphs */
-        }
-    </style>
 </head>
 <body>
     <header></header>
     <main class="home-page">
-        <section class="hero-band">
+        <section class="hero-band" aria-labelledby="home-title">
             <div class="hero-inner">
                 <div class="hero-copy">
-                    <h1>About Me</h1>
+                    <p class="home-eyebrow">About Me</p>
+                    <h1 id="home-title">Richard Lavey</h1>
                     <p>Hello, my name is Richard Charles Lavey III, though most people call me Richie. I started my career as a police officer in the community where I grew up, attending the police academy in the summer of 2020. Since then, I have worked for the Somerville Housing Authority and currently serve the City of Somerville.</p>
                 </div>
-                <div class="portfolio-panel" aria-label="Featured work">
-                    <a href="real_expense.html">Real Expense</a>
-                    <a href="flexi_calendar.html">Flexi Calendar</a>
-                    <a href="wisdom_web.html">Wisdom Web</a>
-                    <a href="elo_project.html">UFC Predictor Project</a>
-                    <a href="hockey_elo_engine.html">Hockey Elo Engine</a>
-                    <a href="march_madness_predictor.html">March Madness Predictor</a>
-                    <a href="connect_four_ai.html">Connect Four AI</a>
-                    <a href="bb_fantasy_draft.html">Big Brother Fantasy Draft</a>
+            </div>
+        </section>
+
+        <section class="featured-work" aria-labelledby="featured-work-title">
+            <div class="section-inner">
+                <div class="home-section-heading">
+                    <div><p class="home-eyebrow">Selected Projects</p><h2 id="featured-work-title">Featured Work</h2></div>
+                    <a href="projects.html">View All Projects <span aria-hidden="true">&rarr;</span></a>
+                </div>
+                <div class="featured-project-list">
+                    <a href="march_madness_predictor.html"><span>01</span><strong>March Madness Predictor</strong><small>Tournament simulation</small></a>
+                    <a href="hockey_elo_engine.html"><span>02</span><strong>Hockey Elo Engine</strong><small>Player-weighted forecasting</small></a>
+                    <a href="elo_project.html"><span>03</span><strong>UFC Predictor Project</strong><small>Ensemble fight analytics</small></a>
                 </div>
             </div>
         </section>
 
         <section class="about-flow">
             <div class="section-inner">
+                <div class="home-section-heading home-section-heading-static">
+                    <div><p class="home-eyebrow">Experience and Interests</p><h2>Background</h2></div>
+                </div>
                 <div class="about-grid">
                     <article class="about-card">
                         <p>My educational journey began with a focus on civil engineering, but after a few semesters, I realized it wasn't the right fit for me. I then switched to Criminal Justice, transferring from UMass Lowell to UMass Boston, where I graduated in May 2022. While working full-time as a police officer, I decided to pursue further education to expand my career opportunities. I am set to graduate in October with a Bachelor's degree in Information Technology, concentrating on data analysis, and minors in applied mathematics and project management from Southern New Hampshire University.</p>

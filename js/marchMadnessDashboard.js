@@ -34,16 +34,16 @@ const ROUND_LABELS = {
 };
 
 const chartInfo = {
-    'overview-rating-chart': ['Highest Tournament Team Ratings', 'Ranks the strongest frozen tournament rosters by player-weighted team Elo.', 'Team Elo rating.', 'Top tournament teams, ordered from highest to lowest.', 'Elo is the mean of the players in each latest pre-tournament roster snapshot.'],
+    'overview-rating-chart': ['Highest Tournament Team Ratings', 'Ranks the strongest frozen tournament rosters by player-weighted team Elo.', 'Team Elo rating, beginning at zero.', 'Top tournament teams, ordered from highest to lowest.', 'A zero baseline keeps bar lengths proportional. Elo is the mean of the players in each latest pre-tournament roster snapshot.'],
     'overview-title-chart': ['Top Championship Probabilities', 'Shows the teams that won the largest share of 20,000 simulated brackets.', 'Simulated probability of winning the championship.', 'Teams, ordered from highest to lowest title probability.', 'Even the favorite wins fewer than one in ten simulations, illustrating tournament uncertainty.'],
     'overview-calibration-chart': ['Prediction Calibration', 'Compares average Elo confidence with the historical rate at which the favorite won.', 'Model favorite probability bucket.', 'Historical favorite win rate.', 'A calibrated model follows the 45-degree reference line; this model has historically been conservative at higher confidence.'],
     'overview-seed-chart': ['Seed vs. Model Rating', 'Compares official tournament seeding with player-weighted Elo.', 'Official seed from 1 to 16.', 'Frozen team Elo.', 'High-rated teams with larger seed numbers are potential model-identified sleepers.'],
     'team-ranking-chart': ['Filtered Team Ranking', 'Ranks teams matching the active search, region, seed, and metric filters.', 'Selected rating or advancement metric.', 'Filtered tournament teams.', 'Use the controls above the chart to compare the field from different perspectives.'],
-    'matchup-rating-chart': ['Rating Comparison', 'Compares the frozen player-weighted Elo of the selected teams.', 'Selected teams.', 'Team Elo.', 'The rating gap is converted to the neutral-court probability shown above.'],
+    'matchup-rating-chart': ['Rating Comparison', 'Compares the frozen player-weighted Elo of the selected teams.', 'Selected teams.', 'Team Elo, beginning at zero.', 'The zero-based bars preserve proportional magnitude; the rating gap is converted to the neutral-court probability shown above.'],
     'matchup-path-chart': ['Advancement Outlook', 'Compares how often each selected team reached every tournament stage.', 'Tournament stage.', 'Share of 20,000 simulations reaching the stage.', 'Path difficulty matters, so similar Elo teams can have different advancement probabilities.'],
     'matchup-roster-chart': ['Highest-Rated Players', 'Shows the top eight frozen player Elo values on each selected roster.', 'Roster rank within each team.', 'Player Elo.', 'Team Elo uses the complete active roster; this chart highlights the strongest individual inputs.'],
     'simulation-chart': ['Monte Carlo Leaderboard', 'Ranks teams by the selected tournament advancement stage.', 'Simulated probability of reaching the selected stage.', 'Filtered tournament teams.', 'Each run samples every unresolved game from its Elo probability and follows the official bracket path.'],
-    'player-rating-chart': ['Highest Player Ratings', 'Ranks individual players from the frozen tournament roster snapshots.', 'Player Elo.', 'Filtered players.', 'Player ratings are updated through game outcomes, with team changes allocated according to time played.'],
+    'player-rating-chart': ['Highest Player Ratings', 'Ranks individual players from the frozen tournament roster snapshots.', 'Player Elo, beginning at zero.', 'Filtered players.', 'The zero-based bars preserve proportional magnitude. Player changes are allocated according to time played.'],
     'model-calibration-chart': ['Calibration by Confidence Bucket', 'Compares predicted favorite probability with observed favorite success across 70,885 games.', 'Model confidence bucket.', 'Historical win rate.', 'The difference between the two lines shows underconfidence or overconfidence.'],
     'model-sample-chart': ['Backtest Games by Bucket', 'Shows how many historical games fall into each prediction-confidence group.', 'Model confidence bucket.', 'Number of historical games.', 'The highest-confidence buckets contain fewer games, so their intervals are wider.']
 };
@@ -64,12 +64,13 @@ function expectedScore(ratingA, ratingB) {
     return 1 / (1 + 10 ** ((ratingB - ratingA) / 400));
 }
 
-function chartOptions({ horizontal = false, percentage = false, xTitle = '', yTitle = '', legend = false } = {}) {
+function chartOptions({ horizontal = false, percentage = false, zeroBaseline = false, xTitle = '', yTitle = '', legend = false } = {}) {
     const valueAxis = horizontal ? 'x' : 'y';
     const categoryAxis = horizontal ? 'y' : 'x';
     return {
         responsive: true,
         maintainAspectRatio: false,
+        indexAxis: horizontal ? 'y' : 'x',
         animation: { duration: 280 },
         interaction: { mode: 'nearest', intersect: false },
         plugins: {
@@ -78,7 +79,8 @@ function chartOptions({ horizontal = false, percentage = false, xTitle = '', yTi
         },
         scales: {
             [valueAxis]: {
-                beginAtZero: percentage,
+                beginAtZero: percentage || zeroBaseline,
+                min: percentage || zeroBaseline ? 0 : undefined,
                 max: percentage ? 100 : undefined,
                 grid: { color: mmColors.line },
                 ticks: { color: mmColors.muted, callback: percentage ? value => `${value}%` : undefined },
@@ -170,7 +172,7 @@ function renderOverview() {
 
     renderChart('overviewRating', 'overview-rating-chart', {
         type: 'bar', data: { labels: topRatings.map(team => team.name), datasets: [{ label: 'Team Elo', data: topRatings.map(team => team.rating), backgroundColor: mmColors.green, borderRadius: 3 }] },
-        options: chartOptions({ horizontal: true, xTitle: 'Player-weighted team Elo', yTitle: 'Tournament team' })
+        options: chartOptions({ horizontal: true, zeroBaseline: true, xTitle: 'Player-weighted team Elo', yTitle: 'Tournament team' })
     });
     renderChart('overviewTitle', 'overview-title-chart', {
         type: 'bar', data: { labels: topTitles.map(team => team.name), datasets: [{ label: 'Championship probability', data: topTitles.map(team => team.simulation.champion * 100), backgroundColor: mmColors.gold, borderRadius: 3 }] },
@@ -213,7 +215,7 @@ function renderTeams() {
     byId('team-table-body').innerHTML = rows.map(team => `<tr><td>${team.ratingRank}</td><td><button class="mm-team-button" type="button" data-team-matchup="${escapeHtml(team.name)}">${escapeHtml(team.name)}</button></td><td><span class="mm-region-badge">${team.region}</span></td><td><span class="mm-seed-badge">${team.seed}</span></td><td>${formatNumber(team.rating, 1)}</td><td>${team.record.wins}-${team.record.losses}</td><td>${formatPercent(team.simulation.finalFour, 1)}</td><td>${formatPercent(team.simulation.champion, 1)}</td></tr>`).join('');
     renderChart('teamRanking', 'team-ranking-chart', {
         type: 'bar', data: { labels: rows.slice(0, 16).map(team => team.name), datasets: [{ label: heading, data: rows.slice(0, 16).map(metric), backgroundColor: sort === 'champion' ? mmColors.gold : sort === 'finalFour' ? mmColors.blue : mmColors.green, borderRadius: 3 }] },
-        options: chartOptions({ horizontal: true, percentage: ['champion', 'finalFour', 'winPct'].includes(sort), xTitle: heading, yTitle: 'Tournament team' })
+        options: chartOptions({ horizontal: true, percentage: ['champion', 'finalFour', 'winPct'].includes(sort), zeroBaseline: ['rating', 'seed'].includes(sort), xTitle: heading, yTitle: 'Tournament team' })
     });
 }
 
@@ -303,7 +305,7 @@ function renderMatchup() {
 function renderMatchupCharts(teamOne, teamTwo) {
     renderChart('matchupRating', 'matchup-rating-chart', {
         type: 'bar', data: { labels: [teamOne.name, teamTwo.name], datasets: [{ label: 'Team Elo', data: [teamOne.rating, teamTwo.rating], backgroundColor: [mmColors.green, mmColors.red], borderRadius: 3 }] },
-        options: chartOptions({ xTitle: 'Selected team', yTitle: 'Player-weighted team Elo' })
+        options: chartOptions({ zeroBaseline: true, xTitle: 'Selected team', yTitle: 'Player-weighted team Elo' })
     });
     const stages = ['roundOf32', 'sweet16', 'eliteEight', 'finalFour', 'titleGame', 'champion'];
     renderChart('matchupPath', 'matchup-path-chart', {
@@ -318,7 +320,7 @@ function renderMatchupCharts(teamOne, teamTwo) {
         type: 'bar', data: { labels: Array.from({ length: 8 }, (_, index) => `Roster No. ${index + 1}`), datasets: [
             { label: teamOne.name, data: playersOne.map(player => player.rating), backgroundColor: mmColors.green },
             { label: teamTwo.name, data: playersTwo.map(player => player.rating), backgroundColor: mmColors.red }
-        ] }, options: chartOptions({ xTitle: 'Rating rank within roster', yTitle: 'Player Elo', legend: true })
+        ] }, options: chartOptions({ zeroBaseline: true, xTitle: 'Rating rank within roster', yTitle: 'Player Elo', legend: true })
     });
 }
 
@@ -399,7 +401,7 @@ function renderPlayers() {
     byId('player-table-body').innerHTML = rows.slice(offset, offset + pageSize).map(player => `<tr><td>${player.overallRank}</td><td><button class="mm-player-button" type="button" data-player-team="${escapeHtml(player.team)}">${escapeHtml(player.name)}</button></td><td>${escapeHtml(player.team)}</td><td>${player.region}</td><td>${player.seed}</td><td>${formatNumber(player.rating, 1)}</td><td>${player.teamRank}</td></tr>`).join('');
     renderChart('playerRating', 'player-rating-chart', {
         type: 'bar', data: { labels: rows.slice(0, 16).map(player => `${player.name} | ${player.team}`), datasets: [{ label: 'Player Elo', data: rows.slice(0, 16).map(player => player.rating), backgroundColor: mmColors.green, borderRadius: 3 }] },
-        options: chartOptions({ horizontal: true, xTitle: 'Individual player Elo', yTitle: 'Tournament player and team' })
+        options: chartOptions({ horizontal: true, zeroBaseline: true, xTitle: 'Individual player Elo', yTitle: 'Tournament player and team' })
     });
 }
 
@@ -425,7 +427,7 @@ function renderModel() {
     const bins = backtest.calibration.filter(bin => bin.games > 0);
     renderChart('modelSamples', 'model-sample-chart', {
         type: 'bar', data: { labels: bins.map(bin => bin.bucket), datasets: [{ label: 'Historical games', data: bins.map(bin => bin.games), backgroundColor: mmColors.gold, borderRadius: 3 }] },
-        options: chartOptions({ xTitle: 'Favorite probability bucket', yTitle: 'Historical games' })
+        options: chartOptions({ zeroBaseline: true, xTitle: 'Favorite probability bucket', yTitle: 'Historical games' })
     });
 }
 

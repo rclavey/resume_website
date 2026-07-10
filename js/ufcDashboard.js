@@ -354,7 +354,7 @@ function renderOverviewCharts() {
             indexAxis: 'y',
             plugins: { legend: { display: false } },
             scales: {
-                x: { min: 1100, grid: { color: 'rgba(102,113,125,.12)' }, ticks: { color: dashboardColors.muted } },
+                x: { min: 0, beginAtZero: true, grid: { color: 'rgba(102,113,125,.12)' }, ticks: { color: dashboardColors.muted } },
                 y: { grid: { display: false }, ticks: { color: dashboardColors.ink, font: { size: 10, weight: 650 } } }
             }
         })
@@ -372,7 +372,7 @@ function renderOverviewCharts() {
                 borderRadius: 3
             }]
         },
-        options: chartOptions({ plugins: { legend: { display: false } } })
+        options: chartOptions({ plugins: { legend: { display: false } }, scales: { y: { min: 0, beginAtZero: true, grid: { color: 'rgba(102,113,125,.12)' }, ticks: { color: dashboardColors.muted } } } })
     });
 
     const experienceBuckets = [
@@ -518,7 +518,7 @@ function renderLeaderboardCharts(rows) {
             indexAxis: 'y',
             plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { color: 'rgba(102,113,125,.12)' }, ticks: { color: dashboardColors.muted } },
+                x: { min: 0, beginAtZero: true, grid: { color: 'rgba(102,113,125,.12)' }, ticks: { color: dashboardColors.muted } },
                 y: { grid: { display: false }, ticks: { color: dashboardColors.ink, font: { size: 9 } } }
             }
         })
@@ -531,7 +531,7 @@ function renderLeaderboardCharts(rows) {
             labels: distribution.labels,
             datasets: [{ label: 'Fighters', data: distribution.counts, backgroundColor: dashboardColors.violet, borderRadius: 3 }]
         },
-        options: chartOptions({ plugins: { legend: { display: false } } })
+        options: chartOptions({ plugins: { legend: { display: false } }, scales: { y: { min: 0, beginAtZero: true, grid: { color: 'rgba(102,113,125,.12)' }, ticks: { color: dashboardColors.muted } } } })
     });
 }
 
