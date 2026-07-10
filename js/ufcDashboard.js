@@ -537,12 +537,65 @@ function renderLeaderboardCharts(rows) {
 
 function populateMatchupSelectors() {
     const fighters = [...dashboardState.data.fighters].sort((a, b) => a.name.localeCompare(b.name));
-    const options = fighters.map(fighter => `<option value="${escapeHtml(fighter.name)}">${escapeHtml(fighter.name)} | ${formatNumber(fighter.currentRating, 0)}</option>`).join('');
-    element('matchup-fighter-one').innerHTML = options;
-    element('matchup-fighter-two').innerHTML = options;
+    setMatchupFighter('one', dashboardState.fighterMap.has('Jon Jones') ? 'Jon Jones' : fighters[0].name, false);
+    setMatchupFighter('two', dashboardState.fighterMap.has('Tom Aspinall') ? 'Tom Aspinall' : fighters[1].name, false);
+}
 
-    element('matchup-fighter-one').value = dashboardState.fighterMap.has('Jon Jones') ? 'Jon Jones' : fighters[0].name;
-    element('matchup-fighter-two').value = dashboardState.fighterMap.has('Tom Aspinall') ? 'Tom Aspinall' : fighters[1].name;
+function normalizedFighterSearch(value) {
+    return String(value || '')
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+}
+
+function fighterSearchMatches(query) {
+    const normalized = normalizedFighterSearch(query);
+    if (!normalized) return [];
+    const tokens = normalized.split(' ').filter(Boolean);
+    return dashboardState.data.fighters
+        .filter(fighter => {
+            const text = normalizedFighterSearch(`${fighter.name} ${fighter.weightClass} ${fighter.currentRating} ${recordText(fighter)}`);
+            return tokens.every(token => text.includes(token));
+        })
+        .sort((a, b) => {
+            const nameA = normalizedFighterSearch(a.name);
+            const nameB = normalizedFighterSearch(b.name);
+            const scoreA = nameA === normalized ? 0 : nameA.startsWith(normalized) ? 1 : nameA.includes(normalized) ? 2 : 3;
+            const scoreB = nameB === normalized ? 0 : nameB.startsWith(normalized) ? 1 : nameB.includes(normalized) ? 2 : 3;
+            return scoreA - scoreB || b.currentRating - a.currentRating || a.name.localeCompare(b.name);
+        })
+        .slice(0, 12);
+}
+
+function setMatchupFighter(side, fighterName, shouldRender = true) {
+    if (!dashboardState.fighterMap.has(fighterName)) return;
+    const input = element(`matchup-fighter-${side}`);
+    input.value = fighterName;
+    input.dataset.selectedName = fighterName;
+    input.setAttribute('aria-invalid', 'false');
+    if (shouldRender) renderMatchup();
+}
+
+function renderFighterSearchResults(input, query = input.value) {
+    const side = input.id.endsWith('one') ? 'one' : 'two';
+    const results = element(`fighter-results-${side}`);
+    const matches = fighterSearchMatches(query);
+    results.innerHTML = matches.length ? matches.map((fighter, index) => `<button type="button" role="option" aria-selected="${index === 0}" data-fighter-search-result="${escapeHtml(fighter.name)}" data-target-side="${side}">
+        <strong>${escapeHtml(fighter.name)}</strong><em>${formatNumber(fighter.currentRating, 0)} Elo</em>
+        <span>${escapeHtml(fighter.weightClass)} | ${recordText(fighter)} | ${formatNumber(fighter.fights)} UFC fights</span>
+    </button>`).join('') : `<div class="fighter-search-empty">${query.trim() ? 'No fighters match this search.' : 'Type a fighter, division, record, or Elo rating.'}</div>`;
+    results.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+}
+
+function restoreFighterSearch(input) {
+    input.value = input.dataset.selectedName || '';
+    input.setAttribute('aria-invalid', 'false');
+    const side = input.id.endsWith('one') ? 'one' : 'two';
+    element(`fighter-results-${side}`).hidden = true;
+    input.setAttribute('aria-expanded', 'false');
 }
 
 function preferredMatchupOpponent(fighterName) {
@@ -585,14 +638,16 @@ function storedEnsembleProbability(fighterOne, fighterTwo) {
 }
 
 function renderMatchup() {
-    const fighterOne = dashboardState.fighterMap.get(element('matchup-fighter-one').value);
-    let fighterTwo = dashboardState.fighterMap.get(element('matchup-fighter-two').value);
+    const fighterOneInput = element('matchup-fighter-one');
+    const fighterTwoInput = element('matchup-fighter-two');
+    const fighterOne = dashboardState.fighterMap.get(fighterOneInput.dataset.selectedName || fighterOneInput.value);
+    let fighterTwo = dashboardState.fighterMap.get(fighterTwoInput.dataset.selectedName || fighterTwoInput.value);
     if (!fighterOne || !fighterTwo) {
         return;
     }
     if (fighterOne.name === fighterTwo.name) {
         fighterTwo = dashboardState.fighterMap.get(preferredMatchupOpponent(fighterOne.name));
-        element('matchup-fighter-two').value = fighterTwo.name;
+        setMatchupFighter('two', fighterTwo.name, false);
     }
 
     const modelResult = dashboardState.modelEngine?.scoreMatchup(fighterOne.name, fighterTwo.name);
@@ -619,6 +674,10 @@ function renderMatchup() {
     element('probability-name-two').textContent = fighterTwo.name;
     element('probability-one').textContent = scoreAvailable ? formatPercent(probabilityOne * 100, 1) : 'N/A';
     element('probability-two').textContent = scoreAvailable ? formatPercent(probabilityTwo * 100, 1) : 'N/A';
+    element('ufc-odds-name-one').textContent = fighterOne.name;
+    element('ufc-odds-name-two').textContent = fighterTwo.name;
+    element('ufc-odds-one').textContent = scoreAvailable ? fairOddsText(probabilityOne) : '-';
+    element('ufc-odds-two').textContent = scoreAvailable ? fairOddsText(probabilityTwo) : '-';
     element('probability-bar-one').style.width = `${probabilityOne * 100}%`;
     element('probability-bar-two').style.width = `${probabilityTwo * 100}%`;
     element('matchup-probability-ranges').innerHTML = scoreAvailable ? [
@@ -1143,20 +1202,66 @@ function bindDashboardEvents() {
         if (!button) {
             return;
         }
-        element('matchup-fighter-one').value = button.dataset.matchupFighter;
-        if (element('matchup-fighter-two').value === button.dataset.matchupFighter) {
-            element('matchup-fighter-two').value = preferredMatchupOpponent(button.dataset.matchupFighter);
+        setMatchupFighter('one', button.dataset.matchupFighter, false);
+        if (element('matchup-fighter-two').dataset.selectedName === button.dataset.matchupFighter) {
+            setMatchupFighter('two', preferredMatchupOpponent(button.dataset.matchupFighter), false);
         }
         setDashboardView('matchup');
     });
 
-    element('matchup-fighter-one').addEventListener('change', renderMatchup);
-    element('matchup-fighter-two').addEventListener('change', renderMatchup);
+    element('matchup-controls').addEventListener('input', event => {
+        const input = event.target.closest('#matchup-fighter-one, #matchup-fighter-two');
+        if (!input) return;
+        input.setAttribute('aria-invalid', 'false');
+        renderFighterSearchResults(input);
+    });
+    element('matchup-controls').addEventListener('focusin', event => {
+        const input = event.target.closest('#matchup-fighter-one, #matchup-fighter-two');
+        if (!input) return;
+        input.select();
+        renderFighterSearchResults(input, input.dataset.selectedName || input.value);
+    });
+    element('matchup-controls').addEventListener('keydown', event => {
+        const input = event.target.closest('#matchup-fighter-one, #matchup-fighter-two');
+        if (!input) return;
+        const side = input.id.endsWith('one') ? 'one' : 'two';
+        const results = element(`fighter-results-${side}`);
+        const firstResult = results.querySelector('[data-fighter-search-result]');
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            if (firstResult) {
+                setMatchupFighter(side, firstResult.dataset.fighterSearchResult);
+                restoreFighterSearch(input);
+            } else {
+                input.setAttribute('aria-invalid', 'true');
+            }
+        } else if (event.key === 'ArrowDown' && firstResult) {
+            event.preventDefault();
+            firstResult.focus();
+        } else if (event.key === 'Escape') {
+            restoreFighterSearch(input);
+        }
+    });
+    element('matchup-controls').addEventListener('click', event => {
+        const result = event.target.closest('[data-fighter-search-result]');
+        if (!result) return;
+        const input = element(`matchup-fighter-${result.dataset.targetSide}`);
+        setMatchupFighter(result.dataset.targetSide, result.dataset.fighterSearchResult);
+        restoreFighterSearch(input);
+    });
+    document.addEventListener('click', event => {
+        document.querySelectorAll('.fighter-search-picker').forEach(picker => {
+            if (!picker.contains(event.target)) {
+                restoreFighterSearch(picker.querySelector('input'));
+            }
+        });
+    });
     element('matchup-score-model').addEventListener('change', renderMatchup);
     element('swap-matchup').addEventListener('click', () => {
-        const first = element('matchup-fighter-one').value;
-        element('matchup-fighter-one').value = element('matchup-fighter-two').value;
-        element('matchup-fighter-two').value = first;
+        const first = element('matchup-fighter-one').dataset.selectedName;
+        const second = element('matchup-fighter-two').dataset.selectedName;
+        setMatchupFighter('one', second, false);
+        setMatchupFighter('two', first, false);
         renderMatchup();
     });
 
