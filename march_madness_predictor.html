@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>March Madness Predictor | Richard Lavey</title>
+    <meta name="description" content="Interactive 2026 NCAA men's tournament Elo ratings, matchup projections, bracket picks, player ratings, and Monte Carlo advancement probabilities.">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/march-madness-dashboard.css?v=2">
+</head>
+<body>
+    <header></header>
+    <main class="mm-dashboard">
+        <section class="mm-masthead" aria-labelledby="mm-title">
+            <div>
+                <p class="mm-eyebrow">Player-weighted college basketball analytics</p>
+                <h1 id="mm-title">March Madness Predictor</h1>
+                <p class="mm-intro">Team and player Elo ratings, neutral-court matchup forecasts, a complete model-picked bracket, and Monte Carlo advancement probabilities for the 2026 NCAA men's tournament.</p>
+            </div>
+            <dl class="mm-snapshot-meta">
+                <div><dt>Prediction generated</dt><dd id="snapshot-generated">Loading</dd></div>
+                <div><dt>Ratings frozen</dt><dd id="snapshot-cutoff">Loading</dd></div>
+            </dl>
+        </section>
+
+        <aside class="mm-disclaimer" role="note">
+            <strong>Model disclaimer</strong>
+            <span>These projections are an analytical project, not betting advice. Tournament outcomes are highly uncertain and historical performance does not guarantee future results.</span>
+        </aside>
+
+        <nav class="mm-tabs" aria-label="March Madness analytics sections" role="tablist">
+            <button type="button" role="tab" aria-selected="true" aria-controls="overview-panel" data-mm-view="overview">Overview</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="teams-panel" data-mm-view="teams">Team Ratings</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="matchup-panel" data-mm-view="matchup">Matchup Lab</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="bracket-panel" data-mm-view="bracket">Bracket</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="simulation-panel" data-mm-view="simulation">Simulation</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="players-panel" data-mm-view="players">Players</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="model-panel" data-mm-view="model">Model</button>
+        </nav>
+
+        <div id="mm-loading" class="mm-loading" role="status" aria-live="polite">Loading March Madness Predictor...</div>
+
+        <section id="overview-panel" class="mm-panel" role="tabpanel" data-mm-panel="overview">
+            <div class="mm-panel-heading">
+                <div><p class="mm-eyebrow">Tournament snapshot</p><h2>2026 Forecast Overview</h2></div>
+                <p>Pre-tournament ratings and bracket</p>
+            </div>
+
+            <div class="mm-metric-strip" aria-label="Tournament model summary">
+                <article><span>Tournament teams</span><strong id="metric-teams">-</strong><small>Including First Four</small></article>
+                <article><span>Historical games</span><strong id="metric-games">-</strong><small>Chronological Elo backtest</small></article>
+                <article><span>Pick accuracy</span><strong id="metric-accuracy">-</strong><small id="metric-accuracy-range">95% interval</small></article>
+                <article><span>Simulations</span><strong id="metric-simulations">-</strong><small>Complete bracket runs</small></article>
+                <article><span>Rated players</span><strong id="metric-players">-</strong><small>Frozen tournament rosters</small></article>
+            </div>
+
+            <section class="mm-champion-spotlight" aria-labelledby="champion-pick-heading">
+                <div>
+                    <p class="mm-eyebrow">Most likely champion</p>
+                    <h2 id="champion-pick-heading">Loading</h2>
+                    <span id="champion-pick-meta">Calculating tournament outlook</span>
+                </div>
+                <div class="mm-champion-probability">
+                    <span>Title probability</span>
+                    <strong id="champion-pick-probability">-</strong>
+                    <small id="champion-pick-odds">Fair odds</small>
+                </div>
+                <div class="mm-champion-path" id="champion-path"></div>
+                <button type="button" data-mm-view="simulation">Explore simulations</button>
+            </section>
+
+            <div class="mm-chart-grid">
+                <article class="mm-chart-frame mm-span-7">
+                    <header><div><p class="mm-chart-kicker">Power ranking</p><h3>Highest Tournament Team Ratings</h3></div></header>
+                    <div class="mm-chart-canvas mm-chart-tall"><canvas id="overview-rating-chart" aria-label="Highest tournament team Elo ratings"></canvas></div>
+                </article>
+                <article class="mm-chart-frame mm-span-5">
+                    <header><div><p class="mm-chart-kicker">Bracket outlook</p><h3>Top Championship Probabilities</h3></div></header>
+                    <div class="mm-chart-canvas mm-chart-tall"><canvas id="overview-title-chart" aria-label="Highest simulated championship probabilities"></canvas></div>
+                </article>
+                <article class="mm-chart-frame mm-span-7">
+                    <header><div><p class="mm-chart-kicker">Backtest reliability</p><h3>Prediction Calibration</h3></div></header>
+                    <div class="mm-chart-canvas"><canvas id="overview-calibration-chart" aria-label="Predicted probability compared with historical hit rate"></canvas></div>
+                </article>
+                <article class="mm-chart-frame mm-span-5">
+                    <header><div><p class="mm-chart-kicker">Seeding check</p><h3>Seed vs. Model Rating</h3></div></header>
+                    <div class="mm-chart-canvas"><canvas id="overview-seed-chart" aria-label="Tournament seed compared with team Elo"></canvas></div>
+                </article>
+            </div>
+        </section>
+
+        <section id="teams-panel" class="mm-panel" role="tabpanel" data-mm-panel="teams" hidden>
+            <div class="mm-panel-heading">
+                <div><p class="mm-eyebrow">Complete tournament field</p><h2>Team Ratings</h2></div>
+                <p>Player-weighted pre-tournament Elo</p>
+            </div>
+            <form id="team-filters" class="mm-toolbar">
+                <label class="mm-search-field"><span>Search teams</span><input id="team-search" type="search" placeholder="Team name"></label>
+                <label><span>Region</span><select id="team-region"><option value="all">All regions</option></select></label>
+                <label><span>Seed</span><select id="team-seed"><option value="all">All seeds</option></select></label>
+                <label><span>Sort by</span><select id="team-sort"><option value="rating">Current Elo</option><option value="champion">Title probability</option><option value="finalFour">Final Four probability</option><option value="seed">Tournament seed</option><option value="winPct">Season win rate</option></select></label>
+                <button type="reset" class="mm-secondary-button">Reset</button>
+            </form>
+            <div class="mm-chart-grid mm-team-chart-grid">
+                <article class="mm-chart-frame mm-span-12">
+                    <header><div><p class="mm-chart-kicker">Filtered field</p><h3 id="team-chart-heading">Highest Team Ratings</h3></div><span id="team-result-count">-</span></header>
+                    <div class="mm-chart-canvas mm-chart-tall"><canvas id="team-ranking-chart" aria-label="Filtered tournament team rankings"></canvas></div>
+                </article>
+            </div>
+            <div class="mm-table-wrap">
+                <table class="mm-table">
+                    <caption class="sr-only">Tournament team ratings and advancement probabilities</caption>
+                    <thead><tr><th>Rank</th><th>Team</th><th>Region</th><th>Seed</th><th>Elo</th><th>Record</th><th>Final Four</th><th>Champion</th></tr></thead>
+                    <tbody id="team-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="matchup-panel" class="mm-panel" role="tabpanel" data-mm-panel="matchup" hidden>
+            <div class="mm-panel-heading">
+                <div><p class="mm-eyebrow">Neutral-court projection</p><h2>Matchup Lab</h2></div>
+                <p>Any two tournament teams</p>
+            </div>
+            <div id="matchup-controls" class="mm-matchup-controls">
+                <div class="mm-team-picker">
+                    <label for="matchup-team-one">Team A</label>
+                    <input id="matchup-team-one" type="search" role="combobox" aria-autocomplete="list" aria-controls="matchup-results-one" aria-expanded="false" autocomplete="off" placeholder="Search team, region, or seed">
+                    <div id="matchup-results-one" class="mm-team-results" role="listbox" hidden></div>
+                </div>
+                <button id="swap-matchup" class="mm-icon-button" type="button" title="Swap teams" aria-label="Swap teams">&#8644;</button>
+                <div class="mm-team-picker">
+                    <label for="matchup-team-two">Team B</label>
+                    <input id="matchup-team-two" type="search" role="combobox" aria-autocomplete="list" aria-controls="matchup-results-two" aria-expanded="false" autocomplete="off" placeholder="Search team, region, or seed">
+                    <div id="matchup-results-two" class="mm-team-results" role="listbox" hidden></div>
+                </div>
+            </div>
+
+            <section class="mm-projection" aria-labelledby="matchup-projection-heading">
+                <header><div><p class="mm-chart-kicker">Elo projection</p><h3 id="matchup-projection-heading">Projected win probability</h3></div><span id="matchup-confidence">Historical interval</span></header>
+                <div class="mm-probability-labels"><strong id="matchup-name-one">Team A</strong><strong id="matchup-name-two">Team B</strong></div>
+                <div class="mm-probability-track" aria-label="Projected neutral-court win probability">
+                    <div id="matchup-bar-one"><span id="matchup-probability-one">50%</span></div>
+                    <div id="matchup-bar-two"><span id="matchup-probability-two">50%</span></div>
+                </div>
+                <div class="mm-fair-odds" aria-label="Fair matchup betting odds">
+                    <div><span id="matchup-odds-name-one">Team A</span><strong id="matchup-odds-one">-</strong><small>Fair odds without sportsbook margin</small></div>
+                    <div><span id="matchup-odds-name-two">Team B</span><strong id="matchup-odds-two">-</strong><small>Fair odds without sportsbook margin</small></div>
+                </div>
+                <div id="matchup-ranges" class="mm-probability-ranges"></div>
+                <p class="mm-projection-note">This hypothetical matchup uses frozen player-weighted Elo on a neutral court. It does not account for injuries, travel, or lineup changes after the prediction cutoff.</p>
+            </section>
+
+            <div id="matchup-team-cards" class="mm-comparison-grid"></div>
+            <div class="mm-chart-grid">
+                <article class="mm-chart-frame mm-span-5"><header><div><p class="mm-chart-kicker">Team strength</p><h3>Rating Comparison</h3></div></header><div class="mm-chart-canvas"><canvas id="matchup-rating-chart" aria-label="Selected team Elo comparison"></canvas></div></article>
+                <article class="mm-chart-frame mm-span-7"><header><div><p class="mm-chart-kicker">Tournament paths</p><h3>Advancement Outlook</h3></div></header><div class="mm-chart-canvas"><canvas id="matchup-path-chart" aria-label="Selected teams' simulated advancement probabilities"></canvas></div></article>
+                <article class="mm-chart-frame mm-span-12"><header><div><p class="mm-chart-kicker">Roster inputs</p><h3>Highest-Rated Players</h3></div></header><div class="mm-chart-canvas"><canvas id="matchup-roster-chart" aria-label="Top player Elo ratings for selected teams"></canvas></div></article>
+            </div>
+            <div class="mm-table-wrap">
+                <table class="mm-table mm-comparison-table"><caption class="sr-only">Selected team roster comparison</caption><thead><tr><th id="roster-heading-one">Team A</th><th>Roster rank</th><th id="roster-heading-two">Team B</th></tr></thead><tbody id="matchup-roster-body"></tbody></table>
+            </div>
+        </section>
+
+        <section id="bracket-panel" class="mm-panel" role="tabpanel" data-mm-panel="bracket" hidden>
+            <div class="mm-panel-heading">
+                <div><p class="mm-eyebrow">Model-picked tournament</p><h2>Bracket Explorer</h2></div>
+                <p>Frozen ratings through March 17, 2026</p>
+            </div>
+            <div class="mm-bracket-toolbar">
+                <div id="bracket-region-tabs" class="mm-segmented" aria-label="Bracket region"></div>
+                <label><span>Round</span><select id="bracket-round"><option value="all">All rounds</option><option value="2">First Round</option><option value="3">Second Round</option><option value="4">Sweet 16</option><option value="5">Elite Eight</option></select></label>
+            </div>
+            <div class="mm-bracket-summary">
+                <article><span>Regional champion</span><strong id="bracket-region-winner">-</strong></article>
+                <article><span>Predicted upsets</span><strong id="bracket-upsets">-</strong></article>
+                <article><span>Closest game</span><strong id="bracket-closest">-</strong></article>
+            </div>
+            <section class="mm-first-four" aria-labelledby="first-four-heading">
+                <div class="mm-subsection-heading"><div><p class="mm-eyebrow">Opening round</p><h3 id="first-four-heading">First Four</h3></div><span>Completed results remain fixed in simulation</span></div>
+                <div id="first-four-games" class="mm-first-four-games"></div>
+            </section>
+            <div id="bracket-board" class="mm-bracket-board"></div>
+            <section class="mm-national-bracket" aria-labelledby="national-bracket-heading">
+                <div class="mm-subsection-heading"><div><p class="mm-eyebrow">National rounds</p><h3 id="national-bracket-heading">Final Four and Championship</h3></div></div>
+                <div id="national-bracket-games" class="mm-national-games"></div>
+            </section>
+        </section>
+
+        <section id="simulation-panel" class="mm-panel" role="tabpanel" data-mm-panel="simulation" hidden>
+            <div class="mm-panel-heading">
+                <div><p class="mm-eyebrow">20,000 complete brackets</p><h2>Simulation Lab</h2></div>
+                <p>Advancement probabilities for every team</p>
+            </div>
+            <section class="mm-simulation-winner" aria-labelledby="simulation-winner-name">
+                <div><span>Simulated favorite</span><h3 id="simulation-winner-name">-</h3><p id="simulation-winner-meta">-</p></div>
+                <strong id="simulation-winner-probability">-</strong>
+                <div id="simulation-region-favorites" class="mm-region-favorites"></div>
+            </section>
+            <form id="simulation-filters" class="mm-toolbar">
+                <label class="mm-search-field"><span>Search teams</span><input id="simulation-search" type="search" placeholder="Team name"></label>
+                <label><span>Region</span><select id="simulation-region"><option value="all">All regions</option></select></label>
+                <label><span>Stage</span><select id="simulation-stage"><option value="champion">Win championship</option><option value="titleGame">Reach title game</option><option value="finalFour">Reach Final Four</option><option value="eliteEight">Reach Elite Eight</option><option value="sweet16">Reach Sweet 16</option><option value="roundOf32">Reach Round of 32</option></select></label>
+                <button type="reset" class="mm-secondary-button">Reset</button>
+            </form>
+            <article class="mm-chart-frame">
+                <header><div><p class="mm-chart-kicker">Monte Carlo leaderboard</p><h3 id="simulation-chart-heading">Championship Probability</h3></div><span id="simulation-result-count">-</span></header>
+                <div class="mm-chart-canvas mm-chart-xl"><canvas id="simulation-chart" aria-label="Simulated tournament advancement probabilities"></canvas></div>
+            </article>
+            <div class="mm-table-wrap">
+                <table class="mm-table"><caption class="sr-only">Tournament simulation advancement probabilities</caption><thead><tr><th>Rank</th><th>Team</th><th>Seed</th><th>Round of 32</th><th>Sweet 16</th><th>Elite Eight</th><th>Final Four</th><th>Title game</th><th>Champion</th></tr></thead><tbody id="simulation-table-body"></tbody></table>
+            </div>
+        </section>
+
+        <section id="players-panel" class="mm-panel" role="tabpanel" data-mm-panel="players" hidden>
+            <div class="mm-panel-heading">
+                <div><p class="mm-eyebrow">Frozen tournament rosters</p><h2>Player Ratings</h2></div>
+                <p>Individual Elo entering the tournament</p>
+            </div>
+            <form id="player-filters" class="mm-toolbar mm-player-toolbar">
+                <label class="mm-search-field"><span>Search players</span><input id="player-search" type="search" placeholder="Player or team"></label>
+                <label><span>Team</span><select id="player-team"><option value="all">All teams</option></select></label>
+                <label><span>Region</span><select id="player-region"><option value="all">All regions</option></select></label>
+                <label><span>Rows</span><select id="player-page-size"><option value="25">25</option><option value="50">50</option><option value="100">100</option></select></label>
+                <button type="reset" class="mm-secondary-button">Reset</button>
+            </form>
+            <article class="mm-chart-frame">
+                <header><div><p class="mm-chart-kicker">Individual strength</p><h3>Highest Player Ratings</h3></div><span id="player-result-count">-</span></header>
+                <div class="mm-chart-canvas mm-chart-tall"><canvas id="player-rating-chart" aria-label="Highest filtered player Elo ratings"></canvas></div>
+            </article>
+            <div class="mm-table-wrap"><table class="mm-table"><caption class="sr-only">Tournament player Elo ratings</caption><thead><tr><th>Rank</th><th>Player</th><th>Team</th><th>Region</th><th>Seed</th><th>Elo</th><th>Team rank</th></tr></thead><tbody id="player-table-body"></tbody></table></div>
+            <div class="mm-pagination"><button id="player-previous" class="mm-icon-button" type="button" title="Previous page" aria-label="Previous page">&larr;</button><span id="player-page-status">Page 1</span><button id="player-next" class="mm-icon-button" type="button" title="Next page" aria-label="Next page">&rarr;</button></div>
+        </section>
+
+        <section id="model-panel" class="mm-panel" role="tabpanel" data-mm-panel="model" hidden>
+            <div class="mm-panel-heading">
+                <div><p class="mm-eyebrow">From minutes to brackets</p><h2>How the Model Works</h2></div>
+                <p>Chronological player-weighted Elo</p>
+            </div>
+            <section class="mm-model-flow" aria-label="Model pipeline">
+                <article><span>01</span><h3>Game rosters</h3><p>Each historical game supplies the participating players and their seconds played.</p></article>
+                <article><span>02</span><h3>Team strength</h3><p>Pregame team Elo is the mean rating of the players who appeared for that team.</p></article>
+                <article><span>03</span><h3>Player updates</h3><p>The team result creates an Elo change that is distributed by each player's share of minutes.</p></article>
+                <article><span>04</span><h3>Tournament forecast</h3><p>Frozen roster ratings drive neutral-court game probabilities and complete bracket simulations.</p></article>
+            </section>
+            <div class="mm-model-metrics">
+                <article><span>Base player Elo</span><strong id="model-base-elo">-</strong></article>
+                <article><span>K-factor</span><strong id="model-k-factor">-</strong></article>
+                <article><span>Offseason regression</span><strong id="model-regression">-</strong></article>
+                <article><span>Backtest log loss</span><strong id="model-log-loss">-</strong></article>
+                <article><span>Brier score</span><strong id="model-brier">-</strong></article>
+                <article><span>Calibration error</span><strong id="model-ece">-</strong></article>
+            </div>
+            <div class="mm-formula-grid">
+                <article><p class="mm-chart-kicker">Team Elo</p><h3>Active roster average</h3><code>R_team = mean(R_player)</code><p>A team inherits the average strength of the players who actually appeared, so roster composition changes the pregame rating.</p></article>
+                <article><p class="mm-chart-kicker">Win probability</p><h3>Standard Elo expectation</h3><code>P(A) = 1 / (1 + 10^((R_B - R_A) / 400))</code><p>Every bracket game is treated as neutral court and converted from the frozen team-rating difference.</p></article>
+                <article><p class="mm-chart-kicker">Team update</p><h3>Result surprise</h3><code>&Delta;R_team = K &times; (result - expected)</code><p>Unexpected wins create larger positive changes; expected outcomes create smaller changes.</p></article>
+                <article><p class="mm-chart-kicker">Player update</p><h3>Minutes-weighted allocation</h3><code>&Delta;R_player = &Delta;R_team &times; roster_size &times; minutes_share</code><p>Players with more time on court receive more of the team-level Elo movement.</p></article>
+            </div>
+            <div class="mm-chart-grid">
+                <article class="mm-chart-frame mm-span-7"><header><div><p class="mm-chart-kicker">Historical validation</p><h3>Calibration by Confidence Bucket</h3></div></header><div class="mm-chart-canvas"><canvas id="model-calibration-chart" aria-label="Historical model calibration by probability bucket"></canvas></div></article>
+                <article class="mm-chart-frame mm-span-5"><header><div><p class="mm-chart-kicker">Sample distribution</p><h3>Backtest Games by Bucket</h3></div></header><div class="mm-chart-canvas"><canvas id="model-sample-chart" aria-label="Historical games in each confidence bucket"></canvas></div></article>
+            </div>
+            <section class="mm-assumptions">
+                <div class="mm-subsection-heading"><div><p class="mm-eyebrow">Interpretation</p><h3>Important Assumptions</h3></div></div>
+                <div>
+                    <article><strong>Frozen ratings</strong><p>Future tournament games do not update Elo inside the projected bracket or Monte Carlo runs.</p></article>
+                    <article><strong>Neutral court</strong><p>No home-court adjustment is included in tournament matchup probabilities.</p></article>
+                    <article><strong>Roster continuity</strong><p>The latest pre-tournament roster snapshot stands in for the available tournament lineup.</p></article>
+                    <article><strong>Independent simulation draws</strong><p>Each unresolved game is sampled from its Elo probability; injuries and matchup-specific effects are outside the model.</p></article>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <dialog id="mm-info-dialog" class="mm-info-dialog">
+        <button id="mm-info-close" class="mm-icon-button" type="button" aria-label="Close information">&times;</button>
+        <p class="mm-eyebrow">Chart guide</p><h2 id="mm-info-title">Chart information</h2><p id="mm-info-description"></p>
+        <dl><div><dt>X-axis</dt><dd id="mm-info-x"></dd></div><div><dt>Y-axis</dt><dd id="mm-info-y"></dd></div><div><dt>How to read it</dt><dd id="mm-info-note"></dd></div></dl>
+    </dialog>
+
+    <footer><p>&copy; 2024 Richard Lavey</p></footer>
+    <script src="js/includeHeader.js"></script>
+    <script src="js/vendor/chart.umd.min.js?v=4.5.1"></script>
+    <script src="js/marchMadnessDashboard.js?v=2"></script>
+</body>
+</html>
