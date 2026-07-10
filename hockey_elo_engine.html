@@ -6,7 +6,7 @@
     <title>Hockey Elo Engine | Richard Lavey</title>
     <meta name="description" content="Interactive NHL team and player Elo ratings, matchup projections, schedule analytics, and Monte Carlo season simulation.">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/hockey-dashboard.css?v=2">
+    <link rel="stylesheet" href="css/hockey-dashboard.css?v=3">
 </head>
 <body>
     <header></header>
@@ -169,7 +169,7 @@
                     <div><p class="hockey-eyebrow">What-if roster builder</p><h3 id="roster-scenario-heading">Roster Scenarios</h3></div>
                     <button id="reset-roster-scenarios" class="hockey-secondary-button" type="button">Reset rosters</button>
                 </div>
-                <p class="hockey-roster-intro">Replace players with another current NHL player at the same position to measure the resulting change in team rating and neutral-ice win probability.</p>
+                <p class="hockey-roster-intro">Replace a roster slot with any player who has a current or historical Elo rating. Search by player, team, position, or rating source to measure the resulting change in team rating and neutral-ice win probability.</p>
                 <div class="hockey-roster-grid">
                     <article data-roster-side="one">
                         <header><div><span>Team A roster</span><strong id="roster-team-one">Team A</strong></div><div><span>Scenario Elo</span><strong id="roster-rating-one">-</strong></div></header>
@@ -190,6 +190,10 @@
                 <div class="hockey-probability-track" aria-label="Projected neutral-ice win probability">
                     <div id="matchup-bar-one"><span id="matchup-probability-one">50%</span></div>
                     <div id="matchup-bar-two"><span id="matchup-probability-two">50%</span></div>
+                </div>
+                <div class="hockey-fair-odds" aria-label="Fair matchup betting odds">
+                    <div><span id="matchup-odds-name-one">Team A</span><strong id="matchup-odds-one">-</strong><small>Fair odds without sportsbook margin</small></div>
+                    <div><span id="matchup-odds-name-two">Team B</span><strong id="matchup-odds-two">-</strong><small>Fair odds without sportsbook margin</small></div>
                 </div>
                 <div id="matchup-ranges" class="hockey-probability-ranges"></div>
                 <p id="matchup-projection-note" class="hockey-projection-note">The hypothetical matchup isolates team Elo on neutral ice. Generated schedule forecasts additionally account for home ice, rest, back-to-backs, and travel.</p>
@@ -346,6 +350,6 @@
     <footer><p>&copy; 2024 Richard Lavey</p></footer>
     <script src="js/includeHeader.js"></script>
     <script src="js/vendor/chart.umd.min.js"></script>
-    <script src="js/hockeyDashboard.js?v=2"></script>
+    <script src="js/hockeyDashboard.js?v=3"></script>
 </body>
 </html>

@@ -1,10 +1,12 @@
-const HOCKEY_DATA_URL = 'data/hockey-dashboard.json?v=2026-03-19-2';
+const HOCKEY_DATA_URL = 'data/hockey-dashboard.json?v=2026-03-19-3';
 
 const hockeyState = {
     data: null,
     teamMap: new Map(),
     playoffMap: new Map(),
     currentPlayerMap: new Map(),
+    ratingCatalog: [],
+    ratingCatalogMap: new Map(),
     charts: new Map(),
     currentView: 'overview',
     renderedViews: new Set(),
@@ -216,6 +218,10 @@ function fairAmericanOdds(probability) {
         : 100 * (1 - probability) / probability;
     const rounded = Math.round(value);
     return rounded > 0 ? `+${rounded}` : String(rounded);
+}
+
+function fairOddsText(probability) {
+    return `${fairAmericanOdds(probability)} | ${(1 / Math.max(0.001, probability)).toFixed(2)} decimal`;
 }
 
 function expectedScore(ratingA, ratingB) {
@@ -527,13 +533,46 @@ function rosterComponentRating(players) {
     return params.w_f * meanRating(forwards) + params.w_d * meanRating(defense) + params.w_g * meanRating(goalies);
 }
 
+function normalizePlayerSearch(value) {
+    return String(value || '')
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+}
+
+function ratingEntryLabel(entry) {
+    const source = entry.source === 'current' ? 'Current' : 'Peak';
+    const date = entry.peakDate ? ` | ${entry.peakDate}` : '';
+    return `${entry.name} | ${source} Elo ${formatNumber(entry.rating, 0)} | ${entry.team} | ${entry.position}${date}`;
+}
+
+function buildRatingCatalog() {
+    const current = hockeyState.data.currentPlayers.map((player, index) => ({
+        ...player,
+        key: `current:${index}`,
+        source: 'current'
+    }));
+    const historic = hockeyState.data.historicPlayers.map((player, index) => ({
+        ...player,
+        key: `historic:${index}`,
+        source: 'historic'
+    }));
+    hockeyState.ratingCatalog = [...current, ...historic].map((entry) => ({
+        ...entry,
+        searchText: normalizePlayerSearch(`${entry.name} ${entry.team} ${entry.position} ${entry.source} ${entry.nationality || ''} ${entry.rating}`)
+    }));
+    hockeyState.ratingCatalogMap = new Map(hockeyState.ratingCatalog.map((entry) => [entry.key, entry]));
+}
+
 function scenarioTeam(team, side) {
     const baseRoster = currentTeamRoster(team.name);
-    const changes = hockeyState.rosterChanges[side];
+    const changes = hockeyState.rosterChanges[side].filter((change) => hockeyState.ratingCatalogMap.has(change.incomingKey));
     const outgoingNames = new Set(changes.map((change) => change.outgoingName));
     const scenarioRoster = baseRoster.filter((player) => !outgoingNames.has(player.name));
     changes.forEach((change) => {
-        const incoming = hockeyState.currentPlayerMap.get(change.incomingName);
+        const incoming = hockeyState.ratingCatalogMap.get(change.incomingKey);
         if (incoming && !scenarioRoster.some((player) => player.name === incoming.name)) scenarioRoster.push(incoming);
     });
     const delta = rosterComponentRating(scenarioRoster) - rosterComponentRating(baseRoster);
@@ -544,15 +583,70 @@ function rosterPlayerOptions(players, selectedName) {
     return players.map((player) => `<option value="${escapeHtml(player.name)}"${player.name === selectedName ? ' selected' : ''}>${escapeHtml(player.name)} (${player.position}, ${formatNumber(player.rating, 0)})</option>`).join('');
 }
 
-function incomingCandidates(outgoing, teamName, side, currentChangeId) {
-    const usedIncoming = new Set(hockeyState.rosterChanges[side]
-        .filter((change) => change.id !== currentChangeId)
-        .map((change) => change.incomingName));
-    return hockeyState.data.currentPlayers.filter((player) =>
-        player.position === outgoing.position &&
-        player.team !== teamName &&
-        !usedIncoming.has(player.name)
-    ).sort((a, b) => b.rating - a.rating || a.name.localeCompare(b.name));
+function eligibleRatingEntries(side, currentChangeId) {
+    const team = hockeyState.teamMap.get(byId(`matchup-team-${side}`).value);
+    if (!team) return [];
+    const changes = hockeyState.rosterChanges[side];
+    const outgoingNames = new Set(changes.map((change) => change.outgoingName));
+    const retainedRosterNames = new Set(currentTeamRoster(team.name)
+        .filter((player) => !outgoingNames.has(player.name))
+        .map((player) => player.name));
+    const usedKeys = new Set(changes
+        .filter((change) => change.id !== currentChangeId && change.incomingKey)
+        .map((change) => change.incomingKey));
+    return hockeyState.ratingCatalog.filter((entry) => !retainedRosterNames.has(entry.name) && !usedKeys.has(entry.key));
+}
+
+function searchRatingEntries(query, side, changeId) {
+    const normalized = normalizePlayerSearch(query);
+    if (!normalized) return [];
+    const tokens = normalized.split(' ').filter(Boolean);
+    return eligibleRatingEntries(side, changeId)
+        .filter((entry) => tokens.every((token) => entry.searchText.includes(token)))
+        .sort((a, b) => {
+            const nameA = normalizePlayerSearch(a.name);
+            const nameB = normalizePlayerSearch(b.name);
+            const scoreA = nameA === normalized ? 0 : nameA.startsWith(normalized) ? 1 : nameA.includes(normalized) ? 2 : 3;
+            const scoreB = nameB === normalized ? 0 : nameB.startsWith(normalized) ? 1 : nameB.includes(normalized) ? 2 : 3;
+            return scoreA - scoreB || (a.source === 'current' ? -1 : 1) - (b.source === 'current' ? -1 : 1) || b.rating - a.rating || a.name.localeCompare(b.name);
+        })
+        .slice(0, 12);
+}
+
+function renderRatingSearchResults(input, query = input.value) {
+    const row = input.closest('.hockey-roster-change');
+    if (!row) return;
+    const side = row.dataset.side;
+    const changeId = Number(row.dataset.changeId);
+    const results = byId(input.getAttribute('aria-controls'));
+    const matches = searchRatingEntries(query, side, changeId);
+    results.innerHTML = matches.length ? matches.map((entry, index) => `<button type="button" role="option" aria-selected="${index === 0}" data-rating-key="${entry.key}" data-side="${side}" data-change-id="${changeId}">
+        <strong>${escapeHtml(entry.name)}</strong><em>${formatNumber(entry.rating, 0)} Elo</em>
+        <span>${entry.source === 'current' ? 'Current rating' : `All-time peak${entry.peakDate ? ` on ${entry.peakDate}` : ''}`} | ${escapeHtml(entry.team)} | ${entry.position}${entry.nationality ? ` | ${entry.nationality}` : ''}</span>
+    </button>`).join('') : `<div class="hockey-search-empty">${query.trim() ? 'No eligible rated players match this search.' : 'Type a player, team, position, or rating source.'}</div>`;
+    results.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+    input.setAttribute('aria-invalid', 'false');
+}
+
+function hideRatingSearch(input) {
+    const results = byId(input.getAttribute('aria-controls'));
+    if (results) results.hidden = true;
+    input.setAttribute('aria-expanded', 'false');
+}
+
+function restoreRatingSearchInput(input) {
+    const selected = hockeyState.ratingCatalogMap.get(input.dataset.selectedKey);
+    input.value = selected ? ratingEntryLabel(selected) : '';
+    input.setAttribute('aria-invalid', 'false');
+    hideRatingSearch(input);
+}
+
+function selectRatingEntry(side, changeId, ratingKey) {
+    const change = hockeyState.rosterChanges[side].find((item) => item.id === changeId);
+    if (!change || !hockeyState.ratingCatalogMap.has(ratingKey)) return;
+    change.incomingKey = ratingKey;
+    renderMatchup();
 }
 
 function renderRosterChanges(side, team, scenario) {
@@ -561,16 +655,18 @@ function renderRosterChanges(side, team, scenario) {
     const roster = currentTeamRoster(team.name).sort((a, b) => a.position.localeCompare(b.position) || a.name.localeCompare(b.name));
     const usedOutgoing = new Set(changes.map((change) => change.outgoingName));
     container.innerHTML = changes.length ? changes.map((change) => {
-        const outgoing = hockeyState.currentPlayerMap.get(change.outgoingName) || roster[0];
         const outgoingOptions = roster.filter((player) => player.name === change.outgoingName || !usedOutgoing.has(player.name));
-        const incoming = incomingCandidates(outgoing, team.name, side, change.id);
-        if (!incoming.some((player) => player.name === change.incomingName) && hockeyState.currentPlayerMap.has(change.incomingName)) {
-            incoming.push(hockeyState.currentPlayerMap.get(change.incomingName));
-        }
+        const incoming = hockeyState.ratingCatalogMap.get(change.incomingKey);
+        const inputId = `roster-player-search-${side}-${change.id}`;
+        const resultsId = `roster-player-results-${side}-${change.id}`;
         return `<div class="hockey-roster-change" data-change-id="${change.id}" data-side="${side}">
             <label><span>Replace</span><select data-roster-field="outgoing">${rosterPlayerOptions(outgoingOptions, change.outgoingName)}</select></label>
             <span class="hockey-roster-arrow">&rarr;</span>
-            <label><span>With</span><select data-roster-field="incoming">${rosterPlayerOptions(incoming, change.incomingName)}</select></label>
+            <div class="hockey-player-picker">
+                <label for="${inputId}">With any rated player</label>
+                <input id="${inputId}" type="search" data-rating-search data-selected-key="${incoming?.key || ''}" role="combobox" aria-autocomplete="list" aria-controls="${resultsId}" aria-expanded="false" autocomplete="off" placeholder="Search all rated players" value="${incoming ? escapeHtml(ratingEntryLabel(incoming)) : ''}">
+                <div id="${resultsId}" class="hockey-player-results" role="listbox" hidden></div>
+            </div>
             <button class="hockey-remove-change" type="button" data-remove-roster-change="${change.id}" data-side="${side}" title="Remove roster change" aria-label="Remove roster change">&times;</button>
         </div>`;
     }).join('') : '<div class="hockey-roster-empty">Current frozen roster</div>';
@@ -589,12 +685,10 @@ function addRosterChange(side) {
         .filter((player) => !usedOutgoing.has(player.name))
         .sort((a, b) => a.position.localeCompare(b.position) || a.name.localeCompare(b.name))[0];
     if (!outgoing) return;
-    const candidates = incomingCandidates(outgoing, team.name, side, -1);
-    if (!candidates.length) return;
     hockeyState.rosterChanges[side].push({
         id: hockeyState.nextRosterChangeId++,
         outgoingName: outgoing.name,
-        incomingName: candidates[0].name
+        incomingKey: ''
     });
     renderMatchup();
 }
@@ -604,12 +698,7 @@ function updateRosterChange(side, changeId, field, value) {
     if (!change) return;
     if (field === 'outgoing') {
         change.outgoingName = value;
-        const team = hockeyState.teamMap.get(byId(`matchup-team-${side}`).value);
-        const outgoing = hockeyState.currentPlayerMap.get(value);
-        const candidates = incomingCandidates(outgoing, team.name, side, changeId);
-        change.incomingName = candidates[0]?.name || '';
-    } else {
-        change.incomingName = value;
+        change.incomingKey = '';
     }
     renderMatchup();
 }
@@ -622,7 +711,8 @@ function renderMatchup() {
     const teamB = scenarioTeam(baseTeamB, 'two');
     renderRosterChanges('one', baseTeamA, teamA);
     renderRosterChanges('two', baseTeamB, teamB);
-    const hasScenario = hockeyState.rosterChanges.one.length > 0 || hockeyState.rosterChanges.two.length > 0;
+    const hasScenario = [...hockeyState.rosterChanges.one, ...hockeyState.rosterChanges.two]
+        .some((change) => hockeyState.ratingCatalogMap.has(change.incomingKey));
     let probabilityA = expectedScore(teamA.rating, teamB.rating);
     if (teamA.name === teamB.name && !hasScenario) probabilityA = 0.5;
     const probabilityB = 1 - probabilityA;
@@ -636,6 +726,10 @@ function renderMatchup() {
     byId('matchup-probability-two').textContent = formatPercent(probabilityB);
     byId('matchup-bar-one').style.width = `${probabilityA * 100}%`;
     byId('matchup-bar-two').style.width = `${probabilityB * 100}%`;
+    byId('matchup-odds-name-one').textContent = teamA.name;
+    byId('matchup-odds-name-two').textContent = teamB.name;
+    byId('matchup-odds-one').textContent = fairOddsText(probabilityA);
+    byId('matchup-odds-two').textContent = fairOddsText(probabilityB);
     byId('matchup-confidence-badge').textContent = `${formatNumber(calibration.games)} comparable games`;
     byId('matchup-projection-kicker').textContent = hasScenario ? 'Roster-adjusted Elo' : 'Elo baseline';
     byId('matchup-projection-note').textContent = hasScenario
@@ -959,13 +1053,49 @@ function setupEvents() {
         hockeyState.rosterChanges = { one: [], two: [] };
         renderMatchup();
     });
-    byId('roster-scenario-heading').closest('.hockey-roster-scenarios').addEventListener('change', (event) => {
+    const rosterScenarios = byId('roster-scenario-heading').closest('.hockey-roster-scenarios');
+    rosterScenarios.addEventListener('change', (event) => {
         const field = event.target.closest('[data-roster-field]');
         const row = event.target.closest('.hockey-roster-change');
         if (!field || !row) return;
         updateRosterChange(row.dataset.side, Number(row.dataset.changeId), field.dataset.rosterField, field.value);
     });
-    byId('roster-scenario-heading').closest('.hockey-roster-scenarios').addEventListener('click', (event) => {
+    rosterScenarios.addEventListener('input', (event) => {
+        const input = event.target.closest('[data-rating-search]');
+        if (input) renderRatingSearchResults(input);
+    });
+    rosterScenarios.addEventListener('focusin', (event) => {
+        const input = event.target.closest('[data-rating-search]');
+        if (!input) return;
+        const selected = hockeyState.ratingCatalogMap.get(input.dataset.selectedKey);
+        input.select();
+        renderRatingSearchResults(input, selected?.name || '');
+    });
+    rosterScenarios.addEventListener('keydown', (event) => {
+        const input = event.target.closest('[data-rating-search]');
+        if (!input) return;
+        const results = byId(input.getAttribute('aria-controls'));
+        if (event.key === 'Escape') {
+            restoreRatingSearchInput(input);
+        } else if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            results.querySelector('button')?.focus();
+        } else if (event.key === 'Enter') {
+            const firstResult = results.querySelector('button');
+            if (firstResult) {
+                event.preventDefault();
+                firstResult.click();
+            } else {
+                input.setAttribute('aria-invalid', 'true');
+            }
+        }
+    });
+    rosterScenarios.addEventListener('click', (event) => {
+        const ratingResult = event.target.closest('[data-rating-key]');
+        if (ratingResult) {
+            selectRatingEntry(ratingResult.dataset.side, Number(ratingResult.dataset.changeId), ratingResult.dataset.ratingKey);
+            return;
+        }
         const button = event.target.closest('[data-remove-roster-change]');
         if (!button) return;
         const side = button.dataset.side;
@@ -979,6 +1109,9 @@ function setupEvents() {
     document.addEventListener('click', (event) => {
         const infoButton = event.target.closest('[data-chart-info]');
         if (infoButton) openChartInfo(infoButton.dataset.chartInfo);
+        if (!event.target.closest('.hockey-player-picker')) {
+            document.querySelectorAll('[data-rating-search][aria-expanded="true"]').forEach(restoreRatingSearchInput);
+        }
     });
     byId('close-chart-info').addEventListener('click', () => byId('chart-info-dialog').close());
     byId('chart-info-dialog').addEventListener('click', (event) => {
@@ -994,6 +1127,7 @@ async function initializeHockeyDashboard() {
         hockeyState.teamMap = new Map(hockeyState.data.teams.map((team) => [team.name, team]));
         hockeyState.playoffMap = new Map(hockeyState.data.playoffs.advancement.map((team) => [team.team, team]));
         hockeyState.currentPlayerMap = new Map(hockeyState.data.currentPlayers.map((player) => [player.name, player]));
+        buildRatingCatalog();
         setupMetadata();
         setupChartInfo();
         setupEvents();
