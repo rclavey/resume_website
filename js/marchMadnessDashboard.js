@@ -1,4 +1,4 @@
-const MARCH_MADNESS_DATA_URL = 'data/march-madness-dashboard.json?v=2026-03-18-1';
+const MARCH_MADNESS_DATA_URL = `data/march-madness-dashboard.json?v=${Date.now()}`;
 
 const mmState = {
     data: null,
