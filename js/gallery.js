@@ -14,6 +14,7 @@ const lightboxCategory = document.querySelector('#lightbox-category');
 const lightboxPosition = document.querySelector('#lightbox-position');
 
 function createGalleryItem(item) {
+    const section = item.section || item.category;
     const button = document.createElement('button');
     button.className = 'gallery-item';
     button.type = 'button';
@@ -40,7 +41,7 @@ function createGalleryItem(item) {
     const meta = document.createElement('span');
     meta.className = 'gallery-item-meta';
     const category = document.createElement('span');
-    category.textContent = item.category;
+    category.textContent = section;
     const title = document.createElement('strong');
     title.textContent = item.title;
     meta.append(category, title);
@@ -96,7 +97,7 @@ function showLightboxItem(index) {
 
     lightboxMedia.replaceChildren(media);
     lightboxTitle.textContent = item.title;
-    lightboxCategory.textContent = item.category;
+    lightboxCategory.textContent = item.section || item.category;
     lightboxPosition.textContent = `${galleryState.activeIndex + 1} / ${itemCount}`;
 }
 
@@ -149,7 +150,7 @@ document.addEventListener('keydown', event => {
     }
 });
 
-fetch('data/gallery.json')
+fetch('data/gallery.json?v=20260713-2', { cache: 'no-store' })
     .then(response => {
         if (!response.ok) {
             throw new Error(`Gallery data request failed: ${response.status}`);
