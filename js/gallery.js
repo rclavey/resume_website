@@ -150,7 +150,7 @@ document.addEventListener('keydown', event => {
     }
 });
 
-fetch('data/gallery.json?v=20260713-2', { cache: 'no-store' })
+fetch('data/gallery.json?v=20260713-3', { cache: 'no-store' })
     .then(response => {
         if (!response.ok) {
             throw new Error(`Gallery data request failed: ${response.status}`);
