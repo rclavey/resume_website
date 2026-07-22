@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hockey Predictor | Richard Lavey</title>
+    <meta name="description" content="Multi-league hockey Elo ratings, cross-league matchup projections, roster snapshots, model comparisons, and Monte Carlo season forecasts.">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/hockey-predictor.css?v=1">
+</head>
+<body>
+    <header></header>
+    <main class="hp-app">
+        <section class="hp-hero" aria-labelledby="hp-title">
+            <div class="hp-hero-copy">
+                <p class="hp-kicker">23 leagues · two Elo models · 10,000 simulations</p>
+                <h1 id="hp-title">Hockey Predictor</h1>
+                <p>Explore roster-aware ratings, compare any two clubs—even across leagues—and simulate the 2026–27 regular season and playoffs. The predictor defaults to the NHL and keeps model assumptions visible.</p>
+            </div>
+            <dl class="hp-meta">
+                <div><dt>Model snapshot</dt><dd id="hp-generated">Loading</dd></div>
+                <div><dt>Projection season</dt><dd id="hp-season">2026–27</dd></div>
+                <div><dt>Historical games</dt><dd id="hp-history-games">—</dd></div>
+            </dl>
+        </section>
+
+        <aside class="hp-notice" role="note">
+            <strong>Projection, not a promise.</strong>
+            <span>Elo probabilities and Monte Carlo outcomes are estimates for analysis—not betting advice. Coverage quality is shown for every league.</span>
+        </aside>
+
+        <section class="hp-context" aria-label="Predictor controls">
+            <label>
+                <span>League</span>
+                <select id="hp-league" aria-label="Select a hockey league"></select>
+            </label>
+            <fieldset class="hp-segmented">
+                <legend>Calculator</legend>
+                <label><input type="radio" name="hp-model" value="combined" checked><span>Combined Elo</span></label>
+                <label><input type="radio" name="hp-model" value="league"><span>League-only</span></label>
+            </fieldset>
+            <div class="hp-context-note">
+                <span id="hp-model-badge" class="hp-badge">Combined Elo</span>
+                <small id="hp-model-help">Ratings carry with players and teams between competitions.</small>
+            </div>
+        </section>
+
+        <nav class="hp-tabs" role="tablist" aria-label="Hockey Predictor sections">
+            <button type="button" role="tab" aria-selected="true" data-hp-view="dashboard">Dashboard</button>
+            <button type="button" role="tab" aria-selected="false" data-hp-view="matchup">Matchup Lab</button>
+            <button type="button" role="tab" aria-selected="false" data-hp-view="simulation">Season Simulation</button>
+            <button type="button" role="tab" aria-selected="false" data-hp-view="rosters">Rosters &amp; Ratings</button>
+            <button type="button" role="tab" aria-selected="false" data-hp-view="model">Model Quality</button>
+        </nav>
+
+        <div id="hp-loading" class="hp-loading" role="status" aria-live="polite">Loading all-league ratings and simulations…</div>
+
+        <section class="hp-panel" data-hp-panel="dashboard" role="tabpanel" aria-labelledby="hp-overview-heading" hidden>
+            <header class="hp-section-heading">
+                <div><p class="hp-kicker">League command center</p><h2 id="hp-overview-heading">NHL forecast</h2></div>
+                <div id="hp-data-tier" class="hp-tier"></div>
+            </header>
+            <div class="hp-metrics">
+                <article><span>Rated teams</span><strong id="hp-team-count">—</strong><small id="hp-team-count-note">Current field</small></article>
+                <article><span>Backtest games</span><strong id="hp-backtest-games">—</strong><small>Sequential pre-game tests</small></article>
+                <article><span>Model accuracy</span><strong id="hp-accuracy">—</strong><small id="hp-accuracy-ci">95% interval</small></article>
+                <article><span>Roster coverage</span><strong id="hp-roster-coverage">—</strong><small>Games with player box scores</small></article>
+            </div>
+            <section class="hp-winner-grid" aria-label="Projected champions">
+                <article class="hp-winner hp-winner-primary">
+                    <p>Regular-season favorite</p>
+                    <strong id="hp-regular-winner">—</strong>
+                    <span id="hp-regular-winner-odds">—</span>
+                </article>
+                <article class="hp-winner">
+                    <p>Playoff champion favorite</p>
+                    <strong id="hp-playoff-winner">—</strong>
+                    <span id="hp-playoff-winner-odds">—</span>
+                </article>
+                <article class="hp-method-card">
+                    <p>Simulation basis</p>
+                    <strong id="hp-schedule-basis">—</strong>
+                    <span id="hp-simulation-basis">—</span>
+                </article>
+            </section>
+            <div class="hp-grid hp-overview-grid">
+                <article class="hp-card hp-span-7">
+                    <header><div><p class="hp-kicker">Power index</p><h3>Team Elo Ratings</h3></div><span id="hp-rating-range">—</span></header>
+                    <div id="hp-rating-bars" class="hp-bars" aria-label="Team Elo rating chart"></div>
+                </article>
+                <article class="hp-card hp-span-5">
+                    <header><div><p class="hp-kicker">Latest model run</p><h3>Title Contenders</h3></div><span>Top six</span></header>
+                    <div id="hp-title-bars" class="hp-bars hp-probability-bars" aria-label="Playoff championship probability chart"></div>
+                </article>
+            </div>
+            <article class="hp-card hp-table-card">
+                <header><div><p class="hp-kicker">At a glance</p><h3>League Power Ranking</h3></div><button type="button" class="hp-text-button" data-hp-view="simulation">View full simulation →</button></header>
+                <div class="hp-table-wrap"><table><thead><tr><th>Rank</th><th>Team</th><th>Elo</th><th>Avg. points</th><th>Regular title</th><th>Playoff title</th></tr></thead><tbody id="hp-overview-table"></tbody></table></div>
+            </article>
+        </section>
+
+        <section class="hp-panel" data-hp-panel="matchup" role="tabpanel" aria-labelledby="hp-matchup-heading" hidden>
+            <header class="hp-section-heading">
+                <div><p class="hp-kicker">Same league or cross-league</p><h2 id="hp-matchup-heading">Matchup Lab</h2></div>
+                <p>Choose each club independently</p>
+            </header>
+            <div class="hp-matchup-picker">
+                <article>
+                    <p class="hp-side-label">Team A</p>
+                    <label><span>League</span><select id="hp-league-a"></select></label>
+                    <label><span>Team</span><select id="hp-team-a"></select></label>
+                </article>
+                <button id="hp-swap" class="hp-swap" type="button" aria-label="Swap matchup teams" title="Swap teams">⇄</button>
+                <article>
+                    <p class="hp-side-label">Team B</p>
+                    <label><span>League</span><select id="hp-league-b"></select></label>
+                    <label><span>Team</span><select id="hp-team-b"></select></label>
+                </article>
+            </div>
+            <div class="hp-venue-control">
+                <label><span>Venue</span><select id="hp-venue"><option value="neutral">Neutral ice</option><option value="a">Team A home</option><option value="b">Team B home</option></select></label>
+                <p id="hp-cross-league-note"></p>
+            </div>
+            <section class="hp-matchup-result" aria-live="polite">
+                <div class="hp-matchup-names"><strong id="hp-name-a">Team A</strong><span>vs.</span><strong id="hp-name-b">Team B</strong></div>
+                <div class="hp-probability-track"><div id="hp-prob-a"><span>50%</span></div><div id="hp-prob-b"><span>50%</span></div></div>
+                <div class="hp-matchup-summary"><strong id="hp-matchup-pick">—</strong><span id="hp-matchup-probability">—</span></div>
+                <p id="hp-matchup-detail">Select two teams to calculate the matchup.</p>
+            </section>
+            <div id="hp-matchup-cards" class="hp-matchup-cards"></div>
+        </section>
+
+        <section class="hp-panel" data-hp-panel="simulation" role="tabpanel" aria-labelledby="hp-simulation-heading" hidden>
+            <header class="hp-section-heading hp-simulation-heading">
+                <div><p class="hp-kicker">Regular season through championship</p><h2 id="hp-simulation-heading">2026–27 Monte Carlo Projection</h2></div>
+                <div class="hp-run-control"><label><span>Runs</span><select id="hp-runs"><option value="1000">1,000</option><option value="5000">5,000</option><option value="10000" selected>10,000</option></select></label><button id="hp-run-simulation" type="button">Run again</button></div>
+            </header>
+            <p id="hp-simulation-status" class="hp-status" role="status" aria-live="polite">Showing the published 10,000-run model.</p>
+            <div class="hp-sim-winners">
+                <article><span>Projected regular-season winner</span><strong id="hp-sim-regular">—</strong><small id="hp-sim-regular-prob">—</small></article>
+                <article><span>Projected playoff champion</span><strong id="hp-sim-playoff">—</strong><small id="hp-sim-playoff-prob">—</small></article>
+                <article><span>Format</span><strong id="hp-sim-format">—</strong><small id="hp-sim-schedule">—</small></article>
+            </div>
+            <div class="hp-grid">
+                <article class="hp-card hp-span-7"><header><div><p class="hp-kicker">Expected table</p><h3>Average Final Points</h3></div></header><div id="hp-points-bars" class="hp-bars hp-tall-bars"></div></article>
+                <article class="hp-card hp-span-5"><header><div><p class="hp-kicker">Postseason</p><h3>Championship Probability</h3></div></header><div id="hp-playoff-bars" class="hp-bars hp-tall-bars hp-probability-bars"></div></article>
+            </div>
+            <article class="hp-card hp-table-card">
+                <header><div><p class="hp-kicker">Every active club</p><h3>Full Simulation Table</h3></div><span id="hp-sim-table-label">10,000 runs</span></header>
+                <div class="hp-table-wrap"><table><thead><tr><th>Rank</th><th>Team</th><th>Elo</th><th>Avg. W</th><th>Avg. Pts</th><th>Make playoffs</th><th>Win regular season</th><th>Win playoffs</th></tr></thead><tbody id="hp-simulation-table"></tbody></table></div>
+            </article>
+            <aside class="hp-methodology" id="hp-simulation-method"></aside>
+        </section>
+
+        <section class="hp-panel" data-hp-panel="rosters" role="tabpanel" aria-labelledby="hp-rosters-heading" hidden>
+            <header class="hp-section-heading">
+                <div><p class="hp-kicker">Rating inputs</p><h2 id="hp-rosters-heading">Rosters &amp; Team Ratings</h2></div>
+                <p id="hp-roster-source">Latest modeled roster</p>
+            </header>
+            <form class="hp-filter-row" id="hp-roster-filters">
+                <label><span>Team</span><select id="hp-roster-team"><option value="all">All teams</option></select></label>
+                <label class="hp-search"><span>Search</span><input id="hp-player-search" type="search" placeholder="Player or team" autocomplete="off"></label>
+                <label><span>Position</span><select id="hp-position"><option value="all">All positions</option><option value="forward">Forwards</option><option value="defense">Defense</option><option value="goalie">Goalies</option></select></label>
+            </form>
+            <div class="hp-grid">
+                <article class="hp-card hp-span-5"><header><div><p class="hp-kicker">Current field</p><h3>Team Ratings</h3></div></header><div id="hp-roster-team-bars" class="hp-bars hp-tall-bars"></div></article>
+                <article class="hp-card hp-span-7"><header><div><p class="hp-kicker">Roster explorer</p><h3 id="hp-player-table-title">Rated Players</h3></div><span id="hp-player-count">—</span></header><div class="hp-table-wrap hp-roster-table"><table><thead><tr><th>Player</th><th>Team</th><th>Position</th><th>Elo</th><th>Last game</th></tr></thead><tbody id="hp-player-table"></tbody></table></div></article>
+            </div>
+        </section>
+
+        <section class="hp-panel" data-hp-panel="model" role="tabpanel" aria-labelledby="hp-model-heading" hidden>
+            <header class="hp-section-heading">
+                <div><p class="hp-kicker">Transparent evaluation</p><h2 id="hp-model-heading">Model Quality &amp; Coverage</h2></div>
+                <p>Rolling, pre-game backtests</p>
+            </header>
+            <section class="hp-model-explainer">
+                <article><span>Combined Elo</span><strong>Transfer-aware</strong><p>One identity and rating follows a player or club between organizations, enabling meaningful cross-league comparisons.</p></article>
+                <article><span>League-only Elo</span><strong>Competition-isolated</strong><p>Ratings reset within each organization, reducing cross-league assumptions and creating a clean league-specific baseline.</p></article>
+                <article><span>Selection rule</span><strong id="hp-selection-rule">Lower log loss</strong><p>Probability quality drives the recommendation; favorite-pick accuracy breaks near ties.</p></article>
+            </section>
+            <div class="hp-model-comparison">
+                <article><span>Combined accuracy</span><strong id="hp-combined-accuracy">—</strong><small id="hp-combined-loss">—</small></article>
+                <article><span>League-only accuracy</span><strong id="hp-league-accuracy">—</strong><small id="hp-league-loss">—</small></article>
+                <article><span>Recommended for this league</span><strong id="hp-recommended-model">—</strong><small id="hp-recommendation-detail">—</small></article>
+            </div>
+            <article class="hp-card hp-table-card">
+                <header><div><p class="hp-kicker">All organizations</p><h3>League Model Comparison</h3></div><span>Click a row to open</span></header>
+                <div class="hp-table-wrap"><table><thead><tr><th>League</th><th>Games</th><th>Combined</th><th>League-only</th><th>Recommended</th><th>Player-boxscore coverage</th><th>Latest game</th></tr></thead><tbody id="hp-model-table"></tbody></table></div>
+            </article>
+            <section class="hp-sources"><h3>Data notes &amp; sources</h3><div id="hp-source-links"></div><p>Score-only leagues update a team fallback rating but do not claim player-roster precision. Expansion teams without game history begin at the 1,000 Elo baseline. Balanced projections model a full season against the displayed active field when an exact future schedule is not available.</p></section>
+        </section>
+    </main>
+    <footer><p>&copy; 2026 Richard Lavey. All rights reserved.</p></footer>
+    <script src="js/includeHeader.js"></script>
+    <script src="js/hockeyPredictor.js?v=1"></script>
+</body>
+</html>
