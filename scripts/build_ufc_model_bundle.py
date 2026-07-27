@@ -271,6 +271,45 @@ def fighter_feature_rows(groups, styles, numeric_columns):
     return output
 
 
+def serialize_universal_model(source):
+    model_path = (
+        source
+        / "advanced_stats"
+        / "ensemble"
+        / "models"
+        / "universal_mma_model.joblib"
+    )
+    evaluation_path = source / "data" / "universal_mma_model_evaluation.json"
+    bundle = joblib.load(model_path)
+    pipeline = bundle["model"]
+    transformer = pipeline.named_steps["features"]
+    scaler = transformer.named_transformers_["numeric"]
+    encoder = transformer.named_transformers_["categorical"]
+    classifier = pipeline.named_steps["model"]
+    transformed_count = len(scaler.mean_) + sum(
+        len(categories) for categories in encoder.categories_
+    )
+    evaluation = json.loads(evaluation_path.read_text(encoding="utf-8"))
+    return {
+        "trainedThrough": bundle["trained_through"],
+        "numericFeatures": list(bundle["numeric_features"]),
+        "numericMean": [rounded(value, 12) for value in scaler.mean_],
+        "numericScale": [rounded(value, 12) for value in scaler.scale_],
+        "categoricalFeatures": list(bundle["categorical_features"]),
+        "categories": [
+            [str(value) for value in categories] for categories in encoder.categories_
+        ],
+        "startingElos": bundle["starting_elos"],
+        "model": serialize_gradient_model(
+            classifier,
+            [str(index) for index in range(transformed_count)],
+        ),
+        "metrics": evaluation.get("test_metrics", {}),
+        "splitMethod": evaluation.get("split_method"),
+        "testStart": evaluation.get("test_start"),
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
@@ -361,6 +400,7 @@ def main():
         },
         "metrics": model_metrics,
         "scenarios": scenario_metrics,
+        "universal": serialize_universal_model(args.source),
     }
 
     args.output.parent.mkdir(parents=True, exist_ok=True)

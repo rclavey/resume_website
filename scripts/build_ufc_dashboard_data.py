@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the static UFC dashboard payload from generated Elo project files."""
+"""Build the static multi-promotion MMA dashboard payload."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import argparse
 import csv
 import json
 import math
+import re
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -55,6 +56,10 @@ def normalize_weight_class(value):
     return text
 
 
+def normalize_fighter(value):
+    return re.sub(r"[^a-z0-9]+", "", (value or "").casefold())
+
+
 def result_for(fighter, opponent, winner):
     if winner == fighter:
         return "W"
@@ -83,7 +88,7 @@ def latest_rating_entry(fighter, histories):
     return entries[-1]
 
 
-def build_fighters(source):
+def build_ufc_fighters(source):
     fight_path = source / "advanced_stats" / "ensemble" / "ufc_data_with_elo.csv"
     cumulative_path = source / "advanced_stats" / "ensemble" / "cumulative_style.csv"
 
@@ -202,7 +207,175 @@ def build_fighters(source):
     return fighters, max(all_dates) if all_dates else None
 
 
-def build_cards(source):
+def build_mma_fighters(source):
+    fight_path = source / "mma_fights_with_elo.csv"
+    ufc_fighters, _ = build_ufc_fighters(source)
+    ufc_by_key = {normalize_fighter(item["name"]): item for item in ufc_fighters}
+
+    histories = defaultdict(list)
+    records = defaultdict(lambda: {"wins": 0, "losses": 0, "draws": 0, "finishes": 0})
+    results = defaultdict(list)
+    organizations = defaultdict(set)
+    organization_fighters = defaultdict(set)
+    organization_fights = defaultdict(int)
+    organization_latest = {}
+    organization_rulesets = defaultdict(lambda: defaultdict(int))
+    display_names = {}
+    first_organizers = {}
+    last_organizers = {}
+    latest_dates = {}
+    weight_classes = {}
+    ufc_fights = defaultdict(int)
+
+    with fight_path.open(newline="", encoding="utf-8-sig") as handle:
+        for row in csv.DictReader(handle):
+            date = row.get("date", "")
+            organizer = row.get("organizer", "").strip() or "Unknown"
+            fighter_one = row.get("fighter_one", "").strip()
+            fighter_two = row.get("fighter_two", "").strip()
+            if not date or not fighter_one or not fighter_two:
+                continue
+
+            organization_fights[organizer] += 1
+            organization_latest[organizer] = max(date, organization_latest.get(organizer, ""))
+            ruleset = row.get("ruleset", "").strip()
+            if ruleset:
+                organization_rulesets[organizer][ruleset] += 1
+
+            winner_key = normalize_fighter(row.get("winner"))
+            win_type = row.get("win_type", "").strip()
+            weight_class = normalize_weight_class(row.get("weightclass"))
+            for side, fighter, opponent in (
+                ("one", fighter_one, fighter_two),
+                ("two", fighter_two, fighter_one),
+            ):
+                key = normalize_fighter(fighter)
+                opponent_key = normalize_fighter(opponent)
+                if not key:
+                    continue
+                rating = number(row.get(f"fighter_{side}_elo_after"))
+                if rating is None:
+                    continue
+
+                histories[key].append((date, rating))
+                organizations[key].add(organizer)
+                organization_fighters[organizer].add(key)
+                display_names[key] = fighter
+                first_organizers.setdefault(
+                    key,
+                    row.get(f"fighter_{side}_first_organizer", "").strip() or organizer,
+                )
+                if date >= latest_dates.get(key, ""):
+                    latest_dates[key] = date
+                    last_organizers[key] = organizer
+                    weight_classes[key] = weight_class
+
+                if organizer == "UFC":
+                    ufc_fights[key] += 1
+
+                if winner_key == key:
+                    result = "W"
+                elif winner_key == opponent_key:
+                    result = "L"
+                else:
+                    result = "D"
+                results[key].append((date, result))
+                if result == "W":
+                    records[key]["wins"] += 1
+                    if is_win_type_finish(win_type):
+                        records[key]["finishes"] += 1
+                elif result == "L":
+                    records[key]["losses"] += 1
+                else:
+                    records[key]["draws"] += 1
+
+    fighters = []
+    for key, history in histories.items():
+        history.sort(key=lambda item: item[0])
+        latest_date, current_rating = history[-1]
+        peak_date, peak_rating = max(history, key=lambda item: item[1])
+        ordered_results = [result for _, result in sorted(results[key], key=lambda item: item[0])]
+        record = records[key]
+        fights = record["wins"] + record["losses"] + record["draws"]
+        decided = record["wins"] + record["losses"]
+        rich = ufc_by_key.get(key, {})
+        trend_base = history[-4][1] if len(history) >= 4 else history[0][1]
+
+        fighters.append(
+            {
+                "name": display_names[key],
+                "weightClass": weight_classes.get(key, "Unknown"),
+                "currentRating": round(current_rating, 2),
+                "peakRating": round(peak_rating, 2),
+                "peakDate": peak_date,
+                "lastFight": latest_date,
+                "fights": fights,
+                "ufcFights": ufc_fights[key],
+                "wins": record["wins"],
+                "losses": record["losses"],
+                "draws": record["draws"],
+                "winPct": round(record["wins"] / decided * 100, 1) if decided else 0,
+                "finishPct": round(record["finishes"] / record["wins"] * 100, 1)
+                if record["wins"]
+                else 0,
+                "streak": derive_streak(ordered_results),
+                "form": "".join(ordered_results[-5:]),
+                "ratingTrend": round(current_rating - trend_base, 2),
+                "firstOrganizer": first_organizers.get(key, "Unknown"),
+                "lastOrganizer": last_organizers.get(key, "Unknown"),
+                "organizations": sorted(
+                    organizations[key],
+                    key=lambda item: (item != "UFC", item.casefold()),
+                ),
+                "recentWinRate": round(
+                    sum(1 for result in ordered_results[-5:] if result == "W")
+                    / max(1, sum(1 for result in ordered_results[-5:] if result in {"W", "L"})),
+                    4,
+                ),
+                "hasAdvancedStats": bool(rich),
+                "style": rich.get("style", "Universal MMA profile"),
+                "ageAtLastFight": rich.get("ageAtLastFight"),
+                "strikesLandedPerMin": rich.get("strikesLandedPerMin", 0),
+                "strikesAbsorbedPerMin": rich.get("strikesAbsorbedPerMin", 0),
+                "strikingAccuracy": rich.get("strikingAccuracy"),
+                "takedownsPer15": rich.get("takedownsPer15", 0),
+                "takedownAccuracy": rich.get("takedownAccuracy"),
+                "submissionAttemptsPer15": rich.get("submissionAttemptsPer15", 0),
+                "controlPct": rich.get("controlPct", 0),
+                "history": [[date, round(rating, 2)] for date, rating in history],
+            }
+        )
+
+    fighters.sort(key=lambda item: (-item["currentRating"], item["name"]))
+
+    calibration_path = source / "data" / "organizer_elo_calibration.json"
+    calibration = json.loads(calibration_path.read_text(encoding="utf-8"))
+    starting_elos = calibration.get("selected_starting_elos", {})
+    organizer_rows = []
+    for organizer, fight_count in organization_fights.items():
+        current_count = sum(
+            1 for fighter in fighters if fighter["lastOrganizer"] == organizer
+        )
+        rules = organization_rulesets[organizer]
+        organizer_rows.append(
+            {
+                "name": organizer,
+                "fightCount": fight_count,
+                "fighterCount": len(organization_fighters[organizer]),
+                "currentFighterCount": current_count,
+                "latestFightDate": organization_latest.get(organizer),
+                "startingElo": rounded(starting_elos.get(organizer), 1),
+                "ruleset": max(rules, key=rules.get) if rules else "Professional MMA",
+                "isPrimary": organizer == "UFC",
+            }
+        )
+    organizer_rows.sort(
+        key=lambda item: (not item["isPrimary"], -item["fightCount"], item["name"])
+    )
+    return fighters, organizer_rows, max(latest_dates.values()) if latest_dates else None
+
+
+def build_ufc_cards(source):
     prediction_path = source / "advanced_stats" / "ensemble" / "gradient_predictions.csv"
     grouped = defaultdict(list)
     with prediction_path.open(newline="", encoding="utf-8-sig") as handle:
@@ -280,7 +453,84 @@ def build_cards(source):
                 "insufficient": cards[date]["insufficient"],
             }
         )
-    return output, datetime.fromtimestamp(prediction_path.stat().st_mtime, timezone.utc).isoformat()
+    return output
+
+
+def build_cards(source):
+    universal_path = source / "predicted_fights.csv"
+    advanced_cards = {
+        (card["date"], frozenset((fight["fighterOne"], fight["fighterTwo"]))): fight
+        for card in build_ufc_cards(source)
+        for fight in card["predicted"]
+    }
+    cards = {}
+    with universal_path.open(newline="", encoding="utf-8-sig") as handle:
+        for row in csv.DictReader(handle):
+            date = row.get("date", "")
+            organizer = row.get("organizer", "").strip() or "Unknown"
+            event = row.get("event", "").strip() or f"{organizer} card"
+            fighter_one = row.get("fighter", "").strip()
+            fighter_two = row.get("opponent", "").strip()
+            probability_one = number(row.get("fighter_win_probability"))
+            if not date or not fighter_one or not fighter_two or probability_one is None:
+                continue
+            probability_one = min(1, max(0, probability_one))
+            probability_two = 1 - probability_one
+            advanced = advanced_cards.get(
+                (date, frozenset((fighter_one, fighter_two)))
+            )
+            key = (date, organizer, event)
+            card = cards.setdefault(
+                key,
+                {
+                    "date": date,
+                    "organizer": organizer,
+                    "event": event,
+                    "predicted": [],
+                    "insufficient": [],
+                },
+            )
+            fight = {
+                "fighterOne": fighter_one,
+                "fighterTwo": fighter_two,
+                "probabilityOne": round(probability_one, 4),
+                "probabilityTwo": round(probability_two, 4),
+                "universalProbabilityOne": round(probability_one, 4),
+                "favorite": fighter_one if probability_one >= probability_two else fighter_two,
+                "favoriteProbability": round(max(probability_one, probability_two), 4),
+                "probabilityGap": round(abs(probability_one - probability_two) * 100, 1),
+                "agreement": 1,
+                "availableSignals": 1,
+                "signals": [{"label": "Universal MMA", "value": round(max(probability_one, probability_two), 4)}],
+                "modelType": "Universal MMA",
+            }
+            if advanced:
+                advanced_probability = (
+                    advanced["probabilityOne"]
+                    if advanced["fighterOne"] == fighter_one
+                    else advanced["probabilityTwo"]
+                )
+                fight["ufcEnsembleProbabilityOne"] = round(advanced_probability, 4)
+                fight["signals"] = [
+                    {
+                        "label": "Universal MMA",
+                        "value": round(max(probability_one, probability_two), 4),
+                    },
+                    *advanced["signals"],
+                ]
+                fight["availableSignals"] = 1 + advanced["availableSignals"]
+                fight["agreement"] = 1 + advanced["agreement"]
+                fight["modelType"] = "Universal MMA + UFC ensemble"
+            card["predicted"].append(fight)
+
+    output = list(cards.values())
+    for card in output:
+        card["predicted"].sort(key=lambda fight: fight["probabilityGap"], reverse=True)
+    output.sort(key=lambda card: (card["date"], card["organizer"], card["event"]))
+    generated_at = datetime.fromtimestamp(
+        universal_path.stat().st_mtime, timezone.utc
+    ).isoformat()
+    return output, generated_at
 
 
 def build_elo_bins(source):
@@ -306,7 +556,7 @@ def main():
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()
 
-    fighters, latest_fight = build_fighters(args.source)
+    fighters, organizers, latest_fight = build_mma_fighters(args.source)
     cards, generated_at = build_cards(args.source)
     predicted_count = sum(len(card["predicted"]) for card in cards)
     insufficient_count = sum(len(card["insufficient"]) for card in cards)
@@ -316,11 +566,20 @@ def main():
             "generatedAt": generated_at,
             "latestFightDate": latest_fight,
             "fighterCount": len(fighters),
+            "fightCount": sum(item["fightCount"] for item in organizers),
+            "organizerCount": len(organizers),
+            "ufcFighterCount": sum(
+                1 for fighter in fighters if fighter["lastOrganizer"] == "UFC"
+            ),
+            "ufcAdvancedProfileCount": sum(
+                1 for fighter in fighters if fighter["hasAdvancedStats"]
+            ),
             "cardCount": len(cards),
             "predictedFightCount": predicted_count,
             "insufficientFightCount": insufficient_count,
-            "source": "Generated UFC Elo and advanced ensemble outputs",
+            "source": "Multi-promotion MMA Elo, universal model, and UFC advanced ensemble outputs",
         },
+        "organizers": organizers,
         "fighters": fighters,
         "cards": cards,
         "eloBins": build_elo_bins(args.source),

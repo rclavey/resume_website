@@ -110,6 +110,86 @@
     font-size: 0.89rem;
 }
 
+.promotion-command {
+    margin: 18px 0 0;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: minmax(230px, 1.4fr) repeat(3, minmax(130px, 0.7fr)) auto;
+    gap: 14px;
+    align-items: end;
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--coral);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.94);
+}
+
+.promotion-command label,
+.matchup-side > label {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.promotion-command label > span,
+.matchup-side > label > span {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 790;
+    text-transform: uppercase;
+}
+
+.promotion-command select,
+.matchup-side select {
+    width: 100%;
+    height: 42px;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: 5px;
+    color: var(--ink);
+    background: white;
+    font: inherit;
+    font-size: 0.86rem;
+}
+
+.promotion-command > div:not(.promotion-badge) {
+    min-height: 42px;
+    padding-left: 12px;
+    display: grid;
+    align-content: center;
+    gap: 2px;
+    border-left: 2px solid var(--line-strong);
+}
+
+.promotion-command > div span {
+    color: var(--muted);
+    font-size: 0.65rem;
+    font-weight: 760;
+    text-transform: uppercase;
+}
+
+.promotion-command > div strong {
+    font-size: 0.86rem;
+}
+
+.promotion-badge {
+    min-height: 42px;
+    padding: 0 13px;
+    display: grid;
+    place-items: center;
+    border-radius: 4px;
+    color: white;
+    background: var(--coral);
+    font-size: 0.74rem;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.promotion-badge.is-secondary {
+    color: var(--ink);
+    background: #edf1f4;
+}
+
 .dashboard-tabs {
     position: sticky;
     top: 74px;
@@ -390,6 +470,7 @@
 .matchup-controls select,
 .card-selector select,
 .matchup-model-toolbar select,
+.matchup-model-toolbar input,
 .model-panel-heading select,
 .model-score-controls select {
     width: 100%;
@@ -410,6 +491,7 @@
 .matchup-controls select:focus,
 .card-selector select:focus,
 .matchup-model-toolbar select:focus,
+.matchup-model-toolbar input:focus,
 .model-panel-heading select:focus,
 .model-score-controls select:focus {
     outline: 2px solid rgba(0, 138, 122, 0.22);
@@ -420,7 +502,7 @@
     margin: 0 0 14px;
     padding: 14px 16px;
     display: grid;
-    grid-template-columns: minmax(220px, 1.4fr) repeat(2, minmax(150px, 0.7fr));
+    grid-template-columns: minmax(190px, 1.2fr) repeat(2, minmax(145px, 0.8fr)) repeat(2, minmax(125px, 0.6fr));
     gap: 14px;
     align-items: end;
     border: 1px solid var(--line);
@@ -646,6 +728,21 @@
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: rgba(255, 255, 255, 0.9);
+}
+
+.matchup-side {
+    min-width: 0;
+    display: grid;
+    gap: 12px;
+}
+
+.cross-promotion-note {
+    margin: -2px 0 14px !important;
+    padding: 10px 13px;
+    border-left: 3px solid var(--teal);
+    color: var(--muted) !important;
+    background: #f2f8f7;
+    font-size: 0.79rem;
 }
 
 .fighter-search-picker {
@@ -1546,6 +1643,14 @@
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
+    .promotion-command {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .promotion-command label {
+        grid-column: span 2;
+    }
+
     .filter-search {
         grid-column: span 2;
     }
@@ -1728,6 +1833,7 @@
     .snapshot-meta,
     .metric-strip,
     .analytics-toolbar,
+    .promotion-command,
     .card-summary-bar,
     .insufficient-fights-list,
     .ensemble-overview,
@@ -1788,8 +1894,18 @@
         grid-template-columns: 1fr auto;
     }
 
-    .matchup-controls .fighter-search-picker:last-child {
+    .matchup-controls .matchup-side:last-child {
         grid-column: 1 / -1;
+    }
+
+    .promotion-command > div:not(.promotion-badge) {
+        padding: 10px 0 0;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+    }
+
+    .promotion-command label {
+        grid-column: auto;
     }
 
     .probability-labels strong {

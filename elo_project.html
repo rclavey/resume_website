@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UFC Predictor Project | Richard Lavey</title>
-    <meta name="description" content="Interactive UFC ensemble predictions, fighter matchup projections, model scores, and generated fight-card analytics.">
+    <title>MMA Fight Predictor | Richard Lavey</title>
+    <meta name="description" content="Multi-promotion MMA Elo ratings, UFC-focused analytics, cross-promotion hypothetical matchups, universal fight predictions, and upcoming card projections.">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/ufc-dashboard.css?v=3">
+    <link rel="stylesheet" href="css/ufc-dashboard.css?v=4">
 </head>
 <body>
     <header></header>
     <main class="ufc-dashboard">
         <section class="ufc-masthead" aria-labelledby="ufc-title">
             <div>
-                <p class="dashboard-eyebrow">Ensemble fight analytics</p>
-                <h1 id="ufc-title">UFC Predictor Project</h1>
-                <p class="dashboard-intro">Scenario-based ensemble predictions, component model scores, fighter ratings, and model-ranked fight cards from the latest locally generated data.</p>
+                <p class="dashboard-eyebrow">UFC-first · 27-promotion coverage</p>
+                <h1 id="ufc-title">MMA Fight Predictor</h1>
+                <p class="dashboard-intro">Explore a shared cross-promotion rating system, compare fighters from different organizations, and inspect upcoming fight predictions. UFC remains the primary focus, with richer statistical ensemble analysis when UFC data is available.</p>
             </div>
             <dl class="snapshot-meta">
                 <div>
@@ -34,7 +34,18 @@
             <span>These estimates are an analytical project, not betting advice. Historical performance does not guarantee future results.</span>
         </aside>
 
-        <nav class="dashboard-tabs" aria-label="UFC analytics sections" role="tablist">
+        <section class="promotion-command" aria-label="Promotion controls">
+            <label>
+                <span>Promotion</span>
+                <select id="organization-select" aria-label="Select an MMA promotion"></select>
+            </label>
+            <div><span>Modeled fights</span><strong id="organization-fights">-</strong></div>
+            <div><span>Associated fighters</span><strong id="organization-fighters">-</strong></div>
+            <div><span>Latest result</span><strong id="organization-latest">-</strong></div>
+            <div id="organization-primary-badge" class="promotion-badge">Primary focus</div>
+        </section>
+
+        <nav class="dashboard-tabs" aria-label="MMA analytics sections" role="tablist">
             <button type="button" role="tab" aria-selected="true" aria-controls="overview-panel" data-dashboard-view="overview">Overview</button>
             <button type="button" role="tab" aria-selected="false" aria-controls="leaderboard-panel" data-dashboard-view="leaderboard">Leaderboard</button>
             <button type="button" role="tab" aria-selected="false" aria-controls="matchup-panel" data-dashboard-view="matchup">Matchup Lab</button>
@@ -43,7 +54,7 @@
             <button type="button" role="tab" aria-selected="false" aria-controls="methodology-panel" data-dashboard-view="methodology">Methodology</button>
         </nav>
 
-        <div id="dashboard-loading" class="dashboard-loading" role="status" aria-live="polite">Loading UFC analytics data...</div>
+        <div id="dashboard-loading" class="dashboard-loading" role="status" aria-live="polite">Loading multi-promotion MMA analytics...</div>
 
         <section id="overview-panel" class="dashboard-panel" role="tabpanel" data-dashboard-panel="overview">
             <div class="panel-heading">
@@ -57,33 +68,33 @@
                 <article>
                     <span>Rated fighters</span>
                     <strong id="metric-fighters">-</strong>
-                    <small>Complete generated history</small>
+                    <small>Selected promotion association</small>
                 </article>
                 <article>
-                    <span>Established ratings</span>
+                    <span>Modeled fights</span>
                     <strong id="metric-established">-</strong>
-                    <small>Five or more UFC fights</small>
+                    <small>Historical promotion sample</small>
                 </article>
                 <article>
-                    <span>Fight cards</span>
+                    <span>Promotions</span>
                     <strong id="metric-cards">-</strong>
-                    <small>Latest generated slate</small>
+                    <small>Shared rating network</small>
                 </article>
                 <article>
-                    <span>Model predictions</span>
+                    <span>Upcoming predictions</span>
                     <strong id="metric-predictions">-</strong>
-                    <small>Scenario model available</small>
+                    <small>Across generated fight cards</small>
                 </article>
                 <article>
-                    <span>Insufficient data</span>
+                    <span>UFC advanced profiles</span>
                     <strong id="metric-insufficient">-</strong>
-                    <small>Separated from predictions</small>
+                    <small>Richer style and statistics layer</small>
                 </article>
             </div>
 
             <section class="ensemble-overview" aria-label="Ensemble model overview">
-                <div><span>Primary prediction</span><strong>Final ensemble</strong><small>Reconciled directional score</small></div>
-                <div><span>Component scores</span><strong>8</strong><small>Logistic, style, windows, trees, neural</small></div>
+                <div><span>All promotions</span><strong>Universal MMA model</strong><small>Elo, form, experience, inactivity, and promotion context</small></div>
+                <div><span>UFC enhancement</span><strong>Advanced ensemble</strong><small>Style, rolling windows, gradient trees, and neural scores</small></div>
                 <button type="button" data-dashboard-view="models">Explore model</button>
             </section>
 
@@ -95,7 +106,7 @@
                             <h3>Highest Current Ratings</h3>
                         </div>
                     </header>
-                    <div class="chart-canvas chart-canvas-tall"><canvas id="top-ratings-chart" aria-label="Top current UFC Elo ratings"></canvas></div>
+                    <div class="chart-canvas chart-canvas-tall"><canvas id="top-ratings-chart" aria-label="Top current MMA Elo ratings"></canvas></div>
                 </article>
                 <article class="chart-frame">
                     <header>
@@ -104,7 +115,7 @@
                             <h3>Current Elo Range</h3>
                         </div>
                     </header>
-                    <div class="chart-canvas"><canvas id="rating-distribution-chart" aria-label="Distribution of UFC Elo ratings"></canvas></div>
+                    <div class="chart-canvas"><canvas id="rating-distribution-chart" aria-label="Distribution of MMA Elo ratings"></canvas></div>
                 </article>
                 <article class="chart-frame">
                     <header>
@@ -113,7 +124,7 @@
                             <h3>Fighter Sample Depth</h3>
                         </div>
                     </header>
-                    <div class="chart-canvas"><canvas id="experience-chart" aria-label="Fighters grouped by UFC fight count"></canvas></div>
+                    <div class="chart-canvas"><canvas id="experience-chart" aria-label="Fighters grouped by professional MMA fight count"></canvas></div>
                 </article>
             </div>
         </section>
@@ -166,7 +177,7 @@
                     <select id="leaderboard-sort">
                         <option value="rating-desc">Rating: high to low</option>
                         <option value="rating-asc">Rating: low to high</option>
-                        <option value="fights-desc">Most UFC fights</option>
+                        <option value="fights-desc">Most MMA fights</option>
                         <option value="win-desc">Highest win rate</option>
                         <option value="trend-desc">Strongest recent trend</option>
                         <option value="recent-desc">Most recent fight</option>
@@ -195,21 +206,21 @@
             <div class="leaderboard-visuals">
                 <article class="chart-frame">
                     <header><div><p class="chart-kicker">Filtered field</p><h3>Top 12 Ratings</h3></div></header>
-                    <div class="chart-canvas"><canvas id="leaderboard-top-chart" aria-label="Filtered top UFC fighters"></canvas></div>
+                    <div class="chart-canvas"><canvas id="leaderboard-top-chart" aria-label="Filtered top MMA fighters"></canvas></div>
                 </article>
                 <article class="chart-frame">
                     <header><div><p class="chart-kicker">Filtered field</p><h3>Rating Histogram</h3></div></header>
-                    <div class="chart-canvas"><canvas id="leaderboard-histogram-chart" aria-label="Filtered UFC Elo histogram"></canvas></div>
+                    <div class="chart-canvas"><canvas id="leaderboard-histogram-chart" aria-label="Filtered MMA Elo histogram"></canvas></div>
                 </article>
             </div>
 
             <div class="data-table-wrap">
-                <table class="analytics-table" aria-label="UFC fighter Elo leaderboard">
+                <table class="analytics-table" aria-label="MMA fighter Elo leaderboard">
                     <thead>
                         <tr>
                             <th scope="col">Rank</th>
                             <th scope="col">Fighter</th>
-                            <th scope="col">Division</th>
+                            <th scope="col">Promotion</th>
                             <th scope="col">Current</th>
                             <th scope="col">Peak</th>
                             <th scope="col">Record</th>
@@ -239,24 +250,32 @@
             </div>
 
             <div id="matchup-controls" class="matchup-controls">
-                <div class="fighter-search-picker">
-                    <label for="matchup-fighter-one"><span>Fighter A</span></label>
-                    <input id="matchup-fighter-one" type="search" role="combobox" aria-autocomplete="list" aria-controls="fighter-results-one" aria-expanded="false" autocomplete="off" placeholder="Search fighters">
-                    <div id="fighter-results-one" class="fighter-search-results" role="listbox" hidden></div>
+                <div class="matchup-side">
+                    <label><span>Fighter A promotion</span><select id="matchup-organization-one"></select></label>
+                    <div class="fighter-search-picker">
+                        <label for="matchup-fighter-one"><span>Fighter A</span></label>
+                        <input id="matchup-fighter-one" type="search" role="combobox" aria-autocomplete="list" aria-controls="fighter-results-one" aria-expanded="false" autocomplete="off" placeholder="Search selected promotion">
+                        <div id="fighter-results-one" class="fighter-search-results" role="listbox" hidden></div>
+                    </div>
                 </div>
                 <button id="swap-matchup" class="icon-button swap-button" type="button" title="Swap fighters" aria-label="Swap fighters">&#8644;</button>
-                <div class="fighter-search-picker">
-                    <label for="matchup-fighter-two"><span>Fighter B</span></label>
-                    <input id="matchup-fighter-two" type="search" role="combobox" aria-autocomplete="list" aria-controls="fighter-results-two" aria-expanded="false" autocomplete="off" placeholder="Search fighters">
-                    <div id="fighter-results-two" class="fighter-search-results" role="listbox" hidden></div>
+                <div class="matchup-side">
+                    <label><span>Fighter B promotion</span><select id="matchup-organization-two"></select></label>
+                    <div class="fighter-search-picker">
+                        <label for="matchup-fighter-two"><span>Fighter B</span></label>
+                        <input id="matchup-fighter-two" type="search" role="combobox" aria-autocomplete="list" aria-controls="fighter-results-two" aria-expanded="false" autocomplete="off" placeholder="Search selected promotion">
+                        <div id="fighter-results-two" class="fighter-search-results" role="listbox" hidden></div>
+                    </div>
                 </div>
             </div>
+            <p id="cross-promotion-note" class="cross-promotion-note"></p>
 
             <div class="matchup-model-toolbar">
                 <label>
                     <span>Projection score</span>
                     <select id="matchup-score-model">
-                        <option value="ensemble_score">Final ensemble</option>
+                        <option value="cross_promotion_score">Universal MMA model</option>
+                        <option value="ensemble_score">UFC final ensemble</option>
                         <option value="elo_score">Elo baseline</option>
                         <option value="base_logistic_score">Base logistic</option>
                         <option value="style_matchup_score">Style matchup</option>
@@ -267,6 +286,14 @@
                         <option value="gradient_boost_score">Gradient boost</option>
                         <option value="multi_layer_perceptron_score">Neural network</option>
                     </select>
+                </label>
+                <label>
+                    <span>Host promotion</span>
+                    <select id="matchup-host-organization"></select>
+                </label>
+                <label>
+                    <span>Fight date</span>
+                    <input id="matchup-fight-date" type="date">
                 </label>
                 <div><span>Active scenario</span><strong id="matchup-scenario">Calculating</strong></div>
                 <div><span>Available scores</span><strong id="matchup-score-count">-</strong></div>
@@ -329,7 +356,7 @@
                     <h2>Fight Card Rankings</h2>
                 </div>
                 <label class="card-selector">
-                    <span>Fight card</span>
+                    <span>Upcoming card</span>
                     <select id="fight-card-select"></select>
                 </label>
             </div>
@@ -384,7 +411,8 @@
                     <span>Model focus</span>
                     <select id="model-focus-filter">
                         <option value="all">All models</option>
-                        <option value="ensemble_score">Final ensemble</option>
+                        <option value="cross_promotion_score">Universal MMA model</option>
+                        <option value="ensemble_score">UFC final ensemble</option>
                         <option value="elo_score">Elo baseline</option>
                         <option value="base_logistic_score">Base logistic</option>
                         <option value="style_matchup_score">Style matchup</option>
@@ -399,10 +427,10 @@
             </div>
 
             <div class="model-pipeline" aria-label="Prediction pipeline">
-                <article><span>01</span><strong>Build fighter state</strong><p>Take each fighter's latest completed statistics, stance, style, Elo, and available history windows.</p></article>
-                <article><span>02</span><strong>Calculate components</strong><p>Generate logistic, style, rolling-window, gradient-boost, and neural-network probabilities in both directions.</p></article>
-                <article><span>03</span><strong>Select scenario</strong><p>Use the deepest shared 3, 5, 7, or 10-fight window to choose the matching ensemble forest.</p></article>
-                <article><span>04</span><strong>Reconcile prediction</strong><p>Combine the two directional ensemble outputs into one complementary matchup probability.</p></article>
+                <article><span>01</span><strong>Unify fight history</strong><p>Deduplicate results from multiple sources and preserve fighter identity across promotions.</p></article>
+                <article><span>02</span><strong>Update shared Elo</strong><p>Carry one rating across organizations using calibrated promotion priors only at a fighter's first appearance.</p></article>
+                <article><span>03</span><strong>Predict the matchup</strong><p>Combine Elo, experience, recent form, inactivity, and host-promotion context in the universal model.</p></article>
+                <article><span>04</span><strong>Enhance UFC fights</strong><p>Add style, striking, grappling, rolling-window, tree, and neural signals when UFC data supports them.</p></article>
             </div>
 
             <section class="scenario-section" aria-labelledby="scenario-heading">
@@ -446,11 +474,11 @@
             <div class="methodology-grid">
                 <article>
                     <h3>Elo ratings</h3>
-                    <p>Ratings update after each recorded UFC fight. The expected score uses the standard Elo logistic curve, while rating movement accounts for experience, inactivity decay, and result type in the generated advanced dataset.</p>
+                    <p>Ratings update after each recorded professional MMA fight. A fighter keeps one identity and rating while moving between promotions, making cross-promotion comparisons possible.</p>
                 </article>
                 <article>
                     <h3>Matchup projections</h3>
-                    <p>The Matchup Lab defaults to the final scenario-based ensemble and lets each component score be inspected independently. Two directional outputs are reconciled into complementary win probabilities.</p>
+                    <p>The Matchup Lab defaults to the universal MMA model and supports fighters from different organizations. The host-promotion selector supplies event context, and both directional outputs are reconciled into complementary probabilities.</p>
                 </article>
                 <article>
                     <h3>Fair implied odds</h3>
@@ -458,11 +486,11 @@
                 </article>
                 <article>
                     <h3>Fight-card model</h3>
-                    <p>Generated card probabilities combine base logistic, style matchup, multi-fight performance windows, gradient boosting, and neural-network scores through experience-specific scenario models. Opposite-direction outputs are reconciled into complementary matchup probabilities.</p>
+                    <p>Upcoming cards across modeled promotions use the universal model. UFC cards can additionally expose the deeper advanced ensemble when both fighters have sufficient statistics.</p>
                 </article>
                 <article>
                     <h3>Insufficient data</h3>
-                    <p>Fights marked <code>nef</code> by the source pipeline are not assigned a probability. They remain visible in a separate section instead of being mixed into the ranked predictions.</p>
+                    <p>Unknown fighters start from a calibrated promotion prior. Predictions with limited history remain explicitly lower-confidence rather than borrowing unavailable UFC-specific statistics.</p>
                 </article>
             </div>
 
@@ -488,7 +516,7 @@
     <footer><p>&copy; 2024 Richard Lavey</p></footer>
     <script src="js/includeHeader.js"></script>
     <script src="js/vendor/chart.umd.min.js?v=4.5.1"></script>
-    <script src="js/ufcModel.js?v=1"></script>
-    <script src="js/ufcDashboard.js?v=9"></script>
+    <script src="js/ufcModel.js?v=2"></script>
+    <script src="js/ufcDashboard.js?v=10"></script>
 </body>
 </html>

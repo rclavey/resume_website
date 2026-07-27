@@ -14,6 +14,7 @@ const dashboardState = {
     leaderboardRows: [],
     selectedCardIndex: 0,
     selectedFightIndex: 0,
+    selectedOrganization: 'UFC',
     modelMatchups: []
 };
 
@@ -33,8 +34,13 @@ const dashboardColors = {
 
 const modelCatalog = [
     {
-        key: 'ensemble_score', title: 'Final Ensemble', type: 'Primary output', primary: true,
-        description: 'Selects the deepest available history scenario, combines every eligible component probability with a 50-tree gradient forest, then reconciles both fighter directions.',
+        key: 'cross_promotion_score', title: 'Universal MMA Model', type: 'Primary output', primary: true,
+        description: 'Scores any supported cross-promotion matchup using shared Elo, experience, recent form, inactivity, and promotion context.',
+        equation: 'P(A) = reconcile(GBDT(universal features A->B), GBDT(universal features B->A))'
+    },
+    {
+        key: 'ensemble_score', title: 'UFC Final Ensemble', type: 'UFC enhancement',
+        description: 'For UFC matchups with detailed statistics, selects the deepest available history scenario and combines every eligible component probability with a 50-tree gradient forest.',
         equation: 'P(final) = reconcile(GBDT_scenario(component scores A->B), GBDT_scenario(B->A))'
     },
     {
@@ -327,18 +333,28 @@ function renderView(view) {
 }
 
 function renderOverview() {
-    const { meta, fighters } = dashboardState.data;
+    const { meta } = dashboardState.data;
+    const organizer = selectedOrganizer();
+    const fighters = fightersForOrganization(organizer?.name);
     element('snapshot-generated').textContent = formatTimestamp(meta.generatedAt);
     element('snapshot-latest').textContent = formatDate(meta.latestFightDate);
-    element('metric-fighters').textContent = formatNumber(meta.fighterCount);
-    element('metric-established').textContent = formatNumber(fighters.filter(fighter => fighter.fights >= 5).length);
-    element('metric-cards').textContent = formatNumber(meta.cardCount);
-    element('metric-predictions').textContent = formatNumber(meta.predictedFightCount);
-    element('metric-insufficient').textContent = formatNumber(meta.insufficientFightCount);
+    element('metric-fighters').textContent = formatNumber(fighters.length);
+    element('metric-established').textContent = formatNumber(organizer?.fightCount ?? meta.fightCount);
+    element('metric-cards').textContent = formatNumber(meta.organizerCount);
+    element('metric-predictions').textContent = formatNumber(
+        cardsForOrganization(organizer?.name).reduce((total, card) => total + card.predicted.length, 0)
+    );
+    element('metric-insufficient').textContent = formatNumber(meta.ufcAdvancedProfileCount);
+    element('organization-fights').textContent = formatNumber(organizer?.fightCount ?? meta.fightCount);
+    element('organization-fighters').textContent = formatNumber(fighters.length);
+    element('organization-latest').textContent = formatDate(organizer?.latestFightDate ?? meta.latestFightDate);
+    const badge = element('organization-primary-badge');
+    badge.textContent = organizer?.name === 'UFC' ? 'Primary focus' : 'Cross-promotion coverage';
+    badge.classList.toggle('is-secondary', organizer?.name !== 'UFC');
 }
 
 function renderOverviewCharts() {
-    const fighters = dashboardState.data.fighters;
+    const fighters = fightersForOrganization();
     const topFighters = [...fighters].sort((a, b) => b.currentRating - a.currentRating).slice(0, 15);
     createChart('overview-top', 'top-ratings-chart', {
         type: 'bar',
@@ -404,6 +420,42 @@ function renderOverviewCharts() {
     });
 }
 
+function selectedOrganizer() {
+    return dashboardState.data.organizers.find(item => item.name === dashboardState.selectedOrganization)
+        || dashboardState.data.organizers[0];
+}
+
+function fightersForOrganization(organization = dashboardState.selectedOrganization) {
+    if (!organization || organization === 'all') return dashboardState.data.fighters;
+    return dashboardState.data.fighters.filter(fighter => fighter.organizations?.includes(organization));
+}
+
+function cardsForOrganization(organization = dashboardState.selectedOrganization) {
+    if (!organization || organization === 'all') return dashboardState.data.cards;
+    return dashboardState.data.cards.filter(card => card.organizer === organization);
+}
+
+function organizationOptions(includeAll = false) {
+    const organizers = [...dashboardState.data.organizers]
+        .sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary) || b.fightCount - a.fightCount);
+    return [
+        ...(includeAll ? ['<option value="all">All promotions</option>'] : []),
+        ...organizers.map(item => `<option value="${escapeHtml(item.name)}">${escapeHtml(item.name)} · ${formatNumber(item.fightCount)} fights</option>`)
+    ].join('');
+}
+
+function populateOrganizationControls() {
+    element('organization-select').innerHTML = organizationOptions();
+    element('organization-select').value = dashboardState.selectedOrganization;
+    ['matchup-organization-one', 'matchup-organization-two'].forEach(id => {
+        element(id).innerHTML = organizationOptions(true);
+        element(id).value = 'UFC';
+    });
+    element('matchup-host-organization').innerHTML = organizationOptions();
+    element('matchup-host-organization').value = 'UFC';
+    element('matchup-fight-date').value = dashboardState.data.meta.latestFightDate;
+}
+
 function populateLeaderboardFilters() {
     const weightClasses = [...new Set(dashboardState.data.fighters.map(fighter => fighter.weightClass))]
         .filter(Boolean)
@@ -426,6 +478,9 @@ function filteredLeaderboardRows() {
     const snapshotDate = new Date(`${dashboardState.data.meta.latestFightDate}T00:00:00`);
 
     const rows = dashboardState.data.fighters.filter(fighter => {
+        if (!fighter.organizations?.includes(dashboardState.selectedOrganization)) {
+            return false;
+        }
         if (search && !fighter.name.toLowerCase().includes(search)) {
             return false;
         }
@@ -485,7 +540,7 @@ function renderLeaderboard() {
             <tr>
                 <td class="rank-number">${start + index + 1}</td>
                 <td><button class="fighter-table-button" type="button" data-matchup-fighter="${escapeHtml(fighter.name)}">${escapeHtml(fighter.name)}</button></td>
-                <td>${escapeHtml(fighter.weightClass)}</td>
+                <td>${escapeHtml(fighter.lastOrganizer || fighter.organizations?.[0] || '-')}</td>
                 <td class="rating-cell">${formatNumber(fighter.currentRating, 0)}</td>
                 <td>${formatNumber(fighter.peakRating, 0)}</td>
                 <td>${recordText(fighter)}</td>
@@ -537,9 +592,10 @@ function renderLeaderboardCharts(rows) {
 }
 
 function populateMatchupSelectors() {
-    const fighters = [...dashboardState.data.fighters].sort((a, b) => a.name.localeCompare(b.name));
+    const fighters = [...fightersForOrganization('UFC')].sort((a, b) => b.currentRating - a.currentRating);
     setMatchupFighter('one', dashboardState.fighterMap.has('Jon Jones') ? 'Jon Jones' : fighters[0].name, false);
     setMatchupFighter('two', dashboardState.fighterMap.has('Tom Aspinall') ? 'Tom Aspinall' : fighters[1].name, false);
+    updateCrossPromotionNote();
 }
 
 function normalizedFighterSearch(value) {
@@ -551,14 +607,15 @@ function normalizedFighterSearch(value) {
         .trim();
 }
 
-function fighterSearchMatches(query) {
+function fighterSearchMatches(query, organization = 'all') {
     const normalized = normalizedFighterSearch(query);
     if (!normalized) return [];
     const tokens = normalized.split(' ').filter(Boolean);
     return dashboardState.data.fighters
         .filter(fighter => {
-            const text = normalizedFighterSearch(`${fighter.name} ${fighter.weightClass} ${fighter.currentRating} ${recordText(fighter)}`);
-            return tokens.every(token => text.includes(token));
+            const text = normalizedFighterSearch(`${fighter.name} ${fighter.weightClass} ${fighter.organizations?.join(' ')} ${fighter.currentRating} ${recordText(fighter)}`);
+            return (organization === 'all' || fighter.organizations?.includes(organization))
+                && tokens.every(token => text.includes(token));
         })
         .sort((a, b) => {
             const nameA = normalizedFighterSearch(a.name);
@@ -572,20 +629,27 @@ function fighterSearchMatches(query) {
 
 function setMatchupFighter(side, fighterName, shouldRender = true) {
     if (!dashboardState.fighterMap.has(fighterName)) return;
+    const fighter = dashboardState.fighterMap.get(fighterName);
     const input = element(`matchup-fighter-${side}`);
     input.value = fighterName;
     input.dataset.selectedName = fighterName;
     input.setAttribute('aria-invalid', 'false');
+    const organizationSelect = element(`matchup-organization-${side}`);
+    if (organizationSelect.value !== 'all' && !fighter.organizations?.includes(organizationSelect.value)) {
+        organizationSelect.value = fighter.lastOrganizer || fighter.organizations?.[0] || 'all';
+    }
+    updateCrossPromotionNote();
     if (shouldRender) renderMatchup();
 }
 
 function renderFighterSearchResults(input, query = input.value) {
     const side = input.id.endsWith('one') ? 'one' : 'two';
     const results = element(`fighter-results-${side}`);
-    const matches = fighterSearchMatches(query);
+    const organization = element(`matchup-organization-${side}`).value;
+    const matches = fighterSearchMatches(query, organization);
     results.innerHTML = matches.length ? matches.map((fighter, index) => `<button type="button" role="option" aria-selected="${index === 0}" data-fighter-search-result="${escapeHtml(fighter.name)}" data-target-side="${side}">
         <strong>${escapeHtml(fighter.name)}</strong><em>${formatNumber(fighter.currentRating, 0)} Elo</em>
-        <span>${escapeHtml(fighter.weightClass)} | ${recordText(fighter)} | ${formatNumber(fighter.fights)} UFC fights</span>
+        <span>${escapeHtml(fighter.lastOrganizer || fighter.organizations?.[0] || 'MMA')} | ${recordText(fighter)} | ${formatNumber(fighter.fights)} modeled fights</span>
     </button>`).join('') : `<div class="fighter-search-empty">${query.trim() ? 'No fighters match this search.' : 'Type a fighter, division, record, or Elo rating.'}</div>`;
     results.hidden = false;
     input.setAttribute('aria-expanded', 'true');
@@ -603,6 +667,31 @@ function preferredMatchupOpponent(fighterName) {
     const preferred = ['Jon Jones', 'Tom Aspinall', 'Islam Makhachev', 'Alex Pereira'];
     const match = preferred.find(name => name !== fighterName && dashboardState.fighterMap.has(name));
     return match || dashboardState.data.fighters.find(fighter => fighter.name !== fighterName)?.name;
+}
+
+function updateCrossPromotionNote() {
+    const organizationOne = element('matchup-organization-one')?.value || 'all';
+    const organizationTwo = element('matchup-organization-two')?.value || 'all';
+    const host = element('matchup-host-organization')?.value || 'UFC';
+    const crossPromotion = organizationOne !== 'all'
+        && organizationTwo !== 'all'
+        && organizationOne !== organizationTwo;
+    element('cross-promotion-note').textContent = crossPromotion
+        ? `Cross-promotion scenario: ${organizationOne} vs ${organizationTwo}, modeled under ${host} context.`
+        : `Matchup environment: ${host}. Choose different fighter promotions to create a cross-promotion fight.`;
+}
+
+function selectTopFighterForOrganization(side) {
+    const organization = element(`matchup-organization-${side}`).value;
+    const selected = dashboardState.fighterMap.get(element(`matchup-fighter-${side}`).dataset.selectedName);
+    if (organization === 'all' || selected?.organizations?.includes(organization)) {
+        updateCrossPromotionNote();
+        renderMatchup();
+        return;
+    }
+    const replacement = [...fightersForOrganization(organization)]
+        .sort((a, b) => b.currentRating - a.currentRating)[0];
+    if (replacement) setMatchupFighter(side, replacement.name);
 }
 
 function matchupReliability(fighterOne, fighterTwo) {
@@ -626,18 +715,6 @@ function scenarioLabel(scenario) {
     return labels[scenario] || 'No ensemble scenario';
 }
 
-function storedEnsembleProbability(fighterOne, fighterTwo) {
-    const match = dashboardState.modelMatchups.find(item => {
-        const fight = item.fight;
-        return (fight.fighterOne === fighterOne && fight.fighterTwo === fighterTwo)
-            || (fight.fighterOne === fighterTwo && fight.fighterTwo === fighterOne);
-    });
-    if (!match) return null;
-    return match.fight.fighterOne === fighterOne
-        ? match.fight.probabilityOne
-        : match.fight.probabilityTwo;
-}
-
 function renderMatchup() {
     const fighterOneInput = element('matchup-fighter-one');
     const fighterTwoInput = element('matchup-fighter-two');
@@ -651,13 +728,14 @@ function renderMatchup() {
         setMatchupFighter('two', fighterTwo.name, false);
     }
 
-    const modelResult = dashboardState.modelEngine?.scoreMatchup(fighterOne.name, fighterTwo.name);
-    if (modelResult) {
-        const storedProbability = storedEnsembleProbability(fighterOne.name, fighterTwo.name);
-        if (Number.isFinite(storedProbability)) {
-            modelResult.probabilities.ensemble_score = storedProbability;
-        }
-    }
+    const hostOrganization = element('matchup-host-organization').value;
+    const fightDate = element('matchup-fight-date').value || dashboardState.data.meta.latestFightDate;
+    const modelResult = dashboardState.modelEngine?.scoreMatchup(
+        fighterOne.name,
+        fighterTwo.name,
+        hostOrganization,
+        fightDate
+    );
     const selectedScore = element('matchup-score-model').value;
     const selectedLabel = UFC_SCORE_LABELS[selectedScore] || 'Selected model';
     const selectedProbability = modelResult?.probabilities[selectedScore];
@@ -690,9 +768,11 @@ function renderMatchup() {
     element('projection-heading').textContent = scoreAvailable ? 'Projected win probability' : 'Projection unavailable';
     element('matchup-elo-gap').textContent = `${selectedLabel} | ${ratingGap >= 0 ? '+' : ''}${formatNumber(ratingGap, 0)} Elo difference`;
     element('matchup-confidence').textContent = interval && scoreAvailable
-        ? `95% model range using the smaller ${Math.min(fighterOne.fights, fighterTwo.fights)}-fight UFC sample`
+        ? `95% model range using the smaller ${Math.min(fighterOne.fights, fighterTwo.fights)}-fight MMA sample`
         : '95% interval unavailable';
-    element('matchup-reliability').textContent = selectedScore === 'ensemble_score' ? scenarioLabel(modelResult?.scenario) : reliability;
+    element('matchup-reliability').textContent = selectedScore === 'ensemble_score'
+        ? scenarioLabel(modelResult?.scenario)
+        : selectedScore === 'cross_promotion_score' ? `Universal · ${hostOrganization}` : reliability;
     element('matchup-reliability').className = `reliability-badge ${reliabilityClass}`;
     element('matchup-scenario').textContent = scenarioLabel(modelResult?.scenario);
     element('matchup-score-count').textContent = `${availableScoreCount} of ${UFC_SCORE_KEYS.length}`;
@@ -704,13 +784,21 @@ function renderMatchup() {
 }
 
 function renderMatchupComparison(fighterOne, fighterTwo) {
-    const rows = [
+    const coreRows = [
+        ['Current promotion', fighterOne.lastOrganizer || '-', fighterTwo.lastOrganizer || '-'],
+        ['Promotion history', fighterOne.organizations?.join(', ') || '-', fighterTwo.organizations?.join(', ') || '-'],
         ['Current Elo', formatNumber(fighterOne.currentRating, 0), formatNumber(fighterTwo.currentRating, 0)],
         ['Peak Elo', formatNumber(fighterOne.peakRating, 0), formatNumber(fighterTwo.peakRating, 0)],
-        ['UFC record', recordText(fighterOne), recordText(fighterTwo)],
+        ['MMA record', recordText(fighterOne), recordText(fighterTwo)],
         ['Win rate', formatPercent(fighterOne.winPct, 1), formatPercent(fighterTwo.winPct, 1)],
         ['Finish rate', formatPercent(fighterOne.finishPct, 1), formatPercent(fighterTwo.finishPct, 1)],
         ['Current streak', fighterOne.streak, fighterTwo.streak],
+        ['Recent win rate', formatPercent((fighterOne.recentWinRate ?? 0.5) * 100, 1), formatPercent((fighterTwo.recentWinRate ?? 0.5) * 100, 1)],
+        ['Last fight', formatDate(fighterOne.lastFight), formatDate(fighterTwo.lastFight)]
+    ];
+    const advancedAvailable = dashboardState.modelBundle.fighters[fighterOne.name]
+        && dashboardState.modelBundle.fighters[fighterTwo.name];
+    const advancedRows = advancedAvailable ? [
         ['Significant strikes / min', formatNumber(fighterOne.strikesLandedPerMin, 2), formatNumber(fighterTwo.strikesLandedPerMin, 2)],
         ['Strikes absorbed / min', formatNumber(fighterOne.strikesAbsorbedPerMin, 2), formatNumber(fighterTwo.strikesAbsorbedPerMin, 2)],
         ['Striking accuracy', formatPercent(fighterOne.strikingAccuracy, 1), formatPercent(fighterTwo.strikingAccuracy, 1)],
@@ -719,9 +807,9 @@ function renderMatchupComparison(fighterOne, fighterTwo) {
         ['Sub attempts / 15 min', formatNumber(fighterOne.submissionAttemptsPer15, 2), formatNumber(fighterTwo.submissionAttemptsPer15, 2)],
         ['Control time share', formatPercent(fighterOne.controlPct, 1), formatPercent(fighterTwo.controlPct, 1)],
         ['Style cluster', fighterOne.style, fighterTwo.style],
-        ['Age at last fight', formatNumber(fighterOne.ageAtLastFight, 1), formatNumber(fighterTwo.ageAtLastFight, 1)],
-        ['Last fight', formatDate(fighterOne.lastFight), formatDate(fighterTwo.lastFight)]
-    ];
+        ['Age at last fight', formatNumber(fighterOne.ageAtLastFight, 1), formatNumber(fighterTwo.ageAtLastFight, 1)]
+    ] : [];
+    const rows = [...coreRows, ...advancedRows];
     element('matchup-comparison-body').innerHTML = rows.map(row => `
         <tr><td>${escapeHtml(row[1])}</td><td>${escapeHtml(row[0])}</td><td>${escapeHtml(row[2])}</td></tr>
     `).join('');
@@ -732,10 +820,11 @@ function radarValues(fighter) {
     const minRating = Math.min(...ratings);
     const maxRating = Math.max(...ratings);
     const ratingScore = ((fighter.currentRating - minRating) / (maxRating - minRating)) * 100;
-    const striking = Math.min(100, (fighter.strikesLandedPerMin / 10) * 100);
-    const defense = Math.max(0, 100 - ((fighter.strikesAbsorbedPerMin / 10) * 100));
-    const grappling = Math.min(100, (fighter.takedownsPer15 * 14) + (fighter.submissionAttemptsPer15 * 18) + fighter.controlPct);
-    return [ratingScore, fighter.winPct, fighter.finishPct, striking, defense, grappling];
+    const experience = Math.min(100, Math.log1p(fighter.fights) / Math.log(41) * 100);
+    const recentForm = (fighter.recentWinRate ?? 0.5) * 100;
+    const activeDays = Math.max(0, (new Date(`${dashboardState.data.meta.latestFightDate}T00:00:00`) - new Date(`${fighter.lastFight}T00:00:00`)) / 86400000);
+    const activity = Math.max(0, 100 - Math.min(100, activeDays / 7.3));
+    return [ratingScore, fighter.winPct, fighter.finishPct, experience, recentForm, activity];
 }
 
 function renderMatchupCharts(fighterOne, fighterTwo, modelResult, selectedScore) {
@@ -786,7 +875,7 @@ function renderMatchupCharts(fighterOne, fighterTwo, modelResult, selectedScore)
     createChart('matchup-radar', 'matchup-radar-chart', {
         type: 'radar',
         data: {
-            labels: ['Elo', 'Win rate', 'Finishing', 'Striking', 'Defense', 'Grappling'],
+            labels: ['Elo', 'Win rate', 'Finishing', 'Experience', 'Recent form', 'Activity'],
             datasets: [
                 {
                     label: fighterOne.name,
@@ -847,19 +936,46 @@ function renderMatchupCharts(fighterOne, fighterTwo, modelResult, selectedScore)
 }
 
 function populateFightCards() {
-    element('fight-card-select').innerHTML = dashboardState.data.cards.map((card, index) => (
-        `<option value="${index}">${formatDate(card.date)} | ${card.predicted.length + card.insufficient.length} ${(card.predicted.length + card.insufficient.length) === 1 ? 'fight' : 'fights'}</option>`
-    )).join('');
+    const visibleCards = cardsForOrganization();
+    const select = element('fight-card-select');
+    if (!visibleCards.length) {
+        select.innerHTML = `<option value="-1">No upcoming ${escapeHtml(dashboardState.selectedOrganization)} cards</option>`;
+        select.disabled = true;
+        dashboardState.selectedCardIndex = -1;
+        return;
+    }
+    select.disabled = false;
+    select.innerHTML = visibleCards.map(card => {
+        const index = dashboardState.data.cards.indexOf(card);
+        const fightCount = card.predicted.length + card.insufficient.length;
+        return `<option value="${index}">${escapeHtml(card.organizer)} | ${formatDate(card.date)} | ${escapeHtml(card.event)} · ${fightCount} ${fightCount === 1 ? 'fight' : 'fights'}</option>`;
+    }).join('');
+    dashboardState.selectedCardIndex = visibleCards.length
+        ? dashboardState.data.cards.indexOf(visibleCards[0])
+        : 0;
 }
 
 function renderFightCard() {
     const card = dashboardState.data.cards[dashboardState.selectedCardIndex];
     if (!card) {
+        element('selected-card-date').textContent = '-';
+        element('selected-card-predicted').textContent = '0';
+        element('selected-card-insufficient').textContent = '0';
+        element('insufficient-count').textContent = '0 fights';
+        element('ranked-fights-list').innerHTML = `<div class="empty-fights">No upcoming ${escapeHtml(dashboardState.selectedOrganization)} predictions are available in the current model export.</div>`;
+        element('insufficient-fights-list').innerHTML = '<div class="empty-fights">No card is selected.</div>';
+        element('fight-detail-title').textContent = 'No card prediction available';
+        element('fight-detail-probabilities').innerHTML = '';
+        element('fight-detail-stats').innerHTML = '';
+        ['card-edge', 'fight-signals'].forEach(key => {
+            dashboardState.charts.get(key)?.destroy();
+            dashboardState.charts.delete(key);
+        });
         return;
     }
     dashboardState.selectedFightIndex = Math.min(dashboardState.selectedFightIndex, Math.max(0, card.predicted.length - 1));
     element('fight-card-select').value = String(dashboardState.selectedCardIndex);
-    element('selected-card-date').textContent = formatDate(card.date);
+    element('selected-card-date').textContent = `${card.organizer} · ${formatDate(card.date)}`;
     element('selected-card-predicted').textContent = card.predicted.length;
     element('selected-card-insufficient').textContent = card.insufficient.length;
     element('insufficient-count').textContent = `${card.insufficient.length} ${card.insufficient.length === 1 ? 'fight' : 'fights'}`;
@@ -947,7 +1063,8 @@ function renderFightDetail(fight) {
         [`Fair odds: ${fight.fighterTwo}`, fairOddsText(fight.probabilityTwo)],
         ['Elo projection', eloProbability === null ? '-' : `${formatPercent(eloProbability * 100, 1)} / ${formatPercent((1 - eloProbability) * 100, 1)}`],
         ['Current Elo', fighterOne && fighterTwo ? `${formatNumber(fighterOne.currentRating, 0)} / ${formatNumber(fighterTwo.currentRating, 0)}` : '-'],
-        ['UFC samples', fighterOne && fighterTwo ? `${fighterOne.fights} / ${fighterTwo.fights}` : '-']
+        ['Host promotion', dashboardState.data.cards[dashboardState.selectedCardIndex]?.organizer || '-'],
+        ['MMA samples', fighterOne && fighterTwo ? `${fighterOne.fights} / ${fighterTwo.fights}` : '-']
     ];
     element('fight-detail-stats').innerHTML = stats.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
 
@@ -988,11 +1105,13 @@ function populateModelExplorer() {
             cardIndex,
             fightIndex,
             date: card.date,
+            organizer: card.organizer,
+            event: card.event,
             fight
         }))
     ));
     element('model-matchup-select').innerHTML = dashboardState.modelMatchups.map(item => (
-        `<option value="${item.id}">${formatDate(item.date)} | ${escapeHtml(item.fight.fighterOne)} vs ${escapeHtml(item.fight.fighterTwo)}</option>`
+        `<option value="${item.id}">${escapeHtml(item.organizer)} | ${formatDate(item.date)} | ${escapeHtml(item.fight.fighterOne)} vs ${escapeHtml(item.fight.fighterTwo)}</option>`
     )).join('');
     renderScenarioCards();
     renderModelCatalog();
@@ -1019,6 +1138,13 @@ function renderScenarioCards() {
 }
 
 function modelMetricMarkup(model) {
+    if (model.key === 'cross_promotion_score') {
+        const metrics = dashboardState.modelBundle.universal.metrics;
+        return `
+            <span>${formatNumber(metrics.fights)} holdout fights</span>
+            <span>Test AUC ${formatNumber(metrics.roc_auc, 3)}</span>
+            <span>Accuracy ${formatPercent(metrics.accuracy * 100, 1)}</span>`;
+    }
     if (model.key === 'ensemble_score') {
         const scenarios = Object.values(dashboardState.modelBundle.scenarios);
         const aucValues = scenarios.map(item => item.auc).filter(Number.isFinite);
@@ -1058,9 +1184,17 @@ function selectedGeneratedMatchup() {
 function generatedModelScores(item) {
     if (!item) return null;
     const { fight } = item;
-    const result = dashboardState.modelEngine?.scoreMatchup(fight.fighterOne, fight.fighterTwo);
+    const result = dashboardState.modelEngine?.scoreMatchup(
+        fight.fighterOne,
+        fight.fighterTwo,
+        item.organizer,
+        item.date
+    );
     if (!result) return null;
-    result.probabilities.ensemble_score = fight.probabilityOne;
+    result.probabilities.cross_promotion_score = fight.universalProbabilityOne ?? fight.probabilityOne;
+    if (Number.isFinite(fight.ufcEnsembleProbabilityOne)) {
+        result.probabilities.ensemble_score = fight.ufcEnsembleProbabilityOne;
+    }
     return result;
 }
 
@@ -1087,7 +1221,7 @@ function renderModelScoreLab() {
         const value = result.probabilities[key];
         const available = Number.isFinite(value);
         return `
-            <tr class="${key === 'ensemble_score' ? 'primary-model' : ''}">
+            <tr class="${key === 'cross_promotion_score' ? 'primary-model' : ''}">
                 <td>${escapeHtml(UFC_SCORE_LABELS[key])}</td>
                 <td>${available ? formatPercent(value * 100, 1) : '-'}</td>
                 <td>${available ? formatPercent((1 - value) * 100, 1) : '-'}</td>
@@ -1102,7 +1236,7 @@ function renderModelScoreLab() {
             datasets: [{
                 label: `${fighterOne} win probability`,
                 data: chartRows.map(row => row.value),
-                backgroundColor: chartRows.map(row => row.key === 'ensemble_score' ? dashboardColors.gold : dashboardColors.teal),
+                backgroundColor: chartRows.map(row => row.key === 'cross_promotion_score' ? dashboardColors.coral : row.key === 'ensemble_score' ? dashboardColors.gold : dashboardColors.teal),
                 borderRadius: 3
             }]
         },
@@ -1166,6 +1300,17 @@ function renderMethodology() {
 function bindDashboardEvents() {
     document.querySelectorAll('[data-dashboard-view]').forEach(button => {
         button.addEventListener('click', () => setDashboardView(button.dataset.dashboardView));
+    });
+
+    element('organization-select').addEventListener('change', event => {
+        dashboardState.selectedOrganization = event.target.value;
+        dashboardState.leaderboardPage = 1;
+        dashboardState.selectedFightIndex = 0;
+        renderOverview();
+        renderOverviewCharts();
+        populateFightCards();
+        if (dashboardState.currentView === 'leaderboard') renderLeaderboard();
+        if (dashboardState.currentView === 'cards') renderFightCard();
     });
 
     const filterIds = [
@@ -1258,11 +1403,26 @@ function bindDashboardEvents() {
         });
     });
     element('matchup-score-model').addEventListener('change', renderMatchup);
+    ['one', 'two'].forEach(side => {
+        element(`matchup-organization-${side}`).addEventListener('change', () => {
+            selectTopFighterForOrganization(side);
+        });
+    });
+    element('matchup-host-organization').addEventListener('change', () => {
+        updateCrossPromotionNote();
+        renderMatchup();
+    });
+    element('matchup-fight-date').addEventListener('change', renderMatchup);
     element('swap-matchup').addEventListener('click', () => {
         const first = element('matchup-fighter-one').dataset.selectedName;
         const second = element('matchup-fighter-two').dataset.selectedName;
+        const firstOrganization = element('matchup-organization-one').value;
+        const secondOrganization = element('matchup-organization-two').value;
+        element('matchup-organization-one').value = secondOrganization;
+        element('matchup-organization-two').value = firstOrganization;
         setMatchupFighter('one', second, false);
         setMatchupFighter('two', first, false);
+        updateCrossPromotionNote();
         renderMatchup();
     });
 
@@ -1291,17 +1451,18 @@ async function initializeDashboard() {
             fetch(UFC_MODEL_URL)
         ]);
         if (!dataResponse.ok || !modelResponse.ok) {
-            throw new Error(`UFC data request failed with ${dataResponse.status}/${modelResponse.status}`);
+            throw new Error(`MMA data request failed with ${dataResponse.status}/${modelResponse.status}`);
         }
         const [data, modelBundle] = await Promise.all([dataResponse.json(), modelResponse.json()]);
         dashboardState.data = data;
         dashboardState.modelBundle = modelBundle;
-        dashboardState.modelEngine = new UfcModelEngine(modelBundle);
         dashboardState.fighterMap = new Map(data.fighters.map(fighter => [fighter.name, fighter]));
+        dashboardState.modelEngine = new UfcModelEngine(modelBundle, dashboardState.fighterMap);
 
         Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif';
         Chart.defaults.color = dashboardColors.muted;
 
+        populateOrganizationControls();
         renderOverview();
         populateLeaderboardFilters();
         populateMatchupSelectors();
@@ -1314,7 +1475,7 @@ async function initializeDashboard() {
         setDashboardView(requestedView || 'overview', false);
     } catch (error) {
         console.error(error);
-        element('dashboard-loading').textContent = 'The UFC analytics data could not be loaded.';
+        element('dashboard-loading').textContent = 'The MMA analytics data could not be loaded.';
     }
 }
 

@@ -24,7 +24,7 @@ OUTPUT_PATHS = {
     "march-madness": ["data/march-madness-dashboard.json"],
 }
 COMMIT_MESSAGES = {
-    "ufc": "Update UFC predictor data",
+    "ufc": "Update MMA fight predictor data",
     "hockey": "Update Hockey Elo predictor data",
     "march-madness": "Update March Madness predictor data",
 }
