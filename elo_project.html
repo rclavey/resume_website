@@ -483,7 +483,34 @@
                     <h3>Insufficient data</h3>
                     <p>Unknown fighters start from a calibrated promotion prior. Fighters without the required detailed statistics are excluded from component and ensemble models instead of borrowing or manufacturing telemetry.</p>
                 </article>
+                <article>
+                    <h3>Free data sources</h3>
+                    <p>Results and ratings combine public <a href="https://www.espn.com/mma/" target="_blank" rel="noopener noreferrer">ESPN</a> and <a href="https://www.kaggle.com/datasets/leandroiber/mmastats" target="_blank" rel="noopener noreferrer">MIT-licensed Kaggle</a> records. Detailed telemetry uses <a href="http://ufcstats.com/" target="_blank" rel="noopener noreferrer">UFCStats</a> plus attributable <a href="https://www.ufcalendar.com/" target="_blank" rel="noopener noreferrer">UFCalendar</a> bout pages when complete; partial statistics remain visible to the data pipeline but never enter model training.</p>
+                </article>
             </div>
+
+            <section class="scenario-section" aria-labelledby="telemetry-coverage-heading">
+                <div class="subsection-heading">
+                    <div>
+                        <p class="dashboard-eyebrow">Source audit</p>
+                        <h3 id="telemetry-coverage-heading">Detailed-Stat Coverage</h3>
+                    </div>
+                </div>
+                <div class="data-table-wrap">
+                    <table class="analytics-table" aria-label="Detailed fight statistics coverage by promotion">
+                        <thead>
+                            <tr>
+                                <th scope="col">Promotion</th>
+                                <th scope="col">Detailed fights</th>
+                                <th scope="col">Model eligible</th>
+                                <th scope="col">Coverage</th>
+                                <th scope="col">Source</th>
+                            </tr>
+                        </thead>
+                        <tbody id="telemetry-coverage-body"></tbody>
+                    </table>
+                </div>
+            </section>
 
             <div class="methodology-analytics">
                 <article class="chart-frame">
@@ -508,6 +535,6 @@
     <script src="js/includeHeader.js"></script>
     <script src="js/vendor/chart.umd.min.js?v=4.5.1"></script>
     <script src="js/ufcModel.js?v=2"></script>
-    <script src="js/ufcDashboard.js?v=10"></script>
+    <script src="js/ufcDashboard.js?v=11"></script>
 </body>
 </html>

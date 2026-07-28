@@ -89,7 +89,9 @@ def latest_rating_entry(fighter, histories):
 
 
 def build_ufc_fighters(source):
-    fight_path = source / "advanced_stats" / "ensemble" / "ufc_data_with_elo.csv"
+    fight_path = source / "advanced_stats" / "ensemble" / "mma_data_with_elo.csv"
+    if not fight_path.exists():
+        fight_path = source / "advanced_stats" / "ensemble" / "ufc_data_with_elo.csv"
     cumulative_path = source / "advanced_stats" / "ensemble" / "cumulative_style.csv"
 
     histories = defaultdict(list)
@@ -147,6 +149,8 @@ def build_ufc_fighters(source):
     fighters = []
     all_dates = []
     for fighter in sorted(histories):
+        if fighter not in latest_stats:
+            continue
         latest_date, current_rating = latest_rating_entry(fighter, histories)
         all_dates.append(latest_date)
         history = histories[fighter]
@@ -333,7 +337,7 @@ def build_mma_fighters(source):
                     4,
                 ),
                 "hasAdvancedStats": bool(rich),
-                "style": rich.get("style", "Universal MMA profile"),
+                "style": rich.get("style", "Elo-only profile"),
                 "ageAtLastFight": rich.get("ageAtLastFight"),
                 "strikesLandedPerMin": rich.get("strikesLandedPerMin", 0),
                 "strikesAbsorbedPerMin": rich.get("strikesAbsorbedPerMin", 0),
@@ -593,6 +597,28 @@ def build_elo_bins(source):
     return bins
 
 
+def build_telemetry_coverage(source):
+    path = source / "data" / "fight_stats_coverage.csv"
+    if not path.exists():
+        return []
+    rows = []
+    with path.open(newline="", encoding="utf-8-sig") as handle:
+        for row in csv.DictReader(handle):
+            rows.append(
+                {
+                    "organizer": row.get("organizer", "Unknown"),
+                    "detailedRows": int(number(row.get("detailed_rows"), 0)),
+                    "eligibleRows": int(number(row.get("model_eligible_rows"), 0)),
+                    "partialRows": int(number(row.get("partial_rows"), 0)),
+                    "status": row.get("model_status", "results_and_elo_only"),
+                    "firstDate": row.get("first_date") or None,
+                    "lastDate": row.get("last_date") or None,
+                    "sources": row.get("sources") or None,
+                }
+            )
+    return rows
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
@@ -614,7 +640,7 @@ def main():
             "ufcFighterCount": sum(
                 1 for fighter in fighters if fighter["lastOrganizer"] == "UFC"
             ),
-            "ufcAdvancedProfileCount": sum(
+            "detailedProfileCount": sum(
                 1 for fighter in fighters if fighter["hasAdvancedStats"]
             ),
             "cardCount": len(cards),
@@ -626,6 +652,7 @@ def main():
         "fighters": fighters,
         "cards": cards,
         "eloBins": build_elo_bins(args.source),
+        "telemetryCoverage": build_telemetry_coverage(args.source),
     }
 
     args.output.parent.mkdir(parents=True, exist_ok=True)

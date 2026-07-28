@@ -339,7 +339,9 @@ function renderOverview() {
     element('metric-predictions').textContent = formatNumber(
         cardsForOrganization(organizer?.name).reduce((total, card) => total + card.predicted.length, 0)
     );
-    element('metric-insufficient').textContent = formatNumber(meta.ufcAdvancedProfileCount);
+    element('metric-insufficient').textContent = formatNumber(
+        fighters.filter((fighter) => fighter.hasAdvancedStats).length
+    );
     element('organization-fights').textContent = formatNumber(organizer?.fightCount ?? meta.fightCount);
     element('organization-fighters').textContent = formatNumber(fighters.length);
     element('organization-latest').textContent = formatDate(organizer?.latestFightDate ?? meta.latestFightDate);
@@ -1249,6 +1251,25 @@ function renderModelExplorer() {
 
 function renderMethodology() {
     const bins = dashboardState.data.eloBins;
+    const selected = selectedOrganizer()?.name;
+    const coverageRows = [...(dashboardState.data.telemetryCoverage || [])]
+        .sort((a, b) => Number(b.organizer === selected) - Number(a.organizer === selected)
+            || b.eligibleRows - a.eligibleRows
+            || a.organizer.localeCompare(b.organizer));
+    const coverageLabels = {
+        detailed_stats_available: 'Detailed models available',
+        partial_stats_only: 'Partial stats only',
+        results_and_elo_only: 'Elo only'
+    };
+    element('telemetry-coverage-body').innerHTML = coverageRows.map(row => `
+        <tr>
+            <td>${escapeHtml(row.organizer)}</td>
+            <td>${formatNumber(row.detailedRows)}</td>
+            <td>${formatNumber(row.eligibleRows)}</td>
+            <td>${escapeHtml(coverageLabels[row.status] || row.status)}</td>
+            <td>${escapeHtml(row.sources || 'Results feeds')}</td>
+        </tr>
+    `).join('');
     element('elo-calibration-body').innerHTML = bins.map(bin => `
         <tr><td>${escapeHtml(bin.range)}</td><td>${formatNumber(bin.fights)}</td><td>${formatPercent(bin.winPct, 1)}</td><td>${formatPercent(bin.lower, 1)}-${formatPercent(bin.upper, 1)}</td></tr>
     `).join('');
@@ -1299,6 +1320,7 @@ function bindDashboardEvents() {
         populateFightCards();
         if (dashboardState.currentView === 'leaderboard') renderLeaderboard();
         if (dashboardState.currentView === 'cards') renderFightCard();
+        if (dashboardState.currentView === 'methodology') renderMethodology();
     });
 
     const filterIds = [
