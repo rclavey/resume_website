@@ -2,7 +2,6 @@
     'use strict';
 
     const SCORE_KEYS = [
-        'cross_promotion_score',
         'ensemble_score',
         'elo_score',
         'base_logistic_score',
@@ -16,8 +15,8 @@
     ];
 
     const SCORE_LABELS = {
-        cross_promotion_score: 'Universal MMA model',
-        ensemble_score: 'Final ensemble',
+        best_available_score: 'Best available',
+        ensemble_score: 'Detailed stats ensemble',
         elo_score: 'Elo baseline',
         base_logistic_score: 'Base logistic',
         style_matchup_score: 'Style matchup',
@@ -45,16 +44,25 @@
         return Number.isFinite(value) && value >= 0 && value <= 1;
     }
 
+    function normalizeName(value) {
+        return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase().replace(/[^a-z0-9]+/g, '');
+    }
+
     class UfcModelEngine {
         constructor(bundle, fighterMap = new Map()) {
             this.bundle = bundle;
             this.fighterMap = fighterMap;
             this.numericIndexes = new Map(bundle.features.numeric.map((name, index) => [name, index]));
             this.performanceIndexes = new Map(bundle.features.performance.map((name, index) => [name, index]));
+            this.advancedFighterNames = new Map(
+                Object.keys(bundle.fighters).map(name => [normalizeName(name), name])
+            );
         }
 
         fighter(name) {
-            return this.bundle.fighters[name] || null;
+            const exactName = this.advancedFighterNames.get(normalizeName(name));
+            return exactName ? this.bundle.fighters[exactName] : null;
         }
 
         rawDifference(fighter, opponent, featureName) {
@@ -152,56 +160,6 @@
             return sigmoid(raw);
         }
 
-        inactivityDays(lastFight, fightDate) {
-            if (!lastFight) return 180;
-            const latest = new Date(`${lastFight}T00:00:00`);
-            const event = new Date(`${fightDate}T00:00:00`);
-            if (Number.isNaN(latest.getTime()) || Number.isNaN(event.getTime())) return 180;
-            return Math.min(1825, Math.max(0, Math.round((event - latest) / 86400000)));
-        }
-
-        universalFeatureVector(fighter, opponent, organizer, fightDate) {
-            const model = this.bundle.universal;
-            if (!model || !fighter || !opponent) return null;
-            const fightsOne = Number(fighter.fights || 0);
-            const fightsTwo = Number(opponent.fights || 0);
-            const inactiveOne = this.inactivityDays(fighter.lastFight, fightDate);
-            const inactiveTwo = this.inactivityDays(opponent.lastFight, fightDate);
-            const eloDifference = Number(fighter.currentRating) - Number(opponent.currentRating);
-            const eloProbability = 1 / (1 + (10 ** (-eloDifference / 400)));
-            const row = {
-                elo_difference: eloDifference,
-                elo_probability_fighter_one: eloProbability,
-                fighter_one_fights_before: fightsOne,
-                fighter_two_fights_before: fightsTwo,
-                experience_difference: fightsOne - fightsTwo,
-                log_experience_difference: Math.log1p(fightsOne) - Math.log1p(fightsTwo),
-                recent_win_rate_difference: Number(fighter.recentWinRate ?? 0.5) - Number(opponent.recentWinRate ?? 0.5),
-                fighter_one_days_inactive: inactiveOne,
-                fighter_two_days_inactive: inactiveTwo,
-                inactivity_difference: inactiveOne - inactiveTwo,
-                organizer,
-                fighter_one_first_organizer: fighter.firstOrganizer || organizer,
-                fighter_two_first_organizer: opponent.firstOrganizer || organizer
-            };
-            const values = model.numericFeatures.map((feature, index) => (
-                (Number(row[feature]) - model.numericMean[index]) / model.numericScale[index]
-            ));
-            model.categoricalFeatures.forEach((feature, index) => {
-                model.categories[index].forEach(category => {
-                    values.push(row[feature] === category ? 1 : 0);
-                });
-            });
-            return values;
-        }
-
-        universalDirectionalScore(fighterName, opponentName, organizer, fightDate) {
-            const fighter = this.fighterMap.get(fighterName);
-            const opponent = this.fighterMap.get(opponentName);
-            const values = this.universalFeatureVector(fighter, opponent, organizer, fightDate);
-            return values ? this.gradientProbability(this.bundle.universal.model, values) : null;
-        }
-
         gradientScore(fighter, opponent) {
             const model = this.bundle.models.gradient;
             const values = model.features.map(feature => this.componentFeature(feature, fighter, opponent, 'os'));
@@ -265,26 +223,11 @@
             const opponent = this.fighterMap.get(opponentName);
             if (!fighter || !opponent) return null;
             const probabilities = {};
-            const universalForward = this.universalDirectionalScore(
-                fighterName,
-                opponentName,
-                organizer,
-                fightDate
-            );
-            const universalReverse = this.universalDirectionalScore(
-                opponentName,
-                fighterName,
-                organizer,
-                fightDate
-            );
-            probabilities.cross_promotion_score = validProbability(universalForward) && validProbability(universalReverse)
-                ? (universalForward + (1 - universalReverse)) / 2
-                : null;
             probabilities.elo_score = 1 / (
                 1 + (10 ** ((opponent.currentRating - fighter.currentRating) / 400))
             );
-            const advancedAvailable = organizer === 'UFC' && forward && reverse;
-            for (const key of SCORE_KEYS.filter(key => !['cross_promotion_score', 'elo_score'].includes(key))) {
+            const advancedAvailable = Boolean(forward && reverse);
+            for (const key of SCORE_KEYS.filter(key => key !== 'elo_score')) {
                 if (!advancedAvailable) {
                     probabilities[key] = null;
                     continue;
@@ -297,13 +240,21 @@
                         : validProbability(reverseValue) ? 1 - reverseValue
                             : null;
             }
+            probabilities.best_available_score = validProbability(probabilities.ensemble_score)
+                ? probabilities.ensemble_score
+                : probabilities.elo_score;
+            const primaryScoreKey = validProbability(probabilities.ensemble_score)
+                ? 'ensemble_score'
+                : 'elo_score';
             return {
                 fighterOne: fighterName,
                 fighterTwo: opponentName,
                 scenario: advancedAvailable ? (forward.scenario || reverse.scenario) : null,
                 probabilities,
                 organizer,
-                directional: { forward, reverse, universalForward, universalReverse }
+                advancedAvailable,
+                primaryScoreKey,
+                directional: { forward, reverse }
             };
         }
     }

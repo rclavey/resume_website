@@ -34,18 +34,13 @@ const dashboardColors = {
 
 const modelCatalog = [
     {
-        key: 'cross_promotion_score', title: 'Universal MMA Model', type: 'Primary output', primary: true,
-        description: 'Scores any supported cross-promotion matchup using shared Elo, experience, recent form, inactivity, and promotion context.',
-        equation: 'P(A) = reconcile(GBDT(universal features A->B), GBDT(universal features B->A))'
-    },
-    {
-        key: 'ensemble_score', title: 'UFC Final Ensemble', type: 'UFC enhancement',
-        description: 'For UFC matchups with detailed statistics, selects the deepest available history scenario and combines every eligible component probability with a 50-tree gradient forest.',
+        key: 'ensemble_score', title: 'Detailed Stats Ensemble', type: 'Primary model when eligible', primary: true,
+        description: 'When both fighters have the required detailed statistics, selects the deepest available history scenario and combines every eligible component probability with a gradient forest, regardless of promotion.',
         equation: 'P(final) = reconcile(GBDT_scenario(component scores A->B), GBDT_scenario(B->A))'
     },
     {
-        key: 'elo_score', title: 'Elo Baseline', type: 'Rating model',
-        description: 'Transforms the difference between current fighter ratings into an expected win probability. Elo is retained as a transparent baseline and also appears inside statistical feature sets.',
+        key: 'elo_score', title: 'Elo Baseline', type: 'Fallback model',
+        description: 'Transforms the difference between current cross-promotion fighter ratings into an expected win probability. Every fighter receives an Elo score; matchups without complete telemetry use Elo only.',
         equation: 'P(A) = 1 / (1 + 10 ^ ((R_B - R_A) / 400))'
     },
     {
@@ -451,9 +446,6 @@ function populateOrganizationControls() {
         element(id).innerHTML = organizationOptions(true);
         element(id).value = 'UFC';
     });
-    element('matchup-host-organization').innerHTML = organizationOptions();
-    element('matchup-host-organization').value = 'UFC';
-    element('matchup-fight-date').value = dashboardState.data.meta.latestFightDate;
 }
 
 function populateLeaderboardFilters() {
@@ -672,13 +664,12 @@ function preferredMatchupOpponent(fighterName) {
 function updateCrossPromotionNote() {
     const organizationOne = element('matchup-organization-one')?.value || 'all';
     const organizationTwo = element('matchup-organization-two')?.value || 'all';
-    const host = element('matchup-host-organization')?.value || 'UFC';
     const crossPromotion = organizationOne !== 'all'
         && organizationTwo !== 'all'
         && organizationOne !== organizationTwo;
     element('cross-promotion-note').textContent = crossPromotion
-        ? `Cross-promotion scenario: ${organizationOne} vs ${organizationTwo}, modeled under ${host} context.`
-        : `Matchup environment: ${host}. Choose different fighter promotions to create a cross-promotion fight.`;
+        ? `Cross-promotion scenario: ${organizationOne} vs ${organizationTwo}. Advanced models activate whenever both fighters have complete detailed statistics.`
+        : 'Choose different fighter promotions to create a cross-promotion fight. Elo remains available for every matchup.';
 }
 
 function selectTopFighterForOrganization(side) {
@@ -728,16 +719,19 @@ function renderMatchup() {
         setMatchupFighter('two', fighterTwo.name, false);
     }
 
-    const hostOrganization = element('matchup-host-organization').value;
-    const fightDate = element('matchup-fight-date').value || dashboardState.data.meta.latestFightDate;
     const modelResult = dashboardState.modelEngine?.scoreMatchup(
         fighterOne.name,
         fighterTwo.name,
-        hostOrganization,
-        fightDate
+        fighterOne.lastOrganizer || 'UFC',
+        dashboardState.data.meta.latestFightDate
     );
     const selectedScore = element('matchup-score-model').value;
-    const selectedLabel = UFC_SCORE_LABELS[selectedScore] || 'Selected model';
+    const effectiveScore = selectedScore === 'best_available_score'
+        ? modelResult?.primaryScoreKey
+        : selectedScore;
+    const selectedLabel = selectedScore === 'best_available_score'
+        ? UFC_SCORE_LABELS[effectiveScore] || 'Best available'
+        : UFC_SCORE_LABELS[selectedScore] || 'Selected model';
     const selectedProbability = modelResult?.probabilities[selectedScore];
     const scoreAvailable = Number.isFinite(selectedProbability);
     const probabilityOne = scoreAvailable ? selectedProbability : 0.5;
@@ -770,9 +764,9 @@ function renderMatchup() {
     element('matchup-confidence').textContent = interval && scoreAvailable
         ? `95% model range using the smaller ${Math.min(fighterOne.fights, fighterTwo.fights)}-fight MMA sample`
         : '95% interval unavailable';
-    element('matchup-reliability').textContent = selectedScore === 'ensemble_score'
+    element('matchup-reliability').textContent = effectiveScore === 'ensemble_score'
         ? scenarioLabel(modelResult?.scenario)
-        : selectedScore === 'cross_promotion_score' ? `Universal · ${hostOrganization}` : reliability;
+        : 'Elo only';
     element('matchup-reliability').className = `reliability-badge ${reliabilityClass}`;
     element('matchup-scenario').textContent = scenarioLabel(modelResult?.scenario);
     element('matchup-score-count').textContent = `${availableScoreCount} of ${UFC_SCORE_KEYS.length}`;
@@ -780,7 +774,7 @@ function renderMatchup() {
     element('compare-heading-two').textContent = fighterTwo.name;
 
     renderMatchupComparison(fighterOne, fighterTwo);
-    renderMatchupCharts(fighterOne, fighterTwo, modelResult, selectedScore);
+    renderMatchupCharts(fighterOne, fighterTwo, modelResult, effectiveScore);
 }
 
 function renderMatchupComparison(fighterOne, fighterTwo) {
@@ -796,8 +790,8 @@ function renderMatchupComparison(fighterOne, fighterTwo) {
         ['Recent win rate', formatPercent((fighterOne.recentWinRate ?? 0.5) * 100, 1), formatPercent((fighterTwo.recentWinRate ?? 0.5) * 100, 1)],
         ['Last fight', formatDate(fighterOne.lastFight), formatDate(fighterTwo.lastFight)]
     ];
-    const advancedAvailable = dashboardState.modelBundle.fighters[fighterOne.name]
-        && dashboardState.modelBundle.fighters[fighterTwo.name];
+    const advancedAvailable = dashboardState.modelEngine?.fighter(fighterOne.name)
+        && dashboardState.modelEngine?.fighter(fighterTwo.name);
     const advancedRows = advancedAvailable ? [
         ['Significant strikes / min', formatNumber(fighterOne.strikesLandedPerMin, 2), formatNumber(fighterTwo.strikesLandedPerMin, 2)],
         ['Strikes absorbed / min', formatNumber(fighterOne.strikesAbsorbedPerMin, 2), formatNumber(fighterTwo.strikesAbsorbedPerMin, 2)],
@@ -936,10 +930,10 @@ function renderMatchupCharts(fighterOne, fighterTwo, modelResult, selectedScore)
 }
 
 function populateFightCards() {
-    const visibleCards = cardsForOrganization();
+    const visibleCards = dashboardState.data.cards;
     const select = element('fight-card-select');
     if (!visibleCards.length) {
-        select.innerHTML = `<option value="-1">No upcoming ${escapeHtml(dashboardState.selectedOrganization)} cards</option>`;
+        select.innerHTML = '<option value="-1">No upcoming MMA cards</option>';
         select.disabled = true;
         dashboardState.selectedCardIndex = -1;
         return;
@@ -962,7 +956,7 @@ function renderFightCard() {
         element('selected-card-predicted').textContent = '0';
         element('selected-card-insufficient').textContent = '0';
         element('insufficient-count').textContent = '0 fights';
-        element('ranked-fights-list').innerHTML = `<div class="empty-fights">No upcoming ${escapeHtml(dashboardState.selectedOrganization)} predictions are available in the current model export.</div>`;
+        element('ranked-fights-list').innerHTML = '<div class="empty-fights">No upcoming MMA predictions are available in the current model export.</div>';
         element('insufficient-fights-list').innerHTML = '<div class="empty-fights">No card is selected.</div>';
         element('fight-detail-title').textContent = 'No card prediction available';
         element('fight-detail-probabilities').innerHTML = '';
@@ -990,11 +984,11 @@ function renderFightCard() {
                 <span class="consensus-meter"><span><i style="width:${consensus}%"></i></span><small>${fight.agreement}/${fight.availableSignals} signals favor pick</small></span>
                 <span class="fight-gap"><strong>${formatNumber(fight.probabilityGap, 1)}</strong><small>pt gap</small></span>
             </button>`;
-    }).join('') : '<div class="empty-fights">No scenario-model predictions are available for this card.</div>';
+    }).join('') : '<div class="empty-fights">No predictions are available for this card.</div>';
 
     element('insufficient-fights-list').innerHTML = card.insufficient.length ? card.insufficient.map(fight => `
         <article class="insufficient-fight"><strong>${escapeHtml(fight.fighterOne)} vs ${escapeHtml(fight.fighterTwo)}</strong><span>${escapeHtml(fight.reason)}</span></article>
-    `).join('') : '<div class="empty-fights">Every generated fight on this card has a scenario prediction.</div>';
+    `).join('') : '<div class="empty-fights">Every fight on this card has at least an Elo prediction.</div>';
 
     renderCardEdgeChart(card);
     renderFightDetail(card.predicted[dashboardState.selectedFightIndex]);
@@ -1056,6 +1050,7 @@ function renderFightDetail(fight) {
         </div>`;
 
     const stats = [
+        ['Prediction model', fight.modelType || 'Elo only'],
         ['Model favorite', fight.favorite],
         ['Probability gap', `${formatNumber(fight.probabilityGap, 1)} pts`],
         ['Signal agreement', `${fight.agreement}/${fight.availableSignals}`],
@@ -1138,13 +1133,6 @@ function renderScenarioCards() {
 }
 
 function modelMetricMarkup(model) {
-    if (model.key === 'cross_promotion_score') {
-        const metrics = dashboardState.modelBundle.universal.metrics;
-        return `
-            <span>${formatNumber(metrics.fights)} holdout fights</span>
-            <span>Test AUC ${formatNumber(metrics.roc_auc, 3)}</span>
-            <span>Accuracy ${formatPercent(metrics.accuracy * 100, 1)}</span>`;
-    }
     if (model.key === 'ensemble_score') {
         const scenarios = Object.values(dashboardState.modelBundle.scenarios);
         const aucValues = scenarios.map(item => item.auc).filter(Number.isFinite);
@@ -1191,9 +1179,9 @@ function generatedModelScores(item) {
         item.date
     );
     if (!result) return null;
-    result.probabilities.cross_promotion_score = fight.universalProbabilityOne ?? fight.probabilityOne;
-    if (Number.isFinite(fight.ufcEnsembleProbabilityOne)) {
-        result.probabilities.ensemble_score = fight.ufcEnsembleProbabilityOne;
+    result.probabilities.elo_score = fight.eloProbabilityOne ?? result.probabilities.elo_score;
+    if (Number.isFinite(fight.advancedEnsembleProbabilityOne)) {
+        result.probabilities.ensemble_score = fight.advancedEnsembleProbabilityOne;
     }
     return result;
 }
@@ -1221,7 +1209,7 @@ function renderModelScoreLab() {
         const value = result.probabilities[key];
         const available = Number.isFinite(value);
         return `
-            <tr class="${key === 'cross_promotion_score' ? 'primary-model' : ''}">
+            <tr class="${key === 'ensemble_score' ? 'primary-model' : ''}">
                 <td>${escapeHtml(UFC_SCORE_LABELS[key])}</td>
                 <td>${available ? formatPercent(value * 100, 1) : '-'}</td>
                 <td>${available ? formatPercent((1 - value) * 100, 1) : '-'}</td>
@@ -1236,7 +1224,7 @@ function renderModelScoreLab() {
             datasets: [{
                 label: `${fighterOne} win probability`,
                 data: chartRows.map(row => row.value),
-                backgroundColor: chartRows.map(row => row.key === 'cross_promotion_score' ? dashboardColors.coral : row.key === 'ensemble_score' ? dashboardColors.gold : dashboardColors.teal),
+                backgroundColor: chartRows.map(row => row.key === 'ensemble_score' ? dashboardColors.gold : dashboardColors.teal),
                 borderRadius: 3
             }]
         },
@@ -1408,11 +1396,6 @@ function bindDashboardEvents() {
             selectTopFighterForOrganization(side);
         });
     });
-    element('matchup-host-organization').addEventListener('change', () => {
-        updateCrossPromotionNote();
-        renderMatchup();
-    });
-    element('matchup-fight-date').addEventListener('change', renderMatchup);
     element('swap-matchup').addEventListener('click', () => {
         const first = element('matchup-fighter-one').dataset.selectedName;
         const second = element('matchup-fighter-two').dataset.selectedName;

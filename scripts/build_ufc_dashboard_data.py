@@ -399,7 +399,7 @@ def build_ufc_cards(source):
                 {
                     "fighterOne": fighter_one,
                     "fighterTwo": fighter_two,
-                    "reason": "Not enough UFC fight history for a scenario prediction.",
+                    "reason": "Detailed fight statistics are unavailable; this matchup uses Elo only.",
                 }
             )
             continue
@@ -457,14 +457,22 @@ def build_ufc_cards(source):
 
 
 def build_cards(source):
-    universal_path = source / "predicted_fights.csv"
+    elo_path = source / "predicted_fights.csv"
     advanced_cards = {
-        (card["date"], frozenset((fight["fighterOne"], fight["fighterTwo"]))): fight
+        (
+            card["date"],
+            frozenset(
+                (
+                    normalize_fighter(fight["fighterOne"]),
+                    normalize_fighter(fight["fighterTwo"]),
+                )
+            ),
+        ): fight
         for card in build_ufc_cards(source)
         for fight in card["predicted"]
     }
     cards = {}
-    with universal_path.open(newline="", encoding="utf-8-sig") as handle:
+    with elo_path.open(newline="", encoding="utf-8-sig") as handle:
         for row in csv.DictReader(handle):
             date = row.get("date", "")
             organizer = row.get("organizer", "").strip() or "Unknown"
@@ -477,7 +485,15 @@ def build_cards(source):
             probability_one = min(1, max(0, probability_one))
             probability_two = 1 - probability_one
             advanced = advanced_cards.get(
-                (date, frozenset((fighter_one, fighter_two)))
+                (
+                    date,
+                    frozenset(
+                        (
+                            normalize_fighter(fighter_one),
+                            normalize_fighter(fighter_two),
+                        )
+                    ),
+                )
             )
             key = (date, organizer, event)
             card = cards.setdefault(
@@ -495,32 +511,59 @@ def build_cards(source):
                 "fighterTwo": fighter_two,
                 "probabilityOne": round(probability_one, 4),
                 "probabilityTwo": round(probability_two, 4),
-                "universalProbabilityOne": round(probability_one, 4),
+                "eloProbabilityOne": round(probability_one, 4),
                 "favorite": fighter_one if probability_one >= probability_two else fighter_two,
                 "favoriteProbability": round(max(probability_one, probability_two), 4),
                 "probabilityGap": round(abs(probability_one - probability_two) * 100, 1),
                 "agreement": 1,
                 "availableSignals": 1,
-                "signals": [{"label": "Universal MMA", "value": round(max(probability_one, probability_two), 4)}],
-                "modelType": "Universal MMA",
+                "signals": [{"label": "Elo baseline", "value": round(max(probability_one, probability_two), 4)}],
+                "modelType": "Elo only",
             }
             if advanced:
                 advanced_probability = (
                     advanced["probabilityOne"]
-                    if advanced["fighterOne"] == fighter_one
+                    if normalize_fighter(advanced["fighterOne"])
+                    == normalize_fighter(fighter_one)
                     else advanced["probabilityTwo"]
                 )
-                fight["ufcEnsembleProbabilityOne"] = round(advanced_probability, 4)
+                advanced_probability = min(1, max(0, advanced_probability))
+                advanced_probability_two = 1 - advanced_probability
+                favorite = (
+                    fighter_one
+                    if advanced_probability >= advanced_probability_two
+                    else fighter_two
+                )
+                elo_favorite_probability = (
+                    probability_one if favorite == fighter_one else probability_two
+                )
+                fight.update(
+                    {
+                        "probabilityOne": round(advanced_probability, 4),
+                        "probabilityTwo": round(advanced_probability_two, 4),
+                        "advancedEnsembleProbabilityOne": round(advanced_probability, 4),
+                        "favorite": favorite,
+                        "favoriteProbability": round(
+                            max(advanced_probability, advanced_probability_two), 4
+                        ),
+                        "probabilityGap": round(
+                            abs(advanced_probability - advanced_probability_two) * 100,
+                            1,
+                        ),
+                    }
+                )
                 fight["signals"] = [
                     {
-                        "label": "Universal MMA",
-                        "value": round(max(probability_one, probability_two), 4),
+                        "label": "Elo baseline",
+                        "value": round(elo_favorite_probability, 4),
                     },
                     *advanced["signals"],
                 ]
                 fight["availableSignals"] = 1 + advanced["availableSignals"]
-                fight["agreement"] = 1 + advanced["agreement"]
-                fight["modelType"] = "Universal MMA + UFC ensemble"
+                fight["agreement"] = (
+                    int(elo_favorite_probability >= 0.5) + advanced["agreement"]
+                )
+                fight["modelType"] = "Advanced ensemble"
             card["predicted"].append(fight)
 
     output = list(cards.values())
@@ -528,7 +571,7 @@ def build_cards(source):
         card["predicted"].sort(key=lambda fight: fight["probabilityGap"], reverse=True)
     output.sort(key=lambda card: (card["date"], card["organizer"], card["event"]))
     generated_at = datetime.fromtimestamp(
-        universal_path.stat().st_mtime, timezone.utc
+        elo_path.stat().st_mtime, timezone.utc
     ).isoformat()
     return output, generated_at
 
@@ -577,7 +620,7 @@ def main():
             "cardCount": len(cards),
             "predictedFightCount": predicted_count,
             "insufficientFightCount": insufficient_count,
-            "source": "Multi-promotion MMA Elo, universal model, and UFC advanced ensemble outputs",
+            "source": "Multi-promotion MMA Elo with detailed-stat ensemble outputs when eligible",
         },
         "organizers": organizers,
         "fighters": fighters,

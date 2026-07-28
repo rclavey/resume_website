@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MMA Fight Predictor | Richard Lavey</title>
-    <meta name="description" content="Multi-promotion MMA Elo ratings, UFC-focused analytics, cross-promotion hypothetical matchups, universal fight predictions, and upcoming card projections.">
+    <meta name="description" content="Multi-promotion MMA Elo ratings, UFC-focused analytics, cross-promotion hypothetical matchups, detailed-stat fight predictions, and upcoming cards from every collected promotion.">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/ufc-dashboard.css?v=4">
 </head>
@@ -15,7 +15,7 @@
             <div>
                 <p class="dashboard-eyebrow">UFC-first · 27-promotion coverage</p>
                 <h1 id="ufc-title">MMA Fight Predictor</h1>
-                <p class="dashboard-intro">Explore a shared cross-promotion rating system, compare fighters from different organizations, and inspect upcoming fight predictions. UFC remains the primary focus, with richer statistical ensemble analysis when UFC data is available.</p>
+                <p class="dashboard-intro">Explore a shared cross-promotion rating system, compare fighters from different organizations, and inspect upcoming fight predictions. UFC remains the primary focus, while detailed statistical models activate for any matchup with sufficient fighter telemetry.</p>
             </div>
             <dl class="snapshot-meta">
                 <div>
@@ -86,15 +86,15 @@
                     <small>Across generated fight cards</small>
                 </article>
                 <article>
-                    <span>UFC advanced profiles</span>
+                    <span>Detailed-stat profiles</span>
                     <strong id="metric-insufficient">-</strong>
                     <small>Richer style and statistics layer</small>
                 </article>
             </div>
 
             <section class="ensemble-overview" aria-label="Ensemble model overview">
-                <div><span>All promotions</span><strong>Universal MMA model</strong><small>Elo, form, experience, inactivity, and promotion context</small></div>
-                <div><span>UFC enhancement</span><strong>Advanced ensemble</strong><small>Style, rolling windows, gradient trees, and neural scores</small></div>
+                <div><span>Every matchup</span><strong>Best available model</strong><small>Detailed-stat ensemble when eligible, Elo-only fallback otherwise</small></div>
+                <div><span>Detailed stats</span><strong>Advanced ensemble</strong><small>Style, rolling windows, gradient trees, and neural scores</small></div>
                 <button type="button" data-dashboard-view="models">Explore model</button>
             </section>
 
@@ -274,8 +274,8 @@
                 <label>
                     <span>Projection score</span>
                     <select id="matchup-score-model">
-                        <option value="cross_promotion_score">Universal MMA model</option>
-                        <option value="ensemble_score">UFC final ensemble</option>
+                        <option value="best_available_score">Best available</option>
+                        <option value="ensemble_score">Detailed stats ensemble</option>
                         <option value="elo_score">Elo baseline</option>
                         <option value="base_logistic_score">Base logistic</option>
                         <option value="style_matchup_score">Style matchup</option>
@@ -286,14 +286,6 @@
                         <option value="gradient_boost_score">Gradient boost</option>
                         <option value="multi_layer_perceptron_score">Neural network</option>
                     </select>
-                </label>
-                <label>
-                    <span>Host promotion</span>
-                    <select id="matchup-host-organization"></select>
-                </label>
-                <label>
-                    <span>Fight date</span>
-                    <input id="matchup-fight-date" type="date">
                 </label>
                 <div><span>Active scenario</span><strong id="matchup-scenario">Calculating</strong></div>
                 <div><span>Available scores</span><strong id="matchup-score-count">-</strong></div>
@@ -411,8 +403,7 @@
                     <span>Model focus</span>
                     <select id="model-focus-filter">
                         <option value="all">All models</option>
-                        <option value="cross_promotion_score">Universal MMA model</option>
-                        <option value="ensemble_score">UFC final ensemble</option>
+                        <option value="ensemble_score">Detailed stats ensemble</option>
                         <option value="elo_score">Elo baseline</option>
                         <option value="base_logistic_score">Base logistic</option>
                         <option value="style_matchup_score">Style matchup</option>
@@ -429,8 +420,8 @@
             <div class="model-pipeline" aria-label="Prediction pipeline">
                 <article><span>01</span><strong>Unify fight history</strong><p>Deduplicate results from multiple sources and preserve fighter identity across promotions.</p></article>
                 <article><span>02</span><strong>Update shared Elo</strong><p>Carry one rating across organizations using calibrated promotion priors only at a fighter's first appearance.</p></article>
-                <article><span>03</span><strong>Predict the matchup</strong><p>Combine Elo, experience, recent form, inactivity, and host-promotion context in the universal model.</p></article>
-                <article><span>04</span><strong>Enhance UFC fights</strong><p>Add style, striking, grappling, rolling-window, tree, and neural signals when UFC data supports them.</p></article>
+                <article><span>03</span><strong>Check model eligibility</strong><p>Use detailed fighter telemetry only when both competitors have every statistic required by a model.</p></article>
+                <article><span>04</span><strong>Predict the matchup</strong><p>Run the original logistic, style, rolling-window, tree, neural, and ensemble models when eligible; otherwise publish Elo only.</p></article>
             </div>
 
             <section class="scenario-section" aria-labelledby="scenario-heading">
@@ -478,7 +469,7 @@
                 </article>
                 <article>
                     <h3>Matchup projections</h3>
-                    <p>The Matchup Lab defaults to the universal MMA model and supports fighters from different organizations. The host-promotion selector supplies event context, and both directional outputs are reconciled into complementary probabilities.</p>
+                    <p>The Matchup Lab supports fighters from different organizations. It defaults to the detailed-stat ensemble when both fighters are eligible and automatically falls back to the shared Elo rating when required telemetry is missing.</p>
                 </article>
                 <article>
                     <h3>Fair implied odds</h3>
@@ -486,11 +477,11 @@
                 </article>
                 <article>
                     <h3>Fight-card model</h3>
-                    <p>Upcoming cards across modeled promotions use the universal model. UFC cards can additionally expose the deeper advanced ensemble when both fighters have sufficient statistics.</p>
+                    <p>Upcoming cards from every collected promotion are shown together. Each matchup uses the original detailed-stat ensemble when eligible and an Elo-only prediction otherwise.</p>
                 </article>
                 <article>
                     <h3>Insufficient data</h3>
-                    <p>Unknown fighters start from a calibrated promotion prior. Predictions with limited history remain explicitly lower-confidence rather than borrowing unavailable UFC-specific statistics.</p>
+                    <p>Unknown fighters start from a calibrated promotion prior. Fighters without the required detailed statistics are excluded from component and ensemble models instead of borrowing or manufacturing telemetry.</p>
                 </article>
             </div>
 
