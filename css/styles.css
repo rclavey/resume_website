@@ -675,6 +675,226 @@ footer p {
     font-weight: 900;
 }
 
+.app-icon-image {
+    width: 54px;
+    height: 54px;
+    border-radius: 13px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+}
+
+.app-card.app-card-doing::before {
+    background: #d7ff36;
+}
+
+.app-card-doing .app-store-link {
+    color: #182232;
+    background: #d7ff36;
+    border-color: #b6df16;
+}
+
+.privacy-directory .link-card {
+    grid-column: 1 / -1;
+}
+
+.doing-page {
+    --doing-ink: #e8edf4;
+    --doing-muted: #9ba8b8;
+    --doing-panel: #182232;
+    --doing-panel-soft: #202d40;
+    --doing-line: rgba(232, 237, 244, 0.14);
+    --doing-yellow: #d7ff36;
+    --doing-green: #49f29a;
+    width: min(1120px, calc(100% - 40px));
+    padding-top: 54px !important;
+}
+
+.doing-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+    gap: 42px;
+    align-items: center;
+    padding: clamp(32px, 6vw, 72px);
+    border-radius: 28px;
+    color: var(--doing-ink);
+    background:
+        radial-gradient(circle at 88% 14%, rgba(215, 255, 54, 0.15), transparent 32%),
+        linear-gradient(145deg, #111926, #1b293c);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+    overflow: hidden;
+}
+
+.doing-eyebrow {
+    margin: 0 0 10px !important;
+    color: var(--doing-yellow);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.doing-hero h1 {
+    max-width: 700px;
+    margin: 0 !important;
+    color: #ffffff !important;
+    font-size: clamp(3rem, 8vw, 6.6rem) !important;
+    line-height: 0.92;
+    letter-spacing: -0.065em;
+}
+
+.doing-lead {
+    max-width: 650px;
+    margin: 24px 0 0 !important;
+    color: var(--doing-muted);
+    font-size: clamp(1.05rem, 2vw, 1.28rem);
+    line-height: 1.7;
+}
+
+.doing-hero-icon {
+    width: min(100%, 310px);
+    justify-self: end;
+    border-radius: 25%;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.42);
+}
+
+.doing-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+.doing-button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 0 19px;
+    border: 1px solid var(--doing-line);
+    border-radius: 999px;
+    color: var(--doing-ink);
+    background: var(--doing-panel-soft);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.doing-button:hover {
+    color: #101824;
+    background: var(--doing-yellow);
+    border-color: var(--doing-yellow);
+}
+
+.doing-button-primary {
+    color: #101824;
+    background: var(--doing-yellow);
+    border-color: var(--doing-yellow);
+}
+
+.doing-section {
+    width: min(940px, 100%);
+    margin: 64px auto 0;
+}
+
+.doing-section h2 {
+    margin-bottom: 16px !important;
+    color: var(--ink);
+    font-size: clamp(2rem, 4vw, 3.4rem);
+}
+
+.doing-section > p {
+    max-width: 760px;
+    color: var(--muted);
+}
+
+.doing-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 26px;
+}
+
+.doing-feature {
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: var(--soft-shadow);
+}
+
+.doing-feature strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--ink);
+    font-size: 1.1rem;
+}
+
+.doing-feature p {
+    margin: 0 !important;
+    color: var(--muted);
+}
+
+.doing-policy {
+    padding: clamp(26px, 5vw, 54px);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: #ffffff;
+    box-shadow: var(--soft-shadow);
+}
+
+.doing-policy h2 {
+    margin-top: 0 !important;
+}
+
+.doing-policy h3 {
+    margin: 30px 0 8px !important;
+    color: var(--ink);
+}
+
+.doing-policy p,
+.doing-policy li {
+    color: var(--muted);
+}
+
+.doing-policy ul {
+    margin: 10px 0 0;
+    padding-left: 22px;
+}
+
+.doing-updated {
+    display: inline-flex;
+    margin-bottom: 22px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    color: #263407 !important;
+    background: #efffc0;
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+@media (max-width: 760px) {
+    .doing-page {
+        width: min(100% - 24px, 1120px);
+        padding-top: 24px !important;
+    }
+
+    .doing-hero {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 30px 24px;
+    }
+
+    .doing-hero-icon {
+        width: 180px;
+        justify-self: start;
+    }
+
+    .doing-feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .doing-section {
+        margin-top: 44px;
+    }
+}
+
 .app-card h3 {
     margin: 0;
 }
