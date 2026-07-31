@@ -692,6 +692,16 @@ footer p {
     border-color: #b6df16;
 }
 
+.app-card.app-card-performiq::before {
+    background: #11d8e5;
+}
+
+.app-card-performiq .app-store-link {
+    color: #052c35;
+    background: #baf7fb;
+    border-color: #11d8e5;
+}
+
 .privacy-directory .link-card {
     grid-column: 1 / -1;
 }
@@ -706,6 +716,23 @@ footer p {
     --doing-green: #49f29a;
     width: min(1120px, calc(100% - 40px));
     padding-top: 54px !important;
+}
+
+.doing-page.performiq-page {
+    --doing-yellow: #11d8e5;
+    --doing-green: #56e3a1;
+}
+
+.performiq-page .doing-hero {
+    background:
+        radial-gradient(circle at 88% 14%, rgba(17, 216, 229, 0.2), transparent 34%),
+        radial-gradient(circle at 12% 88%, rgba(86, 227, 161, 0.12), transparent 35%),
+        linear-gradient(145deg, #07131f, #10283b);
+}
+
+.performiq-page .doing-updated {
+    color: #07343a !important;
+    background: #c8f9fb;
 }
 
 .doing-hero {
