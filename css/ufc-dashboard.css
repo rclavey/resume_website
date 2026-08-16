@@ -444,6 +444,7 @@
 .analytics-toolbar label,
 .matchup-controls label,
 .card-selector,
+.fight-card-toolbar label,
 .matchup-model-toolbar label,
 .model-panel-heading label,
 .model-score-controls label {
@@ -455,6 +456,7 @@
 .analytics-toolbar label > span,
 .matchup-controls label > span,
 .card-selector > span,
+.fight-card-toolbar label > span,
 .matchup-model-toolbar label > span,
 .model-panel-heading label > span,
 .model-score-controls label > span {
@@ -469,6 +471,8 @@
 .matchup-controls input,
 .matchup-controls select,
 .card-selector select,
+.fight-card-toolbar input,
+.fight-card-toolbar select,
 .matchup-model-toolbar select,
 .matchup-model-toolbar input,
 .model-panel-heading select,
@@ -490,6 +494,8 @@
 .matchup-controls input:focus,
 .matchup-controls select:focus,
 .card-selector select:focus,
+.fight-card-toolbar input:focus,
+.fight-card-toolbar select:focus,
 .matchup-model-toolbar select:focus,
 .matchup-model-toolbar input:focus,
 .model-panel-heading select:focus,
@@ -1110,8 +1116,25 @@
     align-items: end;
 }
 
-.card-selector {
-    min-width: 250px;
+.fight-card-toolbar {
+    margin-bottom: 14px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(145px, 1fr));
+    gap: 12px;
+    align-items: end;
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--teal);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.fight-card-selector {
+    grid-column: span 2;
+}
+
+.fight-search-filter {
+    grid-column: span 2;
 }
 
 .card-summary-bar {
@@ -1163,6 +1186,60 @@
     gap: 8px;
 }
 
+.fight-card-group {
+    overflow: hidden;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.fight-card-group + .fight-card-group {
+    margin-top: 12px;
+}
+
+.fight-card-group > header {
+    min-height: 70px;
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border-bottom: 1px solid var(--line-strong);
+    background: #eef3f5;
+}
+
+.fight-card-group > header div {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.fight-card-group > header span,
+.fight-card-group > header small {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 780;
+    text-transform: uppercase;
+}
+
+.fight-card-group > header strong {
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 0.94rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fight-card-group > div {
+    display: grid;
+    gap: 7px;
+    padding: 8px;
+}
+
+.fight-card-group .fight-rank-button {
+    border-radius: 5px;
+}
+
 .fight-rank-button {
     width: 100%;
     min-height: 82px;
@@ -1208,10 +1285,20 @@
 }
 
 .fight-names span,
+.fight-names small,
 .consensus-meter small {
     margin-top: 3px;
     color: var(--muted);
     font-size: 0.72rem;
+}
+
+.fight-names small {
+    display: block;
+    overflow: hidden;
+    font-size: 0.67rem;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .consensus-meter span {
@@ -1703,6 +1790,10 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
+    .fight-card-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .matchup-chart-grid,
     .methodology-analytics {
         grid-template-columns: 1fr;
@@ -1833,6 +1924,7 @@
     .snapshot-meta,
     .metric-strip,
     .analytics-toolbar,
+    .fight-card-toolbar,
     .promotion-command,
     .card-summary-bar,
     .insufficient-fights-list,
@@ -1841,6 +1933,11 @@
     .model-pipeline,
     .scenario-cards {
         grid-template-columns: 1fr;
+    }
+
+    .fight-card-selector,
+    .fight-search-filter {
+        grid-column: auto;
     }
 
     .ensemble-overview div {

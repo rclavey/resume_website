@@ -6,7 +6,7 @@
     <title>MMA Fight Predictor | Richard Lavey</title>
     <meta name="description" content="Multi-promotion MMA Elo ratings, UFC-focused analytics, cross-promotion hypothetical matchups, detailed-stat fight predictions, and upcoming cards from every collected promotion.">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/ufc-dashboard.css?v=4">
+    <link rel="stylesheet" href="css/ufc-dashboard.css?v=5">
 </head>
 <body>
     <header></header>
@@ -344,31 +344,85 @@
         <section id="cards-panel" class="dashboard-panel" role="tabpanel" data-dashboard-panel="cards" hidden>
             <div class="panel-heading card-panel-heading">
                 <div>
-                    <p class="dashboard-eyebrow">Latest generated slate</p>
-                    <h2>Fight Card Rankings</h2>
+                    <p class="dashboard-eyebrow">Custom upcoming slate</p>
+                    <h2>Upcoming Fight Explorer</h2>
                 </div>
-                <label class="card-selector">
-                    <span>Upcoming card</span>
-                    <select id="fight-card-select"></select>
-                </label>
+                <p id="fight-results-count" class="panel-count" aria-live="polite">- fights</p>
             </div>
 
+            <form id="fight-card-filters" class="fight-card-toolbar">
+                <label>
+                    <span>Organizer</span>
+                    <select id="fight-organizer-filter"><option value="all">All organizers with upcoming cards</option></select>
+                </label>
+                <label class="fight-card-selector">
+                    <span>Fight card</span>
+                    <select id="fight-card-select"><option value="all">All fight cards</option></select>
+                </label>
+                <label>
+                    <span>Timing</span>
+                    <select id="fight-timing-filter">
+                        <option value="upcoming">Upcoming only</option>
+                        <option value="all">All generated cards</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Prediction model</span>
+                    <select id="fight-model-filter">
+                        <option value="all">All models</option>
+                        <option value="advanced">Advanced ensemble</option>
+                        <option value="elo">Elo only</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Matchups</span>
+                    <select id="fight-status-filter">
+                        <option value="confirmed">Confirmed fighters only</option>
+                        <option value="all">Include TBA listings</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Sort fights</span>
+                    <select id="fight-sort">
+                        <option value="probability-desc">Pick confidence: high to low</option>
+                        <option value="probability-asc">Pick confidence: low to high</option>
+                        <option value="edge-desc">Probability gap: high to low</option>
+                        <option value="edge-asc">Probability gap: low to high</option>
+                        <option value="agreement-desc">Model agreement: high to low</option>
+                        <option value="date-asc">Card date: soonest first</option>
+                        <option value="date-desc">Card date: latest first</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Layout</span>
+                    <select id="fight-layout-filter">
+                        <option value="ranked">Rank all fights together</option>
+                        <option value="cards">Group by fight card</option>
+                    </select>
+                </label>
+                <label class="fight-search-filter">
+                    <span>Search</span>
+                    <input id="fight-search" type="search" placeholder="Fighter or event" autocomplete="off">
+                </label>
+                <button id="clear-fight-filters" class="secondary-button" type="reset">Clear filters</button>
+            </form>
+
             <div class="card-summary-bar">
-                <div><span>Card date</span><strong id="selected-card-date">-</strong></div>
-                <div><span>Ranked fights</span><strong id="selected-card-predicted">-</strong></div>
+                <div><span>Cards shown</span><strong id="selected-card-date">-</strong></div>
+                <div><span>Predicted fights</span><strong id="selected-card-predicted">-</strong></div>
                 <div><span>Insufficient data</span><strong id="selected-card-insufficient">-</strong></div>
             </div>
 
             <article class="chart-frame card-edge-chart">
-                <header><div><p class="chart-kicker">Model separation</p><h3>Win Probability Gap by Fight</h3></div></header>
-                <div class="chart-canvas"><canvas id="fight-card-edge-chart" aria-label="Fight card ranked by win probability difference"></canvas></div>
+                <header><div><p class="chart-kicker">Current sorted view</p><h3>Predicted Winner Confidence</h3></div></header>
+                <div class="chart-canvas"><canvas id="fight-card-edge-chart" aria-label="Upcoming fights ranked by predicted winner confidence"></canvas></div>
             </article>
 
             <div class="fight-analysis-grid">
                 <section aria-labelledby="ranked-fights-heading">
                     <div class="subsection-heading">
                         <h3 id="ranked-fights-heading">Ranked Fights</h3>
-                        <span>Largest probability gap first</span>
+                        <span id="ranked-fights-description">Highest predicted win probability first</span>
                     </div>
                     <div id="ranked-fights-list" class="ranked-fights-list"></div>
                 </section>
@@ -535,6 +589,6 @@
     <script src="js/includeHeader.js"></script>
     <script src="js/vendor/chart.umd.min.js?v=4.5.1"></script>
     <script src="js/ufcModel.js?v=2"></script>
-    <script src="js/ufcDashboard.js?v=11"></script>
+    <script src="js/ufcDashboard.js?v=12"></script>
 </body>
 </html>

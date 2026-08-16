@@ -14,6 +14,7 @@ const dashboardState = {
     leaderboardRows: [],
     selectedCardIndex: 0,
     selectedFightIndex: 0,
+    selectedFightKey: null,
     selectedOrganization: 'UFC',
     modelMatchups: []
 };
@@ -931,81 +932,238 @@ function renderMatchupCharts(fighterOne, fighterTwo, modelResult, selectedScore)
     });
 }
 
-function populateFightCards() {
-    const visibleCards = dashboardState.data.cards;
+function localDateKey(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function cardMatchesTiming(card) {
+    return element('fight-timing-filter').value === 'all' || card.date >= localDateKey();
+}
+
+function cardFilterEntries(includeSelectedCard = true) {
+    const organizer = element('fight-organizer-filter').value;
+    const selectedCard = element('fight-card-select').value;
+    return dashboardState.data.cards
+        .map((card, cardIndex) => ({ card, cardIndex }))
+        .filter(({ card, cardIndex }) => (
+            cardMatchesTiming(card)
+            && (organizer === 'all' || card.organizer === organizer)
+            && (!includeSelectedCard || selectedCard === 'all' || Number(selectedCard) === cardIndex)
+        ));
+}
+
+function populateFightCardOptions() {
     const select = element('fight-card-select');
-    if (!visibleCards.length) {
-        select.innerHTML = '<option value="-1">No upcoming MMA cards</option>';
-        select.disabled = true;
-        dashboardState.selectedCardIndex = -1;
-        return;
-    }
-    select.disabled = false;
-    select.innerHTML = visibleCards.map(card => {
-        const index = dashboardState.data.cards.indexOf(card);
-        const fightCount = card.predicted.length + card.insufficient.length;
-        return `<option value="${index}">${escapeHtml(card.organizer)} | ${formatDate(card.date)} | ${escapeHtml(card.event)} · ${fightCount} ${fightCount === 1 ? 'fight' : 'fights'}</option>`;
-    }).join('');
-    dashboardState.selectedCardIndex = visibleCards.length
-        ? dashboardState.data.cards.indexOf(visibleCards[0])
-        : 0;
+    const previous = select.value || 'all';
+    const entries = cardFilterEntries(false);
+    select.innerHTML = [
+        '<option value="all">All fight cards</option>',
+        ...entries.map(({ card, cardIndex }) => {
+            const fightCount = card.predicted.length + card.insufficient.length;
+            return `<option value="${cardIndex}">${escapeHtml(card.organizer)} | ${formatDate(card.date)} | ${escapeHtml(card.event)} · ${fightCount} ${fightCount === 1 ? 'fight' : 'fights'}</option>`;
+        })
+    ].join('');
+    select.value = [...select.options].some(option => option.value === previous) ? previous : 'all';
+    select.disabled = entries.length === 0;
+}
+
+function populateFightOrganizerOptions() {
+    const select = element('fight-organizer-filter');
+    const previous = select.value || 'all';
+    const matchingCards = dashboardState.data.cards.filter(cardMatchesTiming);
+    const organizerCounts = new Map();
+    matchingCards.forEach(card => {
+        const counts = organizerCounts.get(card.organizer) || { cards: 0, fights: 0 };
+        counts.cards += 1;
+        counts.fights += card.predicted.length + card.insufficient.length;
+        organizerCounts.set(card.organizer, counts);
+    });
+    const organizers = [...organizerCounts].sort(([a], [b]) => a.localeCompare(b));
+    const allLabel = element('fight-timing-filter').value === 'upcoming'
+        ? 'All organizers with upcoming cards'
+        : 'All organizers in generated cards';
+    select.innerHTML = [
+        `<option value="all">${allLabel}</option>`,
+        ...organizers.map(([organizer, counts]) => (
+            `<option value="${escapeHtml(organizer)}">${escapeHtml(organizer)} · ${counts.cards} ${counts.cards === 1 ? 'card' : 'cards'} · ${counts.fights} ${counts.fights === 1 ? 'fight' : 'fights'}</option>`
+        ))
+    ].join('');
+    select.value = [...select.options].some(option => option.value === previous) ? previous : 'all';
+}
+
+function populateFightCards() {
+    populateFightOrganizerOptions();
+    populateFightCardOptions();
+}
+
+function fightAgreement(fight) {
+    return fight.availableSignals ? fight.agreement / fight.availableSignals : 0;
+}
+
+function compareFightRows(a, b) {
+    const sort = element('fight-sort').value;
+    const comparisons = {
+        'probability-desc': () => b.fight.favoriteProbability - a.fight.favoriteProbability,
+        'probability-asc': () => a.fight.favoriteProbability - b.fight.favoriteProbability,
+        'edge-desc': () => b.fight.probabilityGap - a.fight.probabilityGap,
+        'edge-asc': () => a.fight.probabilityGap - b.fight.probabilityGap,
+        'agreement-desc': () => fightAgreement(b.fight) - fightAgreement(a.fight),
+        'date-asc': () => a.card.date.localeCompare(b.card.date),
+        'date-desc': () => b.card.date.localeCompare(a.card.date)
+    };
+    return (comparisons[sort]?.() || 0)
+        || a.card.date.localeCompare(b.card.date)
+        || a.card.event.localeCompare(b.card.event)
+        || a.fightIndex - b.fightIndex;
+}
+
+function filteredFightRows() {
+    const model = element('fight-model-filter').value;
+    const status = element('fight-status-filter').value;
+    const search = element('fight-search').value.trim().toLowerCase();
+    return cardFilterEntries().flatMap(({ card, cardIndex }) => (
+        card.predicted.map((fight, fightIndex) => ({
+            key: `${cardIndex}:${fightIndex}`,
+            card,
+            cardIndex,
+            fight,
+            fightIndex
+        }))
+    )).filter(({ card, fight }) => {
+        const matchesModel = model === 'all'
+            || (model === 'advanced' && fight.modelType === 'Advanced ensemble')
+            || (model === 'elo' && fight.modelType !== 'Advanced ensemble');
+        const isConfirmed = !`${fight.fighterOne} ${fight.fighterTwo}`.toLowerCase().includes('tba');
+        const haystack = `${fight.fighterOne} ${fight.fighterTwo} ${fight.favorite} ${card.event} ${card.organizer}`.toLowerCase();
+        return matchesModel && (status === 'all' || isConfirmed) && (!search || haystack.includes(search));
+    }).sort(compareFightRows);
+}
+
+function filteredInsufficientRows() {
+    const search = element('fight-search').value.trim().toLowerCase();
+    return cardFilterEntries().flatMap(({ card, cardIndex }) => (
+        card.insufficient.map((fight, fightIndex) => ({ card, cardIndex, fight, fightIndex }))
+    )).filter(({ card, fight }) => (
+        !search || `${fight.fighterOne} ${fight.fighterTwo} ${card.event} ${card.organizer}`.toLowerCase().includes(search)
+    ));
+}
+
+function fightRowMarkup(row, rank) {
+    const { card, fight, key } = row;
+    const other = fight.favorite === fight.fighterOne ? fight.fighterTwo : fight.fighterOne;
+    const consensus = fightAgreement(fight) * 100;
+    return `
+        <button class="fight-rank-button ${key === dashboardState.selectedFightKey ? 'active' : ''}" type="button" data-fight-key="${key}" aria-pressed="${key === dashboardState.selectedFightKey}">
+            <span class="fight-rank">${rank}</span>
+            <span class="fight-names">
+                <strong>${escapeHtml(fight.favorite)} | ${formatPercent(fight.favoriteProbability * 100, 1)}</strong>
+                <span>vs ${escapeHtml(other)}</span>
+                <small>${escapeHtml(card.organizer)} · ${formatDate(card.date)} · ${escapeHtml(card.event)}</small>
+            </span>
+            <span class="consensus-meter"><span><i style="width:${consensus}%"></i></span><small>${fight.agreement}/${fight.availableSignals} signals favor pick</small></span>
+            <span class="fight-gap"><strong>${formatNumber(fight.probabilityGap, 1)}</strong><small>pt gap</small></span>
+        </button>`;
+}
+
+function groupedFightRowsMarkup(rows) {
+    const rowsByCard = new Map();
+    rows.forEach(row => {
+        if (!rowsByCard.has(row.cardIndex)) rowsByCard.set(row.cardIndex, []);
+        rowsByCard.get(row.cardIndex).push(row);
+    });
+    return [...rowsByCard.values()]
+        .sort((a, b) => a[0].card.date.localeCompare(b[0].card.date) || a[0].card.event.localeCompare(b[0].card.event))
+        .map(cardRows => {
+            const { card } = cardRows[0];
+            return `
+                <section class="fight-card-group">
+                    <header>
+                        <div><span>${escapeHtml(card.organizer)} · ${formatDate(card.date)}</span><strong>${escapeHtml(card.event)}</strong></div>
+                        <small>${cardRows.length} ${cardRows.length === 1 ? 'prediction' : 'predictions'}</small>
+                    </header>
+                    <div>${cardRows.map((row, index) => fightRowMarkup(row, index + 1)).join('')}</div>
+                </section>`;
+        }).join('');
+}
+
+function clearFightCardResults(message) {
+    element('ranked-fights-list').innerHTML = `<div class="empty-fights">${escapeHtml(message)}</div>`;
+    element('fight-detail-title').textContent = 'No matching prediction';
+    element('fight-detail-probabilities').innerHTML = '';
+    element('fight-detail-stats').innerHTML = '';
+    ['card-edge', 'fight-signals'].forEach(key => {
+        dashboardState.charts.get(key)?.destroy();
+        dashboardState.charts.delete(key);
+    });
 }
 
 function renderFightCard() {
-    const card = dashboardState.data.cards[dashboardState.selectedCardIndex];
-    if (!card) {
-        element('selected-card-date').textContent = '-';
-        element('selected-card-predicted').textContent = '0';
-        element('selected-card-insufficient').textContent = '0';
-        element('insufficient-count').textContent = '0 fights';
-        element('ranked-fights-list').innerHTML = '<div class="empty-fights">No upcoming MMA predictions are available in the current model export.</div>';
-        element('insufficient-fights-list').innerHTML = '<div class="empty-fights">No card is selected.</div>';
-        element('fight-detail-title').textContent = 'No card prediction available';
-        element('fight-detail-probabilities').innerHTML = '';
-        element('fight-detail-stats').innerHTML = '';
-        ['card-edge', 'fight-signals'].forEach(key => {
-            dashboardState.charts.get(key)?.destroy();
-            dashboardState.charts.delete(key);
-        });
-        return;
+    const cardEntries = cardFilterEntries();
+    const rows = filteredFightRows();
+    const insufficientRows = filteredInsufficientRows();
+    const matchingCardCount = new Set([
+        ...rows.map(row => row.cardIndex),
+        ...insufficientRows.map(row => row.cardIndex)
+    ]).size;
+    const layout = element('fight-layout-filter').value;
+    const sortLabels = {
+        'probability-desc': 'Highest predicted win probability first',
+        'probability-asc': 'Lowest predicted win probability first',
+        'edge-desc': 'Largest probability gap first',
+        'edge-asc': 'Smallest probability gap first',
+        'agreement-desc': 'Strongest model agreement first',
+        'date-asc': 'Soonest card first',
+        'date-desc': 'Latest card first'
+    };
+
+    element('selected-card-date').textContent = formatNumber(matchingCardCount);
+    element('selected-card-predicted').textContent = formatNumber(rows.length);
+    element('selected-card-insufficient').textContent = formatNumber(insufficientRows.length);
+    element('fight-results-count').textContent = `${rows.length} ${rows.length === 1 ? 'fight' : 'fights'} · ${matchingCardCount} ${matchingCardCount === 1 ? 'card' : 'cards'}`;
+    element('ranked-fights-heading').textContent = layout === 'cards' ? 'Fights by Card' : 'Ranked Fights';
+    element('ranked-fights-description').textContent = sortLabels[element('fight-sort').value];
+    element('insufficient-count').textContent = `${insufficientRows.length} ${insufficientRows.length === 1 ? 'fight' : 'fights'}`;
+
+    if (!rows.length) {
+        dashboardState.selectedFightKey = null;
+        clearFightCardResults(cardEntries.length
+            ? 'No predictions match the selected filters. Clear one or more filters to see fights.'
+            : 'No fight cards match the selected organizer and timing filters.');
+    } else {
+        if (!rows.some(row => row.key === dashboardState.selectedFightKey)) {
+            dashboardState.selectedFightKey = rows[0].key;
+        }
+        const selectedRow = rows.find(row => row.key === dashboardState.selectedFightKey) || rows[0];
+        dashboardState.selectedCardIndex = selectedRow.cardIndex;
+        dashboardState.selectedFightIndex = selectedRow.fightIndex;
+        element('ranked-fights-list').innerHTML = layout === 'cards'
+            ? groupedFightRowsMarkup(rows)
+            : rows.map((row, index) => fightRowMarkup(row, index + 1)).join('');
+        renderCardEdgeChart(rows);
+        renderFightDetail(selectedRow.fight, selectedRow);
     }
-    dashboardState.selectedFightIndex = Math.min(dashboardState.selectedFightIndex, Math.max(0, card.predicted.length - 1));
-    element('fight-card-select').value = String(dashboardState.selectedCardIndex);
-    element('selected-card-date').textContent = `${card.organizer} · ${formatDate(card.date)}`;
-    element('selected-card-predicted').textContent = card.predicted.length;
-    element('selected-card-insufficient').textContent = card.insufficient.length;
-    element('insufficient-count').textContent = `${card.insufficient.length} ${card.insufficient.length === 1 ? 'fight' : 'fights'}`;
 
-    element('ranked-fights-list').innerHTML = card.predicted.length ? card.predicted.map((fight, index) => {
-        const other = fight.favorite === fight.fighterOne ? fight.fighterTwo : fight.fighterOne;
-        const consensus = fight.availableSignals ? (fight.agreement / fight.availableSignals) * 100 : 0;
-        return `
-            <button class="fight-rank-button ${index === dashboardState.selectedFightIndex ? 'active' : ''}" type="button" data-fight-index="${index}">
-                <span class="fight-rank">${index + 1}</span>
-                <span class="fight-names"><strong>${escapeHtml(fight.favorite)} | ${formatPercent(fight.favoriteProbability * 100, 1)}</strong><span>vs ${escapeHtml(other)}</span></span>
-                <span class="consensus-meter"><span><i style="width:${consensus}%"></i></span><small>${fight.agreement}/${fight.availableSignals} signals favor pick</small></span>
-                <span class="fight-gap"><strong>${formatNumber(fight.probabilityGap, 1)}</strong><small>pt gap</small></span>
-            </button>`;
-    }).join('') : '<div class="empty-fights">No predictions are available for this card.</div>';
-
-    element('insufficient-fights-list').innerHTML = card.insufficient.length ? card.insufficient.map(fight => `
-        <article class="insufficient-fight"><strong>${escapeHtml(fight.fighterOne)} vs ${escapeHtml(fight.fighterTwo)}</strong><span>${escapeHtml(fight.reason)}</span></article>
-    `).join('') : '<div class="empty-fights">Every fight on this card has at least an Elo prediction.</div>';
-
-    renderCardEdgeChart(card);
-    renderFightDetail(card.predicted[dashboardState.selectedFightIndex]);
+    element('insufficient-fights-list').innerHTML = insufficientRows.length ? insufficientRows.map(({ card, fight }) => `
+        <article class="insufficient-fight">
+            <strong>${escapeHtml(fight.fighterOne)} vs ${escapeHtml(fight.fighterTwo)}</strong>
+            <span>${escapeHtml(card.organizer)} · ${formatDate(card.date)} · ${escapeHtml(card.event)} · ${escapeHtml(fight.reason)}</span>
+        </article>
+    `).join('') : '<div class="empty-fights">Every matching fight has at least an Elo prediction.</div>';
 }
 
-function renderCardEdgeChart(card) {
-    const fights = [...card.predicted].slice(0, 12);
+function renderCardEdgeChart(rows) {
+    const fights = rows.slice(0, 12);
     createChart('card-edge', 'fight-card-edge-chart', {
         type: 'bar',
         data: {
-            labels: fights.map(fight => `${fight.fighterOne} vs ${fight.fighterTwo}`),
+            labels: fights.map(({ fight }) => `${fight.favorite} vs ${fight.favorite === fight.fighterOne ? fight.fighterTwo : fight.fighterOne}`),
             datasets: [{
-                label: 'Probability gap',
-                data: fights.map(fight => fight.probabilityGap),
-                backgroundColor: fights.map(fight => fight.probabilityGap >= 40 ? dashboardColors.coral : fight.probabilityGap >= 20 ? dashboardColors.gold : dashboardColors.teal),
+                label: 'Predicted winner probability',
+                data: fights.map(({ fight }) => fight.favoriteProbability * 100),
+                backgroundColor: fights.map(({ fight }) => fight.favoriteProbability >= 0.8 ? dashboardColors.coral : fight.favoriteProbability >= 0.65 ? dashboardColors.gold : dashboardColors.teal),
                 borderRadius: 3
             }]
         },
@@ -1013,17 +1171,17 @@ function renderCardEdgeChart(card) {
             indexAxis: 'y',
             plugins: {
                 legend: { display: false },
-                tooltip: { callbacks: { label: context => `${formatNumber(context.raw, 1)} percentage-point gap` } }
+                tooltip: { callbacks: { label: context => `${formatPercent(context.raw, 1)} predicted win probability` } }
             },
             scales: {
-                x: { min: 0, max: 100, ticks: { color: dashboardColors.muted, callback: value => `${value} pts` } },
+                x: { min: 50, max: 100, ticks: { color: dashboardColors.muted, callback: value => `${value}%` } },
                 y: { grid: { display: false }, ticks: { color: dashboardColors.ink, font: { size: 9 } } }
             }
         })
     });
 }
 
-function renderFightDetail(fight) {
+function renderFightDetail(fight, row = null) {
     if (!fight) {
         element('fight-detail-title').textContent = 'No ranked prediction available';
         element('fight-detail-probabilities').innerHTML = '';
@@ -1060,7 +1218,9 @@ function renderFightDetail(fight) {
         [`Fair odds: ${fight.fighterTwo}`, fairOddsText(fight.probabilityTwo)],
         ['Elo projection', eloProbability === null ? '-' : `${formatPercent(eloProbability * 100, 1)} / ${formatPercent((1 - eloProbability) * 100, 1)}`],
         ['Current Elo', fighterOne && fighterTwo ? `${formatNumber(fighterOne.currentRating, 0)} / ${formatNumber(fighterTwo.currentRating, 0)}` : '-'],
-        ['Host promotion', dashboardState.data.cards[dashboardState.selectedCardIndex]?.organizer || '-'],
+        ['Host promotion', row?.card.organizer || dashboardState.data.cards[dashboardState.selectedCardIndex]?.organizer || '-'],
+        ['Fight card', row?.card.event || dashboardState.data.cards[dashboardState.selectedCardIndex]?.event || '-'],
+        ['Card date', formatDate(row?.card.date || dashboardState.data.cards[dashboardState.selectedCardIndex]?.date)],
         ['MMA samples', fighterOne && fighterTwo ? `${fighterOne.fights} / ${fighterTwo.fights}` : '-']
     ];
     element('fight-detail-stats').innerHTML = stats.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
@@ -1317,9 +1477,7 @@ function bindDashboardEvents() {
         dashboardState.selectedFightIndex = 0;
         renderOverview();
         renderOverviewCharts();
-        populateFightCards();
         if (dashboardState.currentView === 'leaderboard') renderLeaderboard();
-        if (dashboardState.currentView === 'cards') renderFightCard();
         if (dashboardState.currentView === 'methodology') renderMethodology();
     });
 
@@ -1431,17 +1589,41 @@ function bindDashboardEvents() {
         renderMatchup();
     });
 
-    element('fight-card-select').addEventListener('change', event => {
-        dashboardState.selectedCardIndex = Number(event.target.value);
-        dashboardState.selectedFightIndex = 0;
+    element('fight-organizer-filter').addEventListener('change', () => {
+        populateFightCardOptions();
+        dashboardState.selectedFightKey = null;
         renderFightCard();
     });
+    element('fight-timing-filter').addEventListener('change', () => {
+        populateFightOrganizerOptions();
+        populateFightCardOptions();
+        dashboardState.selectedFightKey = null;
+        renderFightCard();
+    });
+    ['fight-card-select', 'fight-model-filter', 'fight-status-filter', 'fight-sort', 'fight-layout-filter'].forEach(id => {
+        element(id).addEventListener('change', () => {
+            if (id !== 'fight-layout-filter') dashboardState.selectedFightKey = null;
+            renderFightCard();
+        });
+    });
+    element('fight-search').addEventListener('input', () => {
+        dashboardState.selectedFightKey = null;
+        renderFightCard();
+    });
+    element('fight-card-filters').addEventListener('reset', () => {
+        window.setTimeout(() => {
+            dashboardState.selectedFightKey = null;
+            populateFightOrganizerOptions();
+            populateFightCardOptions();
+            renderFightCard();
+        }, 0);
+    });
     element('ranked-fights-list').addEventListener('click', event => {
-        const button = event.target.closest('[data-fight-index]');
+        const button = event.target.closest('[data-fight-key]');
         if (!button) {
             return;
         }
-        dashboardState.selectedFightIndex = Number(button.dataset.fightIndex);
+        dashboardState.selectedFightKey = button.dataset.fightKey;
         renderFightCard();
     });
 
