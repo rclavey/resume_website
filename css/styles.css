@@ -661,59 +661,44 @@ footer p {
     grid-column: span 4;
     display: grid;
     grid-template-rows: auto auto 1fr auto;
-    gap: 10px;
+    gap: 12px;
 }
 
 .app-icon {
-    width: 46px;
-    height: 46px;
+    width: 56px;
+    height: 56px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+}
+
+.app-icon {
     display: inline-grid;
     place-items: center;
-    border-radius: var(--radius);
     color: #ffffff;
     background: var(--ink);
     font-weight: 900;
 }
 
-.app-icon-image {
-    width: 54px;
-    height: 54px;
-    border-radius: 13px;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+.app-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
 }
 
-.app-card.app-card-doing::before {
-    background: #d7ff36;
+.app-actions .button-link,
+.app-actions .app-store-link {
+    flex: 1 1 120px;
+    width: auto;
 }
 
-.app-card-doing .app-store-link {
-    color: #182232;
-    background: #d7ff36;
-    border-color: #b6df16;
+.app-card .app-store-link {
+    width: auto;
 }
 
-.app-card.app-card-performiq::before {
-    background: #11d8e5;
-}
-
-.app-card-performiq .app-store-link {
-    color: #052c35;
-    background: #baf7fb;
-    border-color: #11d8e5;
-}
-
-.app-card.app-card-fitverse::before {
-    background: #7c5cff;
-}
-
-.app-card-fitverse .app-store-link {
-    color: #ffffff;
-    background: #6150d7;
-    border-color: #8f7bff;
-}
-
-.privacy-directory .link-card {
-    grid-column: 1 / -1;
+.app-store-link-coming-soon {
+    cursor: not-allowed;
+    opacity: 0.56;
 }
 
 .doing-page {
@@ -957,10 +942,6 @@ footer p {
     max-width: none;
     margin-bottom: 4px !important;
     color: var(--muted);
-}
-
-.app-card .app-store-link {
-    width: max-content;
 }
 
 .links-page h1,

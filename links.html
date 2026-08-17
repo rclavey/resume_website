@@ -5,43 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Links</title>
     <link rel="stylesheet" href="css/styles.css">
-    <style>
-        main {
-            padding-bottom: 200px; /* Add padding to avoid content being covered by the footer */
-        }
-
-        h1 {
-            margin-top: 20px;
-            font-size: 2em;
-            color: #0277bd;
-        }
-
-        h2 {
-            margin-top: 20px;
-            font-size: 1.5em;
-            color: #0277bd;
-            border-bottom: 2px solid #0277bd;
-            padding-bottom: 5px;
-        }
-
-        ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-
-        li {
-            margin-bottom: 10px;
-        }
-
-        a {
-            color: #0277bd;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
 </head>
 <body>
     <header></header>
@@ -52,74 +15,65 @@
             <h2 id="apps-heading">Apps</h2>
             <div class="app-grid">
                 <article class="app-card">
-                    <div class="app-icon">RE</div>
+                    <div class="app-icon" aria-hidden="true">RE</div>
                     <h3>Real Expense</h3>
                     <p>Expense tracking app for professionals managing deductible expenses, with categories, receipt images, charts, PDF export, and CSV export.</p>
-                    <a class="app-store-link" href="https://apps.apple.com/us/app/real-expense/id6596779002" target="_blank" rel="noopener">App Store</a>
+                    <div class="app-actions">
+                        <a class="button-link" href="real_expense.html#privacy-policy">Privacy Policy</a>
+                        <a class="app-store-link" href="https://apps.apple.com/us/app/real-expense/id6596779002" target="_blank" rel="noopener">App Store</a>
+                    </div>
                 </article>
 
                 <article class="app-card">
-                    <div class="app-icon">FC</div>
+                    <div class="app-icon" aria-hidden="true">FC</div>
                     <h3>Flexi Calendar</h3>
                     <p>Calendar app tailored to police officers and other professionals with non-standard schedules, built to be simple to use with no paywalls.</p>
-                    <a class="app-store-link" href="https://apps.apple.com/us/app/flexi-calendar/id6475564896" target="_blank" rel="noopener">App Store</a>
+                    <div class="app-actions">
+                        <a class="button-link" href="flexi_calendar.html#privacy-policy">Privacy Policy</a>
+                        <a class="app-store-link" href="https://apps.apple.com/us/app/flexi-calendar/id6475564896" target="_blank" rel="noopener">App Store</a>
+                    </div>
                 </article>
 
                 <article class="app-card">
-                    <div class="app-icon">WW</div>
+                    <div class="app-icon" aria-hidden="true">WW</div>
                     <h3>Wisdom Web</h3>
                     <p>Knowledge graph app for building connected maps of ideas and information.</p>
-                    <a class="app-store-link" href="https://apps.apple.com/us/app/wisdom-web/id6766549625" target="_blank" rel="noopener">App Store</a>
+                    <div class="app-actions">
+                        <a class="button-link" href="wisdom_web.html#privacy-policy">Privacy Policy</a>
+                        <a class="app-store-link" href="https://apps.apple.com/us/app/wisdom-web/id6766549625" target="_blank" rel="noopener">App Store</a>
+                    </div>
                 </article>
 
-                <article class="app-card app-card-doing">
-                    <img class="app-icon-image" src="images/doing-doing-done-icon.png" alt="">
+                <article class="app-card">
+                    <div class="app-icon" aria-hidden="true">DDD</div>
                     <h3>Doing Doing Done</h3>
                     <p>A focused, customizable task system with nested goals, recurring routines, priorities, streaks, badges, and deadline reminders.</p>
-                    <a class="app-store-link" href="doing_doing_done.html">Details &amp; Privacy</a>
+                    <div class="app-actions">
+                        <a class="button-link" href="doing_doing_done.html#privacy-policy">Privacy Policy</a>
+                        <a class="app-store-link" href="https://apps.apple.com/us/app/doing-doing-done/id6796031362" target="_blank" rel="noopener">App Store</a>
+                    </div>
                 </article>
 
-                <article class="app-card app-card-performiq">
-                    <img class="app-icon-image" src="images/performiq-icon.png" alt="">
+                <article class="app-card">
+                    <div class="app-icon" aria-hidden="true">PI</div>
                     <h3>PerformIQ</h3>
                     <p>Flexible multi-sport stat tracking with league dashboards, player-impact analysis, confidence intervals, and exportable results.</p>
-                    <a class="app-store-link" href="performiq.html">Details &amp; Privacy</a>
+                    <div class="app-actions">
+                        <a class="button-link" href="performiq.html#privacy-policy">Privacy Policy</a>
+                        <a class="app-store-link" href="https://apps.apple.com/us/app/performiq/id6796785251" target="_blank" rel="noopener">App Store</a>
+                    </div>
                 </article>
 
-                <article class="app-card app-card-fitverse">
-                    <img class="app-icon-image" src="images/fitverse-icon.png" alt="">
+                <article class="app-card">
+                    <div class="app-icon" aria-hidden="true">FV</div>
                     <h3>FitVerse</h3>
                     <p>Privacy-first fitness competitions powered by the Apple Health metrics you choose, with custom scoring, live leaderboards, friends, XP, achievements, and personal records.</p>
-                    <a class="app-store-link" href="fitverse.html">Details &amp; Privacy</a>
+                    <div class="app-actions">
+                        <a class="button-link" href="fitverse.html#privacy-policy">Privacy Policy</a>
+                        <span class="app-store-link app-store-link-coming-soon" aria-disabled="true">Coming Soon</span>
+                    </div>
                 </article>
             </div>
-        </section>
-
-        <section class="links-section privacy-directory" id="doing-doing-done-privacy" aria-labelledby="doing-privacy-heading">
-            <h2 id="doing-privacy-heading">Doing Doing Done Privacy</h2>
-            <article class="link-card">
-                <h3>Your tasks stay on your device</h3>
-                <p>Doing Doing Done does not require an account and does not collect, sell, or share personal information. Read the complete policy, including details about local notifications and data deletion, on the app page.</p>
-                <a class="button-link" href="doing_doing_done.html#privacy-policy">Read Privacy Policy</a>
-            </article>
-        </section>
-
-        <section class="links-section privacy-directory" id="performiq-privacy" aria-labelledby="performiq-privacy-heading">
-            <h2 id="performiq-privacy-heading">PerformIQ Privacy</h2>
-            <article class="link-card">
-                <h3>Your sports data stays on your device</h3>
-                <p>PerformIQ requires no account and does not collect, sell, or share league, roster, game, or player-stat information. Exports happen only when you request them.</p>
-                <a class="button-link" href="performiq.html#privacy-policy">Read Privacy Policy</a>
-            </article>
-        </section>
-
-        <section class="links-section privacy-directory" id="fitverse-privacy" aria-labelledby="fitverse-privacy-heading">
-            <h2 id="fitverse-privacy-heading">FitVerse Privacy</h2>
-            <article class="link-card">
-                <h3>Share competition totals, not your health history</h3>
-                <p>FitVerse processes raw Apple Health samples on your iPhone. Only the aggregate activity values required for challenges you join are shared, and sensitive health metrics remain private.</p>
-                <a class="button-link" href="fitverse.html#privacy-policy">Read Privacy Policy</a>
-            </article>
         </section>
 
         <section class="links-section" aria-labelledby="websites-heading">
