@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rclavey.github.io/resume_website/sitemap.xml
