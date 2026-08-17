@@ -585,6 +585,10 @@ footer p {
     gap: 16px;
 }
 
+.app-grid {
+    grid-auto-rows: 1fr;
+}
+
 .project-card,
 .resume-card,
 .app-card,
@@ -664,7 +668,8 @@ footer p {
     gap: 12px;
 }
 
-.app-icon {
+.app-icon,
+.app-icon-image {
     width: 56px;
     height: 56px;
     border-radius: 15px;
@@ -679,6 +684,11 @@ footer p {
     font-weight: 900;
 }
 
+.app-icon-image {
+    display: block;
+    object-fit: cover;
+}
+
 .app-actions {
     display: flex;
     flex-wrap: wrap;
@@ -690,6 +700,9 @@ footer p {
 .app-actions .app-store-link {
     flex: 1 1 120px;
     width: auto;
+    padding-inline: 10px;
+    font-size: 0.9rem;
+    white-space: nowrap;
 }
 
 .app-card .app-store-link {
@@ -699,6 +712,12 @@ footer p {
 .app-store-link-coming-soon {
     cursor: not-allowed;
     opacity: 0.56;
+}
+
+.app-store-link-coming-soon:hover {
+    background: var(--ink);
+    box-shadow: none;
+    transform: none;
 }
 
 .doing-page {
