@@ -30,18 +30,10 @@
         "operatingSystem": "iOS 26 or later",
         "url": "https://rclavey.github.io/resume_website/close_contact.html",
         "image": "https://rclavey.github.io/resume_website/images/close-contact-icon.png",
-        "contentRating": "Teen",
         "author": {
             "@type": "Person",
             "name": "Richard Lavey",
             "url": "https://rclavey.github.io/resume_website/"
-        },
-        "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD",
-            "availability": "https://schema.org/PreOrder",
-            "eligibleRegion": "US"
         }
     }
     </script>
@@ -53,7 +45,7 @@
             <div>
                 <p class="doing-eyebrow">Stay human. Keep your distance.</p>
                 <h1>Close Contact</h1>
-                <p class="doing-lead">A cartoon zombie survival game for iPhone. Most players start each monthly outbreak as Survivors. A small group is assigned to the Infected, and Survivors who lose a confirmed encounter join them. You choose when to start a Hunt Session, but you never choose your side.</p>
+                <p class="doing-lead">A cartoon zombie survival game for iPhone. Most players start each monthly outbreak as Survivors. A small group is assigned to the Infected, and a Survivor whose health reaches zero in a server-confirmed encounter joins them. You choose when to start a Hunt Session, but you never choose your side.</p>
                 <div class="doing-actions">
                     <a class="doing-button doing-button-primary" href="#privacy-policy">Privacy Policy</a>
                     <a class="doing-button" href="#safety">Safety Rules</a>
@@ -120,10 +112,10 @@
 
             <h3>8. Retention and Account Deletion</h3>
             <p>Game data is retained while your account is active and as needed to maintain seasons, leaderboards, currency ledgers, security, and legal obligations. The app also keeps a local game snapshot in its protected sandbox so the interface can resume after relaunch.</p>
-            <p>You can request account deletion from the app. Close Contact removes the authentication account and private profile, inventory, faction membership, notification tokens, and other account-linked operational data. Public season history may be anonymized where a record must remain understandable. A one-way deletion-integrity marker may be retained so delayed work cannot recreate a deleted account; it cannot be used to recover the former identifier. Limited encrypted backups may remain temporarily until overwritten under the provider&apos;s backup schedule.</p>
+            <p>Close Contact is still in testing, and the current tester build does not create a production cloud account. Before public release, the account screen will provide working export and deletion controls connected to the production service. A completed deletion request will remove the authentication account and private profile, inventory, faction membership, notification tokens, and other account-linked operational data. Public season history may be anonymized when a record must remain understandable. A one-way deletion-integrity marker may be kept so delayed work cannot recreate a deleted account, but it cannot recover the former identifier. Limited encrypted backups may remain temporarily until the provider overwrites them.</p>
 
             <h3>9. Security and Integrity</h3>
-            <p>Close Contact uses authenticated connections, Firebase App Check with Apple App Attest, deny-by-default database rules, rotating encounter tickets, retry-safe server events, and server-calculated authoritative state. No service can guarantee absolute security. Report suspected account compromise or a privacy issue using the support contact below.</p>
+            <p>The production design uses authenticated connections, Firebase App Check with Apple App Attest, database rules that deny direct writes, rotating encounter tickets, retry-safe server events, and server-calculated game state. These controls still require deployment and real-device testing before release. No service can guarantee absolute security. Report suspected account compromise or a privacy issue using the support contact below.</p>
 
             <h3>10. Children&apos;s Privacy</h3>
             <p>Close Contact is not directed to children under 13 and does not knowingly collect personal information from a child under 13. The planned App Store age rating is 13+ because the game includes mild cartoon horror and simulated combat. If you believe a child has provided information, contact the developer for review and deletion.</p>
@@ -146,7 +138,7 @@
 
         <section class="doing-section" id="community-guidelines" aria-labelledby="community-guidelines-heading">
             <h2 id="community-guidelines-heading">Community Guidelines</h2>
-            <p>Do not use a callsign, faction name, or faction motto for harassment, hate speech, threats, sexual or exploitative material, impersonation, spam, disclosure of personal information, or encouragement of illegal or dangerous activity. Accounts or content may be restricted or removed to protect players and the service. For immediate danger, leave the game and contact local emergency services.</p>
+            <p>Do not use a callsign, faction name, or faction motto for harassment, hate speech, threats, sexual or exploitative material, impersonation, spam, disclosure of personal information, or encouragement of illegal or dangerous activity. Reporting, blocking, and moderation controls must be working before the game is released publicly. Until then, this tester build should be used only with people you know and trust. For immediate danger, leave the game and contact local emergency services.</p>
         </section>
 
         <section class="doing-section" id="support" aria-labelledby="support-heading">
