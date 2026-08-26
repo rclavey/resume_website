@@ -742,6 +742,11 @@ footer p {
     --doing-green: #62a8ff;
 }
 
+.doing-page.close-contact-page {
+    --doing-yellow: #f1cf7a;
+    --doing-green: #48c2b4;
+}
+
 .fitverse-page .doing-hero {
     background:
         radial-gradient(circle at 84% 10%, rgba(101, 240, 197, 0.17), transparent 31%),
@@ -752,6 +757,18 @@ footer p {
 .fitverse-page .doing-updated {
     color: #231b56 !important;
     background: #e2dcff;
+}
+
+.close-contact-page .doing-hero {
+    background:
+        radial-gradient(circle at 84% 12%, rgba(241, 207, 122, 0.25), transparent 31%),
+        radial-gradient(circle at 7% 92%, rgba(72, 194, 180, 0.18), transparent 40%),
+        linear-gradient(145deg, #080c0d, #17201f 56%, #342f22);
+}
+
+.close-contact-page .doing-updated {
+    color: #3b2c0e !important;
+    background: #f7e6b8;
 }
 
 .performiq-page .doing-hero {
