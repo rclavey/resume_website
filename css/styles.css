@@ -239,7 +239,7 @@ a:hover {
 
 a:focus-visible,
 button:focus-visible {
-    outline: 3px solid rgba(0, 138, 122, 0.28);
+    outline: 3px solid #006e63;
     outline-offset: 3px;
 }
 

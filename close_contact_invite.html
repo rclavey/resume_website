@@ -8,7 +8,7 @@
     <meta name="robots" content="noindex,nofollow,noarchive">
     <meta name="referrer" content="no-referrer">
     <title>Close Contact Invite</title>
-    <link rel="stylesheet" href="css/styles.css?v=20260826-close-contact-invite-2">
+    <link rel="stylesheet" href="css/styles.css?v=20260826-close-contact-invite-3">
 </head>
 <body>
     <header></header>
@@ -26,10 +26,9 @@
             <h2 id="invite-heading">Checking this invite</h2>
             <p id="invite-message" aria-live="polite">Close Contact is checking the private token in this link.</p>
             <div class="doing-actions" id="invite-actions" hidden>
-                <a class="doing-button doing-button-primary" id="open-invite" href="closecontact://invite">Open Close Contact</a>
-                <button class="doing-button" id="copy-invite" type="button">Copy invite token</button>
+                <button class="doing-button doing-button-primary" id="copy-invite" type="button">Copy invite token</button>
             </div>
-            <p class="close-contact-invite-help" id="invite-help" hidden>If the app does not open, copy the token and paste it into the optional referral field during account setup. Keep the invite private. The server checks whether it is valid, unused, and eligible.</p>
+            <p class="close-contact-invite-help" id="invite-help" hidden>Paste the token into the optional referral field during Close Contact account setup. Keep it private. The server checks whether it is valid, unused, and eligible.</p>
             <noscript>
                 <p>JavaScript is off, so this page cannot read the private token from the link. Copy the full link and paste it into the optional referral field during Close Contact account setup.</p>
             </noscript>
@@ -54,7 +53,6 @@
             const message = document.getElementById("invite-message");
             const actions = document.getElementById("invite-actions");
             const help = document.getElementById("invite-help");
-            const openLink = document.getElementById("open-invite");
             const copyButton = document.getElementById("copy-invite");
 
             if (!tokenPattern.test(token)) {
@@ -64,8 +62,7 @@
             }
 
             heading.textContent = "Your private invite is ready";
-            message.textContent = "Open the invite in Close Contact. The game server will decide whether it can be applied.";
-            openLink.href = `closecontact://invite/${encodeURIComponent(token)}`;
+            message.textContent = "Copy the token into Close Contact. The game server will decide whether it can be applied.";
             actions.hidden = false;
             help.hidden = false;
 
