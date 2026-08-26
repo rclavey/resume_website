@@ -851,6 +851,11 @@ footer p {
     text-decoration: none;
 }
 
+button.doing-button {
+    font: inherit;
+    cursor: pointer;
+}
+
 .doing-button:hover {
     color: #101824;
     background: var(--doing-yellow);
@@ -877,6 +882,22 @@ footer p {
 .doing-section > p {
     max-width: 760px;
     color: var(--muted);
+}
+
+.close-contact-invite-card {
+    padding: clamp(24px, 5vw, 42px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: var(--soft-shadow);
+}
+
+.close-contact-invite-help {
+    margin-top: 20px;
+}
+
+.close-contact-invite-page [hidden] {
+    display: none !important;
 }
 
 .doing-feature-grid {

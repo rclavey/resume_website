@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Open a private Close Contact referral invite on iPhone.">
+    <meta name="author" content="Richard Lavey">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <meta name="referrer" content="no-referrer">
+    <title>Close Contact Invite</title>
+    <link rel="stylesheet" href="css/styles.css?v=20260826-close-contact-invite-2">
+</head>
+<body>
+    <header></header>
+    <main class="doing-page close-contact-page close-contact-invite-page">
+        <section class="doing-hero">
+            <div>
+                <p class="doing-eyebrow">Private game invite</p>
+                <h1>You have a Close Contact invite</h1>
+                <p class="doing-lead">An invite does not let you choose a side. If the game server accepts it, you receive the Survivor or Infected side that was saved when the invite was created.</p>
+            </div>
+            <img class="doing-hero-icon" src="images/close-contact-icon.png" alt="Close Contact split survivor and zombie face app icon">
+        </section>
+
+        <section class="doing-section close-contact-invite-card" aria-labelledby="invite-heading">
+            <h2 id="invite-heading">Checking this invite</h2>
+            <p id="invite-message" aria-live="polite">Close Contact is checking the private token in this link.</p>
+            <div class="doing-actions" id="invite-actions" hidden>
+                <a class="doing-button doing-button-primary" id="open-invite" href="closecontact://invite">Open Close Contact</a>
+                <button class="doing-button" id="copy-invite" type="button">Copy invite token</button>
+            </div>
+            <p class="close-contact-invite-help" id="invite-help" hidden>If the app does not open, copy the token and paste it into the optional referral field during account setup. Keep the invite private. The server checks whether it is valid, unused, and eligible.</p>
+            <noscript>
+                <p>JavaScript is off, so this page cannot read the private token from the link. Copy the full link and paste it into the optional referral field during Close Contact account setup.</p>
+            </noscript>
+        </section>
+
+        <section class="doing-section" aria-labelledby="invite-safety-heading">
+            <h2 id="invite-safety-heading">What the invite can do</h2>
+            <p>A valid invite can assign the role saved by the sender. It cannot change the game rules, reveal nearby players, or award referral points by itself. Referral rewards require the server&apos;s activity and fraud checks.</p>
+            <p><a href="close_contact.html">Read about Close Contact, its safety rules, and its privacy policy.</a></p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 Richard Lavey</p>
+    </footer>
+    <script src="js/includeHeader.js"></script>
+    <script>
+        (() => {
+            const tokenPattern = /^[A-Za-z0-9_-]{20,100}$/;
+            const fragment = new URLSearchParams(window.location.hash.slice(1));
+            const token = fragment.get("invite") || "";
+            const heading = document.getElementById("invite-heading");
+            const message = document.getElementById("invite-message");
+            const actions = document.getElementById("invite-actions");
+            const help = document.getElementById("invite-help");
+            const openLink = document.getElementById("open-invite");
+            const copyButton = document.getElementById("copy-invite");
+
+            if (!tokenPattern.test(token)) {
+                heading.textContent = "This invite link is incomplete";
+                message.textContent = "Ask the sender to create a new private invite in Close Contact and share the full link again.";
+                return;
+            }
+
+            heading.textContent = "Your private invite is ready";
+            message.textContent = "Open the invite in Close Contact. The game server will decide whether it can be applied.";
+            openLink.href = `closecontact://invite/${encodeURIComponent(token)}`;
+            actions.hidden = false;
+            help.hidden = false;
+
+            copyButton.addEventListener("click", async () => {
+                try {
+                    await navigator.clipboard.writeText(token);
+                    message.textContent = "Invite token copied. Paste it into the referral field during account setup.";
+                } catch (error) {
+                    const temporaryInput = document.createElement("textarea");
+                    temporaryInput.value = token;
+                    temporaryInput.setAttribute("readonly", "");
+                    temporaryInput.style.position = "fixed";
+                    temporaryInput.style.opacity = "0";
+                    document.body.appendChild(temporaryInput);
+                    temporaryInput.select();
+                    const copied = document.execCommand("copy");
+                    temporaryInput.remove();
+                    message.textContent = copied
+                        ? "Invite token copied. Paste it into the referral field during account setup."
+                        : "Copy did not work. Copy the full page link and paste it into the referral field during account setup.";
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
