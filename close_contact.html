@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Close Contact is a privacy-preserving iPhone zombie survival game with opt-in proximity Hunt Sessions, factions, persistent gear, and monthly and lifetime leaderboards.">
+    <meta name="description" content="Close Contact is an iPhone zombie survival game with player-started Hunt Sessions, anonymous nearby play, persistent gear, factions, and monthly and lifetime leaderboards.">
     <meta name="author" content="Richard Lavey">
     <meta name="robots" content="index,follow,max-image-preview:large">
     <link rel="canonical" href="https://rclavey.github.io/resume_website/close_contact.html">
@@ -16,7 +16,7 @@
     <meta property="og:image:alt" content="Close Contact split survivor and zombie face app icon on a warm tan background">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Close Contact: A Real-World Zombie Survival Game">
-    <meta name="twitter:description" content="A privacy-preserving iPhone game with opt-in proximity encounters, factions, gear, and dual leaderboards.">
+    <meta name="twitter:description" content="An iPhone zombie survival game with player-started Hunt Sessions, anonymous nearby play, factions, gear, and dual leaderboards.">
     <meta name="twitter:image" content="https://rclavey.github.io/resume_website/images/close-contact-icon.png">
     <title>Close Contact: Zombie Survival for iPhone | Richard Lavey</title>
     <link rel="stylesheet" href="css/styles.css?v=20260826-close-contact">
@@ -25,7 +25,7 @@
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "Close Contact",
-        "description": "A privacy-preserving iPhone zombie survival game with opt-in proximity Hunt Sessions, factions, persistent gear, and monthly and lifetime Survivor and Infected leaderboards.",
+        "description": "An iPhone zombie survival game with player-started Hunt Sessions, anonymous nearby play, factions, persistent gear, and monthly and lifetime Survivor and Infected leaderboards.",
         "applicationCategory": "GameApplication",
         "operatingSystem": "iOS 26 or later",
         "url": "https://rclavey.github.io/resume_website/close_contact.html",
@@ -65,7 +65,7 @@
                 </article>
                 <article class="doing-feature">
                     <strong>Gear that persists</strong>
-                    <p>Weapons, armor, senses, and special equipment use deterministic in-game Scrap prices and tradeoffs. There are no loot boxes or random paid outcomes.</p>
+                    <p>Each weapon, armor set, sense upgrade, and special item has a set Scrap price and a clear tradeoff. There are no loot boxes or random paid outcomes.</p>
                 </article>
                 <article class="doing-feature">
                     <strong>Factions and seasons</strong>
@@ -76,7 +76,7 @@
 
         <section class="doing-section" aria-labelledby="privacy-design-heading">
             <h2 id="privacy-design-heading">Close enough to play, private enough to walk away</h2>
-            <p>Nearby devices exchange short-lived anonymous tickets instead of callsigns, account identifiers, or routes. The app shows broad count and danger bands, pauses combat inside a two-meter safety buffer, and never grants a reward from radio contact alone. To validate an encounter, the service may receive a small set of short-lived, quantized device-to-device range samples. These samples are not geographic coordinates and cannot be used to reconstruct a route.</p>
+            <p>Nearby devices exchange short-lived anonymous tickets instead of callsigns, account identifiers, or routes. The app shows broad count and danger bands, pauses combat inside a two-meter safety buffer, and never grants a reward from radio contact alone. To verify an encounter, the service may briefly receive a few rounded measurements of the distance between the two phones. These are not map locations and cannot recreate a route.</p>
         </section>
 
         <section class="doing-section doing-policy" id="privacy-policy" aria-labelledby="privacy-heading">
@@ -90,14 +90,14 @@
 
             <h3>2. Nearby Interaction and Bluetooth</h3>
             <p>During a Hunt Session you explicitly start, Close Contact uses Bluetooth Low Energy to discover other participating devices and exchange rotating anonymous encounter tickets. On supported iPhones, Close Contact may use Ultra Wideband through Apple&apos;s Nearby Interaction framework to determine a local distance band. Raw Bluetooth identifiers, Ultra Wideband discovery tokens, exact distance, and direction stay on the device and are discarded when the Hunt Session ends.</p>
-            <p>Nearby devices do not receive your callsign, Apple identifier, email address, route, or precise location. Presence can appear as a broad role count such as 1–2, 3–9, or 10+. To validate mutual play and prevent duplicate rewards, the service may receive expiring encounter-token proofs, short timestamps, and a limited set of quantized device-to-device range samples. Those samples measure the distance between two participating phones. They are not geographic coordinates and do not create a route. Radio contact or a disconnect by itself does not award points or penalize either player.</p>
+            <p>Nearby devices do not receive your callsign, Apple identifier, email address, route, or precise location. Presence can appear as a broad role count such as 1–2, 3–9, or 10+. To verify mutual play and prevent duplicate rewards, the service may receive expiring encounter proofs, short timestamps, and a few rounded measurements of the distance between the two participating phones. Those measurements are not geographic coordinates and do not create a route. Radio contact or a disconnect by itself does not award points or penalize either player.</p>
 
             <h3>3. Motion, Location, and Travel</h3>
             <p>If you grant permission, Close Contact uses motion activity, step-distance data, and location-derived speed only during a user-visible Hunt Session to pause play at unsafe or vehicle speeds, reject implausible movement, and count eligible pedestrian travel. Precise coordinates, routes, raw locations, and motion samples are not sent to the game server or stored in your account.</p>
             <p>The service may receive an eligible pedestrian-distance total and a coarse outbreak-region identifier needed for travel rewards and monthly infection seeding. The server rejects submissions that contain coordinates or routes. Travel and combat rewards pause when required safety signals are unavailable.</p>
 
             <h3>4. Gameplay, Referrals, Factions, and Leaderboards</h3>
-            <p>Close Contact processes bounded gameplay-session heartbeats, mutual encounter evidence, combat results, health, regeneration, role changes, monthly and lifetime scores, fixed-price shop transactions, inventory, referrals, faction records, and leaderboard entries. The server, rather than either nearby phone, controls rewards, purchases, combat, monthly resets, and ranks.</p>
+            <p>While you play, Close Contact receives brief session check-ins and the limited mutual evidence needed to settle an encounter. It also stores the game state you expect to keep, including combat results, health, regeneration, roles, scores, fixed-price shop transactions, inventory, referrals, factions, and leaderboard entries. The server, rather than either nearby phone, controls rewards, purchases, combat, monthly resets, and ranks.</p>
             <p>Invite and faction links contain expiring or high-entropy tokens. A successful referral is qualified by the server before either account receives a reward. Public leaderboards show a callsign, role, scores, rank, and optionally a faction name. Faction members can see the role and score information shared within that faction; they do not receive live presence, route, device identifiers, encounter partners, or exact location.</p>
 
             <h3>5. Live Activities and Notifications</h3>
@@ -118,7 +118,7 @@
             <p>The production design uses authenticated connections, Firebase App Check with Apple App Attest, database rules that deny direct writes, rotating encounter tickets, retry-safe server events, and server-calculated game state. These controls still require deployment and real-device testing before release. No service can guarantee absolute security. Report suspected account compromise or a privacy issue using the support contact below.</p>
 
             <h3>10. Children&apos;s Privacy</h3>
-            <p>Close Contact is not directed to children under 13 and does not knowingly collect personal information from a child under 13. The planned App Store age rating is 13+ because the game includes mild cartoon horror and simulated combat. If you believe a child has provided information, contact the developer for review and deletion.</p>
+            <p>Close Contact is not directed to children under 13 and does not knowingly collect personal information from a child under 13. The game includes mild cartoon horror and simulated combat. Apple will determine the final age rating from the App Store questionnaire before release. If you believe a child has provided information, contact the developer for review and deletion.</p>
 
             <h3>11. United States Availability and International Processing</h3>
             <p>The app is planned for the United States App Store only. Richard Lavey and service providers may still process information in the United States and other countries where they operate, which may have different data-protection laws.</p>
