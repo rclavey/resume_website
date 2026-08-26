@@ -45,7 +45,7 @@
             <div>
                 <p class="doing-eyebrow">Survive the outbreak. Keep your distance.</p>
                 <h1>Close Contact</h1>
-                <p class="doing-lead">A cartoon zombie survival game for iPhone. There is no side picker. The game assigns starting roles automatically, and a Survivor whose health reaches zero in a confirmed encounter becomes Infected immediately. You choose when to start a Hunt Session, but you do not choose whether infection happens.</p>
+                <p class="doing-lead">Close Contact is a cartoon zombie survival game for iPhone. The game assigns every player&apos;s starting role, so nobody chooses to become Infected. You decide when to start a Hunt Session. If a server-confirmed encounter takes a Survivor&apos;s health to zero, that player becomes Infected automatically.</p>
                 <div class="doing-actions">
                     <a class="doing-button doing-button-primary" href="#privacy-policy">Privacy Policy</a>
                     <a class="doing-button" href="#safety">Safety Rules</a>
@@ -57,7 +57,7 @@
 
         <section class="doing-section" aria-labelledby="outbreak-heading">
             <h2 id="outbreak-heading">A monthly outbreak in the world around you</h2>
-            <p>Each month begins a new numbered Game with fresh monthly scores, health, armor, and roles. The game assigns starting roles automatically, aiming for about one in ten active players to start Infected and always assigning at least one. A valid referral invite can also apply the role saved when the sender created it. Players never pick a side or switch roles on their own. During a Game, a Survivor becomes Infected automatically if a server-confirmed encounter takes their health to zero. Survivors earn Valor from eligible Hunt time, safe travel, Infected takedowns, and qualified referrals. Infected players earn Dread from damage, conversions, safe travel, and qualified referrals. Everyone keeps a place on both monthly and lifetime boards, even with zero points.</p>
+            <p>Every month starts a new numbered Game with fresh monthly scores, health, armor, and roles. Close Contact assigns those roles automatically. About one in ten active players starts Infected, and any Game with active players starts with at least one. A referral invite keeps the role that was saved when the sender created it. Players cannot pick a side or switch roles just because they want to. If a server-confirmed encounter takes a Survivor&apos;s health to zero, the server infects that player immediately. Survivors earn Valor from eligible Hunt time, safe travel, Infected takedowns, and qualified referrals. Infected players earn Dread from damage, conversions, safe travel, and qualified referrals. Everyone keeps a place on both monthly and lifetime boards, even with zero points.</p>
             <div class="doing-feature-grid">
                 <article class="doing-feature">
                     <strong>Anonymous encounters</strong>
@@ -65,7 +65,7 @@
                 </article>
                 <article class="doing-feature">
                     <strong>Gear that persists</strong>
-                    <p>Close Contact includes 15 illustrated items with fixed Scrap prices and clearly defined effects. Sense-themed gear changes only combat accuracy and timing. It never reveals another player&apos;s direction, identity, map location, or exact distance. A Field Medkit can revive an eligible downed Infected faction member. These online effects still need testing against a deployed game service. There are no loot boxes or randomized purchases.</p>
+                    <p>The server catalog currently has 15 illustrated items with fixed Scrap prices and clearly explained effects. Some sense gear gives an anonymous warning from farther away, up to 20 meters. It never reveals another player&apos;s direction, identity, map location, or exact distance, and it does not extend the combat range. A Field Medkit can revive an eligible downed Infected faction member. These online effects still need testing against a deployed game service. There are no loot boxes or randomized purchases.</p>
                 </article>
                 <article class="doing-feature">
                     <strong>Factions and seasons</strong>
@@ -86,15 +86,15 @@
 
             <h3>1. Account and Profile Information</h3>
             <p>The planned production version will use Sign in with Apple and Firebase Authentication. Apple provides a stable account identifier and, only if you choose to share them, your name and email address. You may also use Apple&apos;s Hide My Email feature. Close Contact never receives your Apple Account password. The current tester build uses a local test profile instead.</p>
-            <p>Once the production service is deployed, it will store the account and game data needed to run Close Contact. This includes your callsign, assigned role, account and public game identifiers, scores, health, Scrap, inventory, referrals, faction membership, and Game participation. Safety acknowledgements and ordinary preferences stay on your phone.</p>
+            <p>Once the production service is deployed, it will store the account and game data needed to run Close Contact. This includes your callsign, assigned role, account and public game identifiers, scores, health, Scrap, inventory, referrals, faction membership, broad outbreak region, and Game participation. Safety acknowledgements and ordinary preferences stay on your phone.</p>
 
             <h3>2. Nearby Interaction and Bluetooth</h3>
             <p>During a Hunt Session that you start, Close Contact uses Bluetooth Low Energy to find other participating devices and exchange rotating anonymous encounter tickets. On supported iPhones, the two phones also exchange Apple Nearby Interaction discovery tokens. Those discovery tokens and the continuous ranging stream stay on the phones. Each phone calculates distance locally, shows only a broad band, and clears its session tokens and ranging state when the Hunt Session ends.</p>
             <p>Nearby devices do not receive your callsign, Apple identifier, email address, route, or precise location. The app can show a broad role count such as 1–2, 3–9, or 10+. To confirm mutual play and prevent duplicate rewards, the service may receive expiring encounter proofs, short timestamps, and a few rounded measurements of the distance between the two participating phones. These measurements are not geographic coordinates and do not create a route. Radio contact or a disconnect by itself does not award points or penalize either player.</p>
 
             <h3>3. Motion, Location, and Travel</h3>
-            <p>If you give permission, Close Contact uses motion activity, step-distance data, and location-based speed only during a visible Hunt Session. The game uses that information to pause play at unsafe or vehicle speeds, reject implausible movement, and count eligible walking or running. Precise coordinates, routes, raw locations, and motion samples are not sent to the game server or stored in your account.</p>
-            <p>The service may receive an eligible pedestrian-distance total for travel rewards. The current tester build does not calculate or upload a real outbreak region. A future production setup may use a coarse, server-controlled region for monthly role assignment, but that feature is not connected yet. The server is designed to reject coordinates or routes in travel and encounter requests. Travel and combat rewards pause when required safety signals are unavailable.</p>
+            <p>If you give permission, the signed-in flow uses one location sample during account setup and again before a Hunt Session. Your iPhone turns that sample into a broad half-degree outbreak cell before anything leaves the device. The service receives only the cell identifier, not the location sample. During a visible Hunt Session, the game also uses motion activity, step-distance data, and location-based speed to pause play at unsafe or vehicle speeds, reject implausible movement, and count eligible walking or running. Precise coordinates, routes, raw locations, and motion samples are not sent to the game server or stored in your account.</p>
+            <p>The production service may receive the broad outbreak cell for monthly role assignment and an eligible pedestrian-distance total for travel rewards. The outbreak cell is not shown to other players or included in the in-app account export. This flow is implemented in source but still needs staging and physical-device testing. The server rejects coordinates or routes in travel and encounter requests. Travel and combat rewards pause when required safety signals are unavailable.</p>
 
             <h3>4. Gameplay, Referrals, Factions, and Leaderboards</h3>
             <p>In production, Close Contact will send brief session check-ins and the limited mutual evidence needed to settle encounters. The server, not either phone, controls lasting game state, rewards, purchases, combat, monthly resets, and ranks. This work is implemented locally but still needs staging and physical-device testing.</p>
@@ -138,7 +138,7 @@
 
         <section class="doing-section" id="community-guidelines" aria-labelledby="community-guidelines-heading">
             <h2 id="community-guidelines-heading">Community Guidelines</h2>
-            <p>Do not use a callsign or faction name to harass, threaten, impersonate, spam, share someone&apos;s personal information, promote hate, post sexual or exploitative material, or encourage illegal or dangerous activity. Reporting and blocking controls are built into the current version, but production moderation and real-device testing are not finished. Until that work is complete, use the tester build only with people you know and trust. If anyone is in immediate danger, leave the game and contact local emergency services.</p>
+            <p>Do not use a callsign or faction name to harass, threaten, impersonate, spam, share someone&apos;s personal information, promote hate, post sexual or exploitative material, or encourage illegal or dangerous activity. Reporting, blocking, moderation decisions, and player appeals are implemented in source, but they still need deployed service and real-device testing. Until that work is complete, use the tester build only with people you know and trust. If anyone is in immediate danger, leave the game and contact local emergency services.</p>
         </section>
 
         <section class="doing-section" id="support" aria-labelledby="support-heading">
