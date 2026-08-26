@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Open a private Close Contact referral invite on iPhone.">
+    <meta name="description" content="Open a private Close Contact referral or faction invite on iPhone.">
     <meta name="author" content="Richard Lavey">
     <meta name="robots" content="noindex,nofollow,noarchive">
     <meta name="referrer" content="no-referrer">
@@ -17,7 +17,7 @@
             <div>
                 <p class="doing-eyebrow">Private game invite</p>
                 <h1>You have a Close Contact invite</h1>
-                <p class="doing-lead">An invite never opens a side picker. If the server accepts it, the game automatically applies the Survivor or Infected role saved when the sender created the invite.</p>
+                <p class="doing-lead">This page keeps the private token in your browser instead of sending it with the page request. Copy it into the matching screen in Close Contact, then let the server decide what it can do.</p>
             </div>
             <img class="doing-hero-icon" src="images/close-contact-icon.png" alt="Close Contact split survivor and zombie face app icon">
         </section>
@@ -28,15 +28,15 @@
             <div class="doing-actions" id="invite-actions" hidden>
                 <button class="doing-button doing-button-primary" id="copy-invite" type="button">Copy invite token</button>
             </div>
-            <p class="close-contact-invite-help" id="invite-help" hidden>Paste the token into the optional referral field during Close Contact account setup. Keep it private. The server checks whether it is valid, unused, and eligible.</p>
+            <p class="close-contact-invite-help" id="invite-help" hidden></p>
             <noscript>
-                <p>JavaScript is off, so this page cannot read the private token from the link. Copy the full link and paste it into the optional referral field during Close Contact account setup.</p>
+                <p>JavaScript is off, so this page cannot read the private token from the link. Ask the sender to share the token directly, then paste it into the referral field during account setup or the private invite field on the Faction screen.</p>
             </noscript>
         </section>
 
         <section class="doing-section" aria-labelledby="invite-safety-heading">
             <h2 id="invite-safety-heading">What the invite can do</h2>
-            <p>A valid invite carries the sender&apos;s saved role, but it cannot override the game rules, reveal nearby players, or award referral points on its own. Referral rewards still have to pass the server&apos;s activity and fraud checks.</p>
+            <p>A referral invite carries the role saved when it was created. A faction invite can add an account to one faction. Neither invite lets anyone pick a side, reveal nearby players, or award points on its own. The server checks every use.</p>
             <p><a href="close_contact.html">Read about Close Contact, its safety rules, and its privacy policy.</a></p>
         </section>
     </main>
@@ -46,45 +46,69 @@
     <script src="js/includeHeader.js"></script>
     <script>
         (() => {
-            const tokenPattern = /^[A-Za-z0-9_-]{20,100}$/;
-            const fragment = new URLSearchParams(window.location.hash.slice(1));
-            const token = fragment.get("invite") || "";
+            const referralTokenPattern = /^[A-Za-z0-9_-]{20,100}$/;
+            const factionTokenPattern = /^[A-Za-z0-9_-]{20,80}$/;
             const heading = document.getElementById("invite-heading");
             const message = document.getElementById("invite-message");
             const actions = document.getElementById("invite-actions");
             const help = document.getElementById("invite-help");
             const copyButton = document.getElementById("copy-invite");
 
-            if (!tokenPattern.test(token)) {
-                heading.textContent = "This invite link is incomplete";
-                message.textContent = "Ask the sender to create a new private invite in Close Contact and share the full link again.";
-                return;
-            }
+            const renderInvite = () => {
+                const fragment = new URLSearchParams(window.location.hash.slice(1));
+                const referralToken = fragment.get("invite") || "";
+                const factionToken = fragment.get("faction") || "";
+                const hasReferral = referralTokenPattern.test(referralToken);
+                const hasFaction = factionTokenPattern.test(factionToken);
 
-            heading.textContent = "Your private invite is ready";
-            message.textContent = "Copy the token into Close Contact. The server will check whether the invite can be applied.";
-            actions.hidden = false;
-            help.hidden = false;
+                actions.hidden = true;
+                help.hidden = true;
+                help.textContent = "";
+                copyButton.onclick = null;
 
-            copyButton.addEventListener("click", async () => {
-                try {
-                    await navigator.clipboard.writeText(token);
-                    message.textContent = "Invite token copied. Paste it into the referral field during account setup.";
-                } catch (error) {
-                    const temporaryInput = document.createElement("textarea");
-                    temporaryInput.value = token;
-                    temporaryInput.setAttribute("readonly", "");
-                    temporaryInput.style.position = "fixed";
-                    temporaryInput.style.opacity = "0";
-                    document.body.appendChild(temporaryInput);
-                    temporaryInput.select();
-                    const copied = document.execCommand("copy");
-                    temporaryInput.remove();
-                    message.textContent = copied
-                        ? "Invite token copied. Paste it into the referral field during account setup."
-                        : "Copy did not work. Copy the full page link and paste it into the referral field during account setup.";
+                if (hasReferral === hasFaction) {
+                    heading.textContent = "This invite link is incomplete";
+                    message.textContent = "Ask the sender to create a new private invite in Close Contact and share the full link again.";
+                    return;
                 }
-            });
+
+                const token = hasReferral ? referralToken : factionToken;
+                const inviteKind = hasReferral ? "referral" : "faction";
+                const destination = hasReferral
+                    ? "the optional referral field during account setup"
+                    : "the private invite field on the Faction screen";
+
+                heading.textContent = `Your private ${inviteKind} invite is ready`;
+                message.textContent = `Copy the token into ${destination}. The server will check whether it can be used.`;
+                actions.hidden = false;
+                help.hidden = false;
+                help.textContent = hasReferral
+                    ? "Keep it private. If the invite is valid and unused, the server automatically applies the role saved when it was created. There is no side picker."
+                    : "Keep it private. If the invite is valid, the server can add your account to that faction. It does not change your assigned role.";
+
+                copyButton.onclick = async () => {
+                    try {
+                        await navigator.clipboard.writeText(token);
+                        message.textContent = `Invite token copied. Paste it into ${destination}.`;
+                    } catch (error) {
+                        const temporaryInput = document.createElement("textarea");
+                        temporaryInput.value = token;
+                        temporaryInput.setAttribute("readonly", "");
+                        temporaryInput.style.position = "fixed";
+                        temporaryInput.style.opacity = "0";
+                        document.body.appendChild(temporaryInput);
+                        temporaryInput.select();
+                        const copied = document.execCommand("copy");
+                        temporaryInput.remove();
+                        message.textContent = copied
+                            ? `Invite token copied. Paste it into ${destination}.`
+                            : "Copy did not work. Ask the sender to share the token directly.";
+                    }
+                };
+            };
+
+            window.addEventListener("hashchange", renderInvite);
+            renderInvite();
         })();
     </script>
 </body>
