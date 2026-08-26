@@ -45,7 +45,7 @@
             <div>
                 <p class="doing-eyebrow">Stay human. Keep your distance.</p>
                 <h1>Close Contact</h1>
-                <p class="doing-lead">A cartoon zombie survival game for iPhone. The server assigns your role, with most players starting as Survivors and a small group starting Infected. If a confirmed encounter drops a Survivor to zero health, the game turns that player Infected automatically. You decide when to play, but you do not choose your side or approve the change.</p>
+                <p class="doing-lead">A cartoon zombie survival game for iPhone. The server decides who starts as a Survivor and who starts Infected. If a confirmed encounter takes a Survivor to zero health, infection happens automatically. You choose when to play. You do not choose your side, and infection is not optional.</p>
                 <div class="doing-actions">
                     <a class="doing-button doing-button-primary" href="#privacy-policy">Privacy Policy</a>
                     <a class="doing-button" href="#safety">Safety Rules</a>
@@ -65,18 +65,18 @@
                 </article>
                 <article class="doing-feature">
                     <strong>Gear that persists</strong>
-                    <p>Every available weapon, armor set, and special item has a fixed Scrap price and a clear tradeoff. A few sense and revive items are still tester previews while their live actions are being connected. There are no loot boxes or random paid outcomes.</p>
+                    <p>Weapons and armor have fixed Scrap prices and defined effects. Sense and revive items are still test previews and are not ready for release. There are no loot boxes or randomized purchases.</p>
                 </article>
                 <article class="doing-feature">
                     <strong>Factions and seasons</strong>
-                    <p>Join an alliance, compare shared stats, and begin a new numbered Game each month while lifetime scores, Scrap, and purchased equipment persist.</p>
+                    <p>The source includes factions, shared stats, and a new numbered Game each month, but those online flows still need production testing. Lifetime scores, Scrap, and permanent gear are designed to carry into the next Game.</p>
                 </article>
             </div>
         </section>
 
         <section class="doing-section" aria-labelledby="privacy-design-heading">
             <h2 id="privacy-design-heading">Close enough to play, private enough to walk away</h2>
-            <p>Nearby devices exchange short-lived anonymous tickets instead of callsigns, account identifiers, or routes. The app shows broad count and danger bands, pauses combat inside a two-meter safety buffer, and never grants a reward from radio contact alone. To verify an encounter, the service may briefly receive a few rounded measurements of the distance between the two phones. These are not map locations and cannot recreate a route.</p>
+            <p>Nearby devices are designed to exchange short-lived tickets instead of callsigns, account IDs, or routes. The production flow uses broad count and danger bands, pauses combat inside two meters, and requires server confirmation before any reward. It may send a few rounded phone-to-phone distance samples to verify an encounter. Those samples are not map locations. Final network and two-iPhone testing still need to verify these protections.</p>
         </section>
 
         <section class="doing-section doing-policy" id="privacy-policy" aria-labelledby="privacy-heading">
@@ -86,7 +86,7 @@
 
             <h3>1. Account and Profile Information</h3>
             <p>The planned production account flow uses Sign in with Apple and Firebase Authentication. Apple can provide a stable account identifier and, only if you choose to share them, your name and email address. You may use Apple&apos;s Hide My Email feature. Close Contact does not receive your Apple Account password. The current tester build uses a local test profile instead.</p>
-            <p>The service stores the information needed to operate your game account, including your chosen callsign, current role, account and public game identifiers, monthly and lifetime scores, health and regeneration state, Scrap balance, inventory, equipped items, referral status, faction membership, and season participation. Safety acknowledgements and ordinary app preferences stay on the device in the current source.</p>
+            <p>When the production service is deployed, it is designed to store the account and game data needed to run Close Contact. That includes your callsign, assigned role, account and public game identifiers, scores, health, Scrap, inventory, referrals, faction membership, and Game participation. In the current source, safety acknowledgements and ordinary preferences stay on the device.</p>
 
             <h3>2. Nearby Interaction and Bluetooth</h3>
             <p>During a Hunt Session you explicitly start, Close Contact uses Bluetooth Low Energy to discover other participating devices and exchange rotating anonymous encounter tickets. On supported iPhones, Close Contact may use Ultra Wideband through Apple&apos;s Nearby Interaction framework to determine a local distance band. Raw Bluetooth identifiers, Ultra Wideband discovery tokens, the continuous ranging stream, and direction stay on the device and are discarded when the Hunt Session ends.</p>
@@ -94,11 +94,11 @@
 
             <h3>3. Motion, Location, and Travel</h3>
             <p>If you grant permission, Close Contact uses motion activity, step-distance data, and location-derived speed only during a user-visible Hunt Session to pause play at unsafe or vehicle speeds, reject implausible movement, and count eligible pedestrian travel. Precise coordinates, routes, raw locations, and motion samples are not sent to the game server or stored in your account.</p>
-            <p>The service may receive an eligible pedestrian-distance total and, once that feature is connected, a coarse outbreak-region identifier needed for travel rewards and monthly infection seeding. The current tester build does not derive or upload a real outbreak region. The server rejects submissions that contain coordinates or routes. Travel and combat rewards pause when required safety signals are unavailable.</p>
+            <p>The service may receive an eligible pedestrian-distance total for travel rewards. Once the outbreak-region feature is connected, it may also receive a coarse region identifier for monthly infection seeding. The current tester build does not derive or upload a real outbreak region. The server rejects submissions that contain coordinates or routes. Travel and combat rewards pause when required safety signals are unavailable.</p>
 
             <h3>4. Gameplay, Referrals, Factions, and Leaderboards</h3>
-            <p>While you play, Close Contact receives brief session check-ins and the limited mutual evidence needed to settle an encounter. It also stores the game state you expect to keep, including combat results, health, regeneration, roles, scores, fixed-price shop transactions, inventory, referrals, factions, and leaderboard entries. The server, rather than either nearby phone, controls rewards, purchases, combat, monthly resets, and ranks.</p>
-            <p>Invite and faction links use expiring or private, hard-to-guess codes. Referral creation and redemption are connected in the current iPhone source but have not been verified against deployed staging. The shared HTTPS link does not have Universal Link handoff yet, so a recruit currently needs to paste the shared link or token during onboarding. A valid referral automatically assigns the recruit the inviter&apos;s current side, and the server qualifies it before either account receives a reward. Public leaderboards show a callsign, avatar, score, rank when available, and finalized end-of-Game fields. They do not expose a player&apos;s current role or faction membership. Inside a faction, members can see score information and, only when a player opts in, that player&apos;s assigned role. They do not receive live presence, routes, device identifiers, encounter partners, or exact location.</p>
+            <p>In production, Close Contact is designed to receive brief session check-ins and the limited mutual evidence needed to settle encounters. The server, not either phone, is designed to control lasting game state, rewards, purchases, combat, monthly resets, and ranks. This path exists in source but still needs deployed staging and device verification.</p>
+            <p>Referral invites use expiring tokens, while faction invites use private, hard-to-guess codes. Creation and pasted-token redemption exist in the iPhone source but have not been tested against a deployed staging service. Universal Links are not connected, so recruits currently paste a link or token during onboarding. A valid referral automatically assigns the inviter&apos;s current side, with no role picker or confirmation step, and rewards remain server-qualified. Public leaderboards show a callsign, score, rank when available, and finalized end-of-Game fields. They do not show a player&apos;s current role or faction. Faction members see shared scores and an assigned role only when that member opts in. They do not receive live presence, routes, device identifiers, encounter partners, or exact location.</p>
 
             <h3>5. Live Activities and Notifications</h3>
             <p>While a Hunt Session is active, a Live Activity may show your role, health, armor, safety-paused status, Game number, and broad Survivor and Infected count bands on the Lock Screen or Dynamic Island. It does not show nearby callsigns, exact distance, direction, or precise location. A Hunt Live Activity ends after the session or Apple&apos;s system duration limit.</p>
@@ -133,7 +133,7 @@
         <section class="doing-section" id="safety" aria-labelledby="safety-heading">
             <h2 id="safety-heading">Safety Rules</h2>
             <p>Close Contact is a game, not permission to touch, chase, follow, surround, threaten, restrain, or block another person. Stay aware, obey all laws and property rules, keep your phone down while moving, and stop immediately when anyone asks for space. Never play while driving or at an unsafe speed.</p>
-            <p>The app pauses scoring inside its two-meter buffer and when movement appears unsafe, but radio and motion signals can be delayed, obstructed, or unavailable. Treat every distance or count as approximate. A player leaving range, losing connectivity, or closing the app does not justify physical pursuit and never creates an automatic gameplay penalty.</p>
+            <p>The production design pauses scoring inside the two-meter buffer and when movement appears unsafe, but those controls still need real-device verification. Radio and motion signals can be delayed, blocked, or unavailable, so treat every distance or count as approximate. Disconnecting or closing the app never justifies physical pursuit and does not create an automatic penalty.</p>
         </section>
 
         <section class="doing-section" id="community-guidelines" aria-labelledby="community-guidelines-heading">
