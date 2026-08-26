@@ -10,7 +10,7 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Richard Lavey">
     <meta property="og:title" content="Close Contact: A Real-World Zombie Survival Game">
-    <meta property="og:description" content="Choose a side, enter an opt-in Hunt Session, and compete through anonymous nearby signals without exposing identities, routes, or exact distance.">
+    <meta property="og:description" content="Start a Hunt Session, try to stay human, and play through anonymous nearby signals without exposing identities, routes, or exact distance.">
     <meta property="og:url" content="https://rclavey.github.io/resume_website/close_contact.html">
     <meta property="og:image" content="https://rclavey.github.io/resume_website/images/close-contact-icon.png">
     <meta property="og:image:alt" content="Close Contact split survivor and zombie face app icon on a warm tan background">
@@ -53,7 +53,7 @@
             <div>
                 <p class="doing-eyebrow">Stay human. Keep your distance.</p>
                 <h1>Close Contact</h1>
-                <p class="doing-lead">A cartoon-styled zombie survival game where iPhone players choose a side, enter an explicit Hunt Session, and compete through anonymous nearby signals. The experience is designed around safety, consent, and privacy—not chasing strangers.</p>
+                <p class="doing-lead">A cartoon zombie survival game for iPhone. Most players start each monthly outbreak as Survivors. A small group is assigned to the Infected, and Survivors who lose a confirmed encounter join them. You choose when to start a Hunt Session, but you never choose your side.</p>
                 <div class="doing-actions">
                     <a class="doing-button doing-button-primary" href="#privacy-policy">Privacy Policy</a>
                     <a class="doing-button" href="#safety">Safety Rules</a>
@@ -65,7 +65,7 @@
 
         <section class="doing-section" aria-labelledby="outbreak-heading">
             <h2 id="outbreak-heading">A monthly outbreak in the world around you</h2>
-            <p>Survivors earn Valor by staying active in eligible Hunt Sessions, traveling safely on foot, defeating infected players, and recruiting new players. The Infected earn Dread by dealing damage and causing infections. Every enrolled player keeps a place on both monthly and lifetime boards, even with a score of zero.</p>
+            <p>At the start of each monthly game, most players are Survivors and a small group is randomly assigned to the Infected. An invite from an Infected player can also bring a new player into the outbreak as Infected. From there, Survivors earn Valor by staying active in eligible Hunt Sessions, traveling safely on foot, defeating Infected players, and recruiting new players. The Infected earn Dread by dealing damage and converting Survivors. Every enrolled player keeps a place on both monthly and lifetime boards, even with a score of zero.</p>
             <div class="doing-feature-grid">
                 <article class="doing-feature">
                     <strong>Anonymous encounters</strong>
@@ -84,7 +84,7 @@
 
         <section class="doing-section" aria-labelledby="privacy-design-heading">
             <h2 id="privacy-design-heading">Close enough to play, private enough to walk away</h2>
-            <p>Nearby devices exchange short-lived anonymous tickets—not callsigns, account identifiers, or routes. Exact ranging measurements stay inside the proximity component. The app presents broad count and danger bands, pauses inside a two-meter safety buffer, and never grants combat rewards from radio contact alone.</p>
+            <p>Nearby devices exchange short-lived anonymous tickets instead of callsigns, account identifiers, or routes. The app shows broad count and danger bands, pauses combat inside a two-meter safety buffer, and never grants a reward from radio contact alone. To validate an encounter, the service may receive a small set of short-lived, quantized device-to-device range samples. These samples are not geographic coordinates and cannot be used to reconstruct a route.</p>
         </section>
 
         <section class="doing-section doing-policy" id="privacy-policy" aria-labelledby="privacy-heading">
@@ -98,14 +98,14 @@
 
             <h3>2. Nearby Interaction and Bluetooth</h3>
             <p>During a Hunt Session you explicitly start, Close Contact uses Bluetooth Low Energy to discover other participating devices and exchange rotating anonymous encounter tickets. On supported iPhones, Close Contact may use Ultra Wideband through Apple&apos;s Nearby Interaction framework to determine a local distance band. Raw Bluetooth identifiers, Ultra Wideband discovery tokens, exact distance, and direction stay on the device and are discarded when the Hunt Session ends.</p>
-            <p>Nearby devices do not receive your callsign, Apple identifier, email address, route, or precise location. Presence can appear as a broad role count such as 1–2, 3–9, or 10+. A production server may receive expiring encounter-token proofs, coarse distance bands, short timestamps, and bounded mutual evidence needed to validate play and prevent duplicate rewards. Radio contact or a disconnect by itself does not award points or penalize either player.</p>
+            <p>Nearby devices do not receive your callsign, Apple identifier, email address, route, or precise location. Presence can appear as a broad role count such as 1–2, 3–9, or 10+. To validate mutual play and prevent duplicate rewards, the service may receive expiring encounter-token proofs, short timestamps, and a limited set of quantized device-to-device range samples. Those samples measure the distance between two participating phones. They are not geographic coordinates and do not create a route. Radio contact or a disconnect by itself does not award points or penalize either player.</p>
 
             <h3>3. Motion, Location, and Travel</h3>
             <p>If you grant permission, Close Contact uses motion activity, step-distance data, and location-derived speed only during a user-visible Hunt Session to pause play at unsafe or vehicle speeds, reject implausible movement, and count eligible pedestrian travel. Precise coordinates, routes, raw locations, and motion samples are not sent to the game server or stored in your account.</p>
             <p>The service may receive an eligible pedestrian-distance total and a coarse outbreak-region identifier needed for travel rewards and monthly infection seeding. The server rejects submissions that contain coordinates or routes. Travel and combat rewards pause when required safety signals are unavailable.</p>
 
             <h3>4. Gameplay, Referrals, Factions, and Leaderboards</h3>
-            <p>Close Contact processes bounded gameplay-session heartbeats, mutual encounter evidence, combat results, health, regeneration, role changes, monthly and lifetime scores, fixed-price shop transactions, inventory, referrals, faction records, and leaderboard entries. The server—not either nearby phone—is authoritative for rewards, purchases, combat, monthly resets, and ranks.</p>
+            <p>Close Contact processes bounded gameplay-session heartbeats, mutual encounter evidence, combat results, health, regeneration, role changes, monthly and lifetime scores, fixed-price shop transactions, inventory, referrals, faction records, and leaderboard entries. The server, rather than either nearby phone, controls rewards, purchases, combat, monthly resets, and ranks.</p>
             <p>Invite and faction links contain expiring or high-entropy tokens. A successful referral is qualified by the server before either account receives a reward. Public leaderboards show a callsign, role, scores, rank, and optionally a faction name. Faction members can see the role and score information shared within that faction; they do not receive live presence, route, device identifiers, encounter partners, or exact location.</p>
 
             <h3>5. Live Activities and Notifications</h3>
