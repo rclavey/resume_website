@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Open a private FitVerse challenge invitation or download FitVerse from the App Store.">
+    <meta name="robots" content="noindex,nofollow">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="FitVerse">
+    <meta property="og:title" content="You are invited to a FitVerse challenge">
+    <meta property="og:description" content="Open this private fitness challenge invitation in FitVerse.">
+    <meta property="og:image" content="https://rclavey.github.io/resume_website/images/fitverse-icon.png">
+    <meta property="og:image:alt" content="FitVerse app icon">
+    <meta name="twitter:card" content="summary">
+    <title>FitVerse Challenge Invitation</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --purple: #7048e8;
+            --purple-dark: #4c2bb3;
+            --mint: #36d6ad;
+            --ink: #171521;
+            --muted: #655f74;
+            --paper: rgba(255, 255, 255, 0.94);
+            --line: rgba(112, 72, 232, 0.2);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            color: var(--ink);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.5;
+            background:
+                radial-gradient(circle at 18% 12%, rgba(54, 214, 173, 0.34), transparent 28rem),
+                radial-gradient(circle at 82% 88%, rgba(112, 72, 232, 0.42), transparent 30rem),
+                #11101a;
+        }
+
+        main {
+            width: min(100%, 520px);
+            padding: clamp(28px, 7vw, 46px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 30px;
+            background: var(--paper);
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+        }
+
+        .app-icon {
+            width: 78px;
+            height: 78px;
+            border-radius: 19px;
+            box-shadow: 0 12px 30px rgba(76, 43, 179, 0.28);
+        }
+
+        .eyebrow {
+            margin: 24px 0 8px;
+            color: var(--purple-dark);
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 9vw, 3.1rem);
+            line-height: 1.05;
+            letter-spacing: -0.045em;
+        }
+
+        .lead { color: var(--muted); }
+
+        .code-card {
+            margin: 26px 0;
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            text-align: center;
+            background: rgba(112, 72, 232, 0.07);
+        }
+
+        .code-label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        #invite-code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 1.65rem;
+            font-weight: 850;
+            letter-spacing: 0.14em;
+        }
+
+        .actions { display: grid; gap: 12px; }
+
+        .button {
+            min-height: 52px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 18px;
+            border: 2px solid var(--purple);
+            border-radius: 15px;
+            color: var(--purple-dark);
+            background: transparent;
+            font: inherit;
+            font-weight: 800;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .button-primary {
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+            box-shadow: 0 10px 24px rgba(76, 43, 179, 0.25);
+        }
+
+        .button:focus-visible {
+            outline: 4px solid var(--mint);
+            outline-offset: 3px;
+        }
+
+        .steps {
+            margin: 26px 0 0;
+            padding: 20px 0 0 22px;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .steps li + li { margin-top: 8px; }
+
+        .privacy {
+            margin: 22px 0 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .privacy a { color: var(--purple-dark); }
+
+        #invalid-message {
+            padding: 14px;
+            border-radius: 14px;
+            color: #7a1d25;
+            background: #ffe8eb;
+            font-weight: 700;
+        }
+
+        [hidden] { display: none !important; }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --ink: #f7f4ff;
+                --muted: #cbc4d9;
+                --paper: rgba(30, 27, 42, 0.96);
+                --purple-dark: #bba7ff;
+                --line: rgba(187, 167, 255, 0.28);
+            }
+
+            .code-card { background: rgba(187, 167, 255, 0.1); }
+            #invalid-message { color: #ffd4d9; background: #58232a; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <img class="app-icon" src="images/fitverse-icon.png" alt="FitVerse app icon" width="78" height="78">
+        <p class="eyebrow">Private challenge invitation</p>
+        <h1>You are invited to FitVerse</h1>
+        <p class="lead">Open FitVerse to join this challenge. Joining does not share Apple Health totals. You choose that separately inside the challenge.</p>
+
+        <p id="invalid-message" role="alert" hidden>This invitation link is incomplete or invalid. Ask the organizer to share it again from FitVerse.</p>
+
+        <div id="invite-content">
+            <div class="code-card">
+                <span class="code-label">Invitation code</span>
+                <strong id="invite-code">------</strong>
+            </div>
+
+            <div class="actions">
+                <a id="open-app" class="button button-primary" href="#">Open Invitation in FitVerse</a>
+                <a class="button" href="https://apps.apple.com/app/id6802330842">Download on the App Store</a>
+                <button id="copy-link" class="button" type="button">Copy Invitation Link</button>
+            </div>
+
+            <ol class="steps">
+                <li>If FitVerse is installed, choose <strong>Open Invitation in FitVerse</strong>.</li>
+                <li>If it is not installed, download it from the App Store.</li>
+                <li>After installation, return to this invitation and open it again. FitVerse will keep it through sign-in and add you to the challenge.</li>
+            </ol>
+        </div>
+
+        <p class="privacy">This page uses no analytics and sends no health information. See the <a href="fitverse.html#privacy-policy">FitVerse Privacy Policy</a>.</p>
+    </main>
+
+    <script>
+        (() => {
+            const parameters = new URLSearchParams(window.location.search);
+            const code = (parameters.get("code") || "").trim().toUpperCase();
+            const challenge = (parameters.get("challenge") || "").trim();
+            const validCode = /^[A-HJ-NP-Z2-9]{6}$/.test(code);
+            const validChallenge = challenge.length <= 128 && !challenge.includes("/");
+            const content = document.getElementById("invite-content");
+            const invalidMessage = document.getElementById("invalid-message");
+
+            if (!validCode || !validChallenge) {
+                content.hidden = true;
+                invalidMessage.hidden = false;
+                return;
+            }
+
+            const path = challenge ? `/${encodeURIComponent(challenge)}` : "";
+            const appURL = `fitverse://challenge${path}?code=${encodeURIComponent(code)}`;
+            document.getElementById("invite-code").textContent = code;
+            document.getElementById("open-app").href = appURL;
+
+            const smartBanner = document.createElement("meta");
+            smartBanner.name = "apple-itunes-app";
+            smartBanner.content = `app-id=6802330842, app-argument=${appURL}`;
+            document.head.appendChild(smartBanner);
+
+            document.getElementById("copy-link").addEventListener("click", async (event) => {
+                const button = event.currentTarget;
+                try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    button.textContent = "Invitation Link Copied";
+                } catch (_) {
+                    button.textContent = "Copy Failed. Use Safari Share Instead";
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
