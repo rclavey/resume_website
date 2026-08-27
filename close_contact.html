@@ -58,6 +58,7 @@
         <section class="doing-section" aria-labelledby="outbreak-heading">
             <h2 id="outbreak-heading">Survive a world that changes every month</h2>
             <p>Each numbered Game begins with fresh roles, health, armor, and monthly rankings. Survivors build Valor by exploring, staying active, taking down the Infected, and bringing new players into the fight. Infected players build Dread through damage, conversions, travel, and referrals. A confirmed takedown can turn a fallen Survivor into part of the horde, shifting the balance of the outbreak in real time. Monthly boards keep every season competitive, while lifetime rankings record your full survival story.</p>
+            <p>Players never pick a side or switch whenever they want. Close Contact assigns every role automatically. During a Game, a Survivor becomes Infected only if server-confirmed combat brings their health to zero. Once infected, they stay Infected for the rest of that Game. If they survive until the Game ends, they never change sides in that Game. Your Survivor streak counts the time you stay alive as a Survivor, even across monthly Games. If a new Game assigns you as Infected, the streak pauses without ending or growing. It picks up where it left off if a later Game assigns you as a Survivor. Only being defeated and infected resets the current streak. Your longest streak stays saved.</p>
             <div class="doing-feature-grid">
                 <article class="doing-feature">
                     <strong>Nearby Hunt Sessions</strong>
@@ -65,7 +66,7 @@
                 </article>
                 <article class="doing-feature">
                     <strong>Two forms, one character</strong>
-                    <p>Design distinct Survivor and Infected looks with character choices, skin tones, hairstyles, eye colors, idle animations, clothing, and field gear. Bold 2D artwork keeps every loadout readable, and each form remembers its own wardrobe and equipment.</p>
+                    <p>Design distinct Survivor and Infected looks with character choices, skin tones, hairstyles, eye colors, idle animations, clothing, and field gear. Body-fitted cartoon artwork makes clothing look worn and keeps field equipment anchored to the character. Each form remembers its own wardrobe and equipment.</p>
                 </article>
                 <article class="doing-feature">
                     <strong>Build your survival loadout</strong>
@@ -90,7 +91,7 @@
 
             <h3>1. Account and Profile Information</h3>
             <p>The tester build uses a local profile. The planned release version will use Sign in with Apple and Firebase Authentication. Apple provides an account identifier and, only if you choose to share them, your name and email address. You may use Hide My Email, and Close Contact never receives your Apple Account password.</p>
-            <p>The release service will store the information needed to run your account and the game. This includes your callsign, game role, avatar design, clothing and equipment, game identifiers, scores, health, Scrap, inventory, referrals, faction membership, broad outbreak region, and Game history. Safety acknowledgements and ordinary preferences remain on your iPhone.</p>
+            <p>The release service will store the information needed to run your account and the game. This includes your callsign, game role, avatar design, clothing and equipment, game identifiers, scores, health, Survivor streak, Scrap, inventory, referrals, faction membership, broad outbreak region, and Game history. Safety acknowledgements and ordinary preferences remain on your iPhone.</p>
 
             <h3>2. Nearby Interaction and Bluetooth</h3>
             <p>During a Hunt Session, Close Contact uses Bluetooth Low Energy to discover other participating devices and exchange rotating anonymous encounter tickets. Supported iPhones may also exchange Apple Nearby Interaction discovery tokens. Discovery tokens and the continuous ranging stream remain on the phones. Each phone calculates distance locally, shows only a broad band, and clears session ranging data when the Hunt ends.</p>
