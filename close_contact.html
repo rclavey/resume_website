@@ -70,68 +70,83 @@
                 </article>
                 <article class="doing-feature">
                     <strong>Build your survival loadout</strong>
-                    <p>The Armory includes 35 illustrated items across clothing, armor, weapons, and field gear. Earn Scrap through play, unlock equipment at clear fixed prices, and combine protection with specialized tools that can improve your awareness during a Hunt.</p>
+                    <p>The Armory includes 35 illustrated items across clothing, armor, weapons, and field gear. Earn Scrap through play or buy an optional consumable Scrap pack through Apple. Gear has fixed prices, wears down through use, and can be repaired with Scrap before it breaks. Weapons, sensors, and other field gear have limited uses.</p>
                 </article>
                 <article class="doing-feature">
                     <strong>Factions, seasons, and rivalries</strong>
-                    <p>Create a faction, recruit allies, compare shared stats, and return for a new outbreak every month. Scrap, permanent gear, faction membership, and lifetime scores carry your progress forward while each monthly Game creates a fresh race for the top.</p>
+                    <p>Create a faction, recruit allies, compare shared stats, and return for a new outbreak every month. Scrap, permanent unlocks, faction membership, and lifetime scores carry your progress forward while each monthly Game creates a fresh race for the top.</p>
                 </article>
             </div>
         </section>
 
         <section class="doing-section" aria-labelledby="privacy-design-heading">
             <h2 id="privacy-design-heading">Nearby play with privacy built in</h2>
-            <p>Close Contact creates the tension of a nearby zombie encounter without showing another player&apos;s identity, direction, route, or exact distance. Phones exchange short-lived game tickets and display only broad count and danger bands. Encounter results are verified by the game service, and rounded phone-to-phone range samples are used only to confirm play, not to create a location history.</p>
+            <p>Close Contact creates the tension of a nearby zombie encounter without showing another player&apos;s identity, direction, route, or exact distance. Phones exchange short-lived game credentials and display only broad count and danger bands. Encounter results are verified by the game service, and limited phone-to-phone distance samples are used only to confirm play, not to create a location history.</p>
         </section>
 
         <section class="doing-section doing-policy" id="privacy-policy" aria-labelledby="privacy-heading">
             <h2 id="privacy-heading">Privacy Policy</h2>
-            <p class="doing-updated">Effective August 26, 2026</p>
-            <p>This Privacy Policy explains what information Close Contact processes, why it is needed, and the choices available to you. Close Contact is an iPhone zombie survival game developed by Richard Lavey and planned for release in the United States. The app is currently in testing. Tester profiles remain on the device, and the production account service is not yet live. The sections below describe both the tester build and the planned release service.</p>
+            <p class="doing-updated">Effective August 29, 2026</p>
+            <p>This Privacy Policy explains what information Close Contact processes, why it is needed, and the choices available to you. Close Contact is an iPhone zombie survival game developed by Richard Lavey for the United States App Store. This policy describes the release app and service.</p>
 
             <h3>1. Account and Profile Information</h3>
-            <p>The tester build uses a local profile. The planned release version will use Sign in with Apple and Firebase Authentication. Apple provides an account identifier and, only if you choose to share them, your name and email address. You may use Hide My Email, and Close Contact never receives your Apple Account password.</p>
-            <p>The release service will store the information needed to run your account and the game. This includes your callsign, game role, avatar design, clothing and equipment, game identifiers, scores, health, Survivor streak, Scrap, inventory, referrals, faction membership, broad outbreak region, and Game history. Safety acknowledgements and ordinary preferences remain on your iPhone.</p>
+            <p>Close Contact uses Sign in with Apple and Firebase Authentication. Apple provides an account identifier and may provide your name or Apple email address, which the app passes to Firebase Authentication when supplied. You may use Hide My Email, and Close Contact never receives your Apple Account password.</p>
+            <p>The service stores information needed to run your account and the game. This includes your callsign, opaque public player identifier, assigned role, avatar appearance, role-specific clothing and equipment, item durability and remaining uses, level and XP, health, armor, inventory, Scrap balance and debt, monthly and lifetime scores, current and longest Survivor streak state, ranks, faction membership, referrals, broad outbreak cell, account status, and Game history.</p>
 
             <h3>2. Nearby Interaction and Bluetooth</h3>
-            <p>During a Hunt Session, Close Contact uses Bluetooth Low Energy to discover other participating devices and exchange rotating anonymous encounter tickets. Supported iPhones may also exchange Apple Nearby Interaction discovery tokens. Discovery tokens and the continuous ranging stream remain on the phones. Each phone calculates distance locally, shows only a broad band, and clears session ranging data when the Hunt ends.</p>
-            <p>Nearby devices do not receive your callsign, Apple identifier, email address, route, or precise location. The release service may receive expiring encounter proofs, short timestamps, and a few rounded measurements of the distance between participating phones. This limited information confirms mutual play and prevents duplicate rewards. It is not geographic location data and is not used to build a route.</p>
+            <p>During a player-started Hunt Session, Close Contact uses Bluetooth Low Energy to discover other participating devices and exchange rotating anonymous encounter credentials. Supported iPhones may also exchange Apple Nearby Interaction discovery tokens. Discovery tokens, nearby Bluetooth identifiers, and direction vectors remain on the phones and are not sent to the game service.</p>
+            <p>Nearby devices do not receive your callsign, Apple identifier, email address, route, or geographic location. When two players submit matching evidence, the service may receive expiring encounter proofs, a limited set of one-second phone-to-phone distance samples, and combat results. These samples measure the distance between participating devices. They are not latitude or longitude and do not create a geographic route.</p>
 
             <h3>3. Motion, Location, and Travel</h3>
-            <p>If you allow location access, Close Contact uses one location sample during account setup and again before a Hunt Session. Your iPhone converts the sample into a broad half-degree outbreak cell before information leaves the device. The game service receives the cell identifier, not the original location sample.</p>
-            <p>During a visible Hunt Session, the app uses motion activity, step distance, and location-based speed to identify vehicle or unsafe speeds, reject implausible movement, and calculate eligible walking or running. The service may receive the broad outbreak cell and an eligible pedestrian-distance total. It does not receive or store your precise coordinates, route, raw location samples, or raw motion samples. Other players cannot see your outbreak cell.</p>
+            <p>If you allow location access, Close Contact uses one recent location sample during account setup and again before a Hunt Session. Your iPhone converts the sample into a broad half-degree outbreak cell before information leaves the device. The game service receives the cell identifier, not the original location sample.</p>
+            <p>During a Hunt Session, the app uses motion activity, pedometer distance, and location-based speed on the iPhone to identify vehicle or unsafe speeds, reject implausible movement, and calculate eligible walking or running. The service may receive the broad outbreak cell, eligible distance, active duration, automotive duration, and a coarse daily distance band. It does not receive or store your geographic coordinates, route, raw location samples, or raw motion signals. Other players cannot see your outbreak cell.</p>
 
             <h3>4. Gameplay, Referrals, Factions, and Leaderboards</h3>
-            <p>The release service will receive brief session check-ins and limited mutual encounter evidence. The service controls lasting game state, rewards, Armory purchases, combat results, monthly resets, and rankings so that nearby devices cannot rewrite those results.</p>
-            <p>Referral invites use expiring tokens, and faction invites use private codes. Invite activity and rewards must pass the game&apos;s activity and fraud checks.</p>
-            <p>Public leaderboards show a callsign, score, rank when available, and finalized end-of-Game result. A current role or faction is not included. Faction members can compare shared scores and can see a role only when that member enables role sharing. Faction rosters do not include exact health, live presence, encounter details, routes, devices, location, or direction.</p>
+            <p>The service receives brief Hunt Session check-ins and limited mutual encounter evidence. It controls lasting game state, rewards, Armory purchases, combat results, monthly resets, and rankings so that nearby devices cannot rewrite those results.</p>
+            <p>Referral invites use expiring tokens, and faction invites use private codes. A valid referral can set a new player&apos;s starting role only before that player begins normal play. Later monthly roles are assigned automatically. Invite activity and rewards must pass the game&apos;s activity and fraud checks.</p>
+            <p>Public leaderboard results may show a callsign, role-side score, rank, and finalized placement. Faction members can compare shared scores and can see an assigned role only when that player enables role sharing. Faction rosters do not show exact health, live presence, encounter details, routes, devices, locations, or directions.</p>
 
             <h3>5. Live Activities and Notifications</h3>
-            <p>During a Hunt Session, a Live Activity may show your role, health, safety status, Game number, and broad Survivor and Infected count bands on the Lock Screen or Dynamic Island. It does not show nearby callsigns, exact distance, direction, or precise location. A Hunt Session and its Live Activity end after no more than eight hours.</p>
-            <p>The tester build does not request notification permission. If notifications are included in the release and you allow them, the service may store a Firebase Cloud Messaging token to deliver game updates. Notification access can be changed in iOS Settings.</p>
+            <p>During a Hunt Session, a Live Activity may show your role, health, safety status, Game number, and broad Survivor and Infected count bands on the Lock Screen or Dynamic Island. It does not show a nearby callsign, exact distance, direction, or geographic location. A Hunt Session and its Live Activity end after no more than eight hours.</p>
+            <p>Version 1 does not request notification permission or store a device push-notification token. Apple App Store Server Notifications are server-to-server purchase and refund updates, not player push notifications.</p>
 
             <h3>6. Purchases and Advertising</h3>
-            <p>The planned initial release uses earned in-game Scrap. It does not include loot boxes, randomized paid rewards, third-party advertising, an advertising identifier, cross-app tracking, or the sale of personal information. This policy and the App Store disclosures will be updated before any future real-money purchase feature becomes available.</p>
+            <p>Close Contact offers six optional consumable Scrap packs through Apple&apos;s In-App Purchase system: 100, 550, 1,150, 2,400, 6,250, or 13,000 Scrap. Players can also earn Scrap through eligible Hunt time and monthly results without paying. Scrap buys fixed gear, repairs, replacement instances for eligible unlocked items, Field Medkits, and fixed XP offers. Buying Scrap cannot choose a side, build a Survivor streak, award Valor or Dread, decide combat, qualify a referral, change a leaderboard result, or bypass a Hunt or safety rule. There are no loot boxes or randomized purchase outcomes.</p>
+            <p>Apple handles the customer&apos;s payment method. Close Contact does not receive or store card or bank details, so it does not collect Payment Info. Close Contact does collect linked Purchase History for App Functionality, including product and transaction identifiers, signed transaction verification, account binding, Scrap delivery, refund state, debt, and retry records. This lets the service credit each verified purchase once, recover an interrupted delivery, and reconcile refunds or refund reversals.</p>
+            <p>Close Contact has no subscriptions, third-party advertising, advertising identifier, cross-app tracking, sale of personal information, or gambling.</p>
 
-            <h3>7. Service Providers and Processing</h3>
-            <p>The planned release service will use Google Firebase for authentication, cloud storage, server logic, abuse prevention, and service reliability. Firebase may process account identifiers, technical device information, operational logs, and diagnostics needed to provide and protect the game. It may also deliver notifications if that feature is included. Learn more in <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase&apos;s privacy and security documentation</a>.</p>
+            <h3>7. Service Providers and Diagnostics</h3>
+            <p>Close Contact uses Apple for Sign in with Apple, Live Activities, App Store distribution, StoreKit payment processing, and App Store Server Notifications. It uses Google Firebase and Google Cloud for authentication, app-integrity checks, server functions in <code>us-central1</code>, and game storage in the United States multi-region location <code>nam5</code>. This public website is hosted by GitHub Pages.</p>
+            <p>Firebase Authentication may collect unlinked technical diagnostic data for Analytics and a linked User ID for App Functionality. Close Contact does not include the Firebase Analytics, Crashlytics, Performance Monitoring, advertising, or attribution products. Firebase and Google Cloud may also process account identifiers, app-integrity evidence, operational logs, and technical information needed to provide and protect the service. Learn more in <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase&apos;s privacy and security documentation</a>.</p>
 
-            <h3>8. Retention and Account Deletion</h3>
-            <p>The app keeps a protected local game snapshot so it can resume after relaunch. Signing out clears the cached release snapshot from the phone. The tester build does not create a production cloud account, so its local export contains only information saved on that iPhone.</p>
-            <p>The release service is designed to retain game data while your account is active and as needed for seasons, leaderboards, Scrap records, security, and legal obligations. Its account export will include player-facing account and game information while excluding security tokens, raw peer identifiers, encounter evidence, and report text.</p>
-            <p>A completed account deletion request is designed to remove the authentication account, private profile, inventory, faction membership, and other account-linked operational data. A one-way record may remain to confirm that deletion finished without retaining the former account identifier. Production backup retention and deletion timing will be finalized and added to this policy before release.</p>
+            <h3>8. Retention, Export, and Account Deletion</h3>
+            <p>The following periods describe the release service. Expiry makes a record eligible for asynchronous deletion, so removal may not happen at the exact expiry time.</p>
+            <ul>
+                <li>Rotating encounter credentials use five-minute slots and remain valid for no more than about ten minutes.</li>
+                <li>Matched encounter claims and rounded phone-to-phone distance evidence expire after 24 hours.</li>
+                <li>Operation retry receipts expire after 30 days.</li>
+                <li>Hunt presence sessions use a renewable 90-second lease. Ended, expired, or abandoned sessions become eligible for deletion after the lease expires.</li>
+                <li>Referral invites expire within seven days and may expire sooner near the end of a Game.</li>
+                <li>Movement evidence, Game history, lifetime scores, Survivor streak state, inventory, player-facing Purchase History, the currency ledger, Scrap balance, and Scrap debt remain while the account is active and are included in the account deletion process.</li>
+                <li>Moderation reports and audit records may remain after deletion for safety and enforcement. The service removes account and public-player identifiers, removes appeal statements, and marks retained records as belonging to a deleted player. These minimized records do not currently have an age-based expiry.</li>
+                <li>Limited Apple transaction, server-notification, one-way account-token binding, callsign-reservation, and deletion-completion records may remain for replay prevention, refund handling, impersonation prevention, and deletion retry safety. Close Contact removes the account ID and public-profile link where implemented, but these limited records do not currently have an age-based expiry.</li>
+            </ul>
+            <p>The Google Cloud default log bucket retains entries for 30 days. Google locks required administrative and system audit logs for 400 days. Firestore point-in-time recovery is disabled, and the configured staging and production projects do not have scheduled Firestore backups.</p>
+            <p>The app keeps a protected local snapshot so it can resume after relaunch. Signing out clears the cached release snapshot from the phone. A cloud export includes the player-facing account sections and leaves out raw peer identifiers, routes, security tokens, encounter evidence, and free-form report text. Because the export is created while the account is active, records can change during the process and records already removed under retention rules will not appear. Use Outbreak &gt; Profile &amp; Settings &gt; Account &gt; Create cloud account export.</p>
+            <p>Use Outbreak &gt; Profile &amp; Settings &gt; Account &gt; Delete cloud account to request deletion. The service removes or anonymizes the Firebase Authentication account, public profile, Game participation, leaderboards, factions, Hunt Session, encounter and movement records, referrals and outstanding invites, inventory, player-facing Purchase History, and currency ledger. A normalized callsign may remain reserved without the former account ID to prevent impersonation. The minimized safety, purchase, replay-prevention, and deletion records described above may remain. Cloud logs follow the provider retention periods above.</p>
 
-            <h3>9. Security and Integrity</h3>
-            <p>The release service is designed to use authenticated connections, Firebase App Check with Apple App Attest, restricted database rules, rotating encounter tickets, and server-calculated game state. These safeguards reduce risk, but no service can guarantee absolute security. Use the contact below to report a suspected account compromise or privacy issue.</p>
+            <h3>9. Choices, Security, and Integrity</h3>
+            <p>You can stop a Hunt Session at any time, deny or revoke permissions in iOS Settings, and control optional faction role sharing. Close Contact uses authenticated connections, Firebase App Check with Apple App Attest, restricted database rules, rotating encounter credentials, and server-calculated game state. These safeguards reduce risk, but no service can guarantee absolute security.</p>
+            <p>For help with access, correction, export, or deletion, contact <a href="mailto:updates@realexpense.com?subject=Close%20Contact%20Privacy">updates@realexpense.com</a>. Send the request from the email path associated with the account when possible and include your public callsign or player ID if known. Close Contact may require a fresh sign-in or another limited ownership check. Never email a password, Apple credential, Firebase token, App Check token, or recovery code.</p>
 
             <h3>10. Children&apos;s Privacy</h3>
-            <p>Close Contact is not directed to children under 13 and does not knowingly collect personal information from a child under 13. The game includes mild cartoon horror and simulated combat. If you believe a child has provided information, contact the developer for review and deletion.</p>
+            <p>Close Contact is not directed to children under 13. The app does not currently use independent age assurance. The game includes cartoon horror and simulated fantasy combat.</p>
 
-            <h3>11. United States Availability and International Processing</h3>
-            <p>The app is planned for the United States App Store only. Richard Lavey and service providers may still process information in the United States and other countries where they operate, which may have different data-protection laws.</p>
+            <h3>11. United States Availability and Processing</h3>
+            <p>Release availability is limited to the United States App Store. Storefront selection follows the customer&apos;s Apple Account region and does not guarantee physical location. Someone who travels or previously downloaded the app may still be able to use or update it. Version 1 does not add a separate runtime location or account-region gate. Richard Lavey and service providers may process information in the United States and other countries where they operate.</p>
 
             <h3>12. Changes to This Policy</h3>
-            <p>This policy may be updated when features, service providers, or legal requirements change. The effective date above will be revised, and additional in-app notice will be provided when required.</p>
+            <p>This policy may be updated when features, service providers, or legal requirements change. Material changes will be posted at this URL with a new effective date and, when appropriate, an in-app notice.</p>
 
             <h3>13. Contact</h3>
             <p>For privacy questions, account-deletion assistance, or a safety concern, email <a href="mailto:updates@realexpense.com?subject=Close%20Contact%20Privacy">updates@realexpense.com</a>.</p>
@@ -139,18 +154,19 @@
 
         <section class="doing-section" id="safety" aria-labelledby="safety-heading">
             <h2 id="safety-heading">Safety Rules</h2>
-            <p>You are responsible for your choices. Play only within the law and safe limits. Close Contact is a game, not permission to touch, chase, follow, surround, threaten, restrain, or block another person. Stay aware, obey all laws and property rules, keep your phone down while moving, and stop immediately when anyone asks for space. Never play while driving or at an unsafe speed.</p>
-            <p>The game is designed to pause scoring inside the two-meter buffer and when movement appears unsafe. Radio and motion signals can be delayed, blocked, or unavailable, so treat every distance or count as approximate. Disconnecting or closing the app never justifies physical pursuit and does not create an automatic penalty.</p>
+            <p>You are responsible for your choices. Play only within the law and safe limits. Close Contact is a game, not permission to touch, chase, follow, surround, threaten, restrain, or block another person. Stay aware, obey all laws and property rules, keep your phone down while moving, and stop immediately when anyone asks for space. Never play while driving, cycling, operating equipment, or moving at an unsafe speed.</p>
+            <p>The game pauses combat inside the two-meter buffer and pauses rewards when movement appears unsafe. Radio, motion, and location signals can be delayed, blocked, or wrong, so treat every distance or count as approximate. Disconnecting or closing the app never causes an automatic infection or opponent reward and never justifies physical pursuit.</p>
         </section>
 
         <section class="doing-section" id="community-guidelines" aria-labelledby="community-guidelines-heading">
             <h2 id="community-guidelines-heading">Community Guidelines</h2>
-            <p>Do not use a callsign or faction name to harass, threaten, impersonate, spam, share someone&apos;s personal information, promote hate, post sexual or exploitative material, or encourage illegal or dangerous activity. During testing, play only with people you know and trust. If anyone is in immediate danger, leave the game and contact local emergency services.</p>
+            <p>Do not use a callsign or faction name to harass, threaten, impersonate, spam, share someone&apos;s personal information, promote hate, post sexual or exploitative material, or encourage illegal or dangerous activity. Play only with willing participants. If anyone is in immediate danger, leave the area and contact local emergency services.</p>
         </section>
 
         <section class="doing-section" id="support" aria-labelledby="support-heading">
             <h2 id="support-heading">Support</h2>
-            <p>For help, feedback, account-deletion assistance, or a safety concern, email <a href="mailto:updates@realexpense.com?subject=Close%20Contact%20Support">updates@realexpense.com</a>. Include your iPhone model, iOS version, and a short description of what happened. Do not email passwords, precise locations, encounter identities, or other sensitive information.</p>
+            <p>For help, feedback, account-deletion assistance, or a safety concern, email <a href="mailto:updates@realexpense.com?subject=Close%20Contact%20Support">updates@realexpense.com</a>. Include your public callsign or player ID when known, your iPhone model, iOS version, and a short description of what happened. Do not email passwords, precise locations, encounter identities, or other sensitive information.</p>
+            <p>Close Contact is not an emergency service, and the support mailbox is not monitored in real time. If there is an immediate threat or emergency in the United States, leave the area and call 911.</p>
         </section>
     </main>
     <footer>
