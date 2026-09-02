@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gallery | Richard Lavey</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=20260817-ada2">
     <link rel="stylesheet" href="css/gallery.css">
 </head>
 <body>
     <header></header>
-    <main class="gallery-main">
+    <main id="main-content" class="gallery-main" tabindex="-1">
         <section class="gallery-hero" aria-labelledby="gallery-title">
             <img src="images/gallery/full/summit-sunset.webp" alt="" aria-hidden="true">
             <div class="gallery-hero-shade"></div>
@@ -29,7 +29,7 @@
                 <span id="gallery-count" aria-live="polite">68 moments</span>
             </div>
 
-            <div class="gallery-filter-bar" role="toolbar" aria-label="Filter gallery">
+            <div class="gallery-filter-bar" role="group" aria-label="Filter gallery">
                 <button class="gallery-filter is-active" type="button" data-gallery-filter="All" aria-pressed="true">All</button>
                 <button class="gallery-filter" type="button" data-gallery-filter="Events" aria-pressed="false">Events</button>
                 <button class="gallery-filter" type="button" data-gallery-filter="Sports" aria-pressed="false">Sports</button>
@@ -50,14 +50,14 @@
             <button class="gallery-lightbox-nav gallery-lightbox-next" type="button" aria-label="Next image" title="Next">&rarr;</button>
             <div class="gallery-lightbox-caption">
                 <span id="lightbox-category"></span>
-                <h2 id="lightbox-title"></h2>
+                <h2 id="lightbox-title" aria-live="polite" aria-atomic="true"></h2>
                 <span id="lightbox-position"></span>
             </div>
         </div>
     </dialog>
 
     <footer><p>&copy; 2024 Richard Lavey</p></footer>
-    <script src="js/includeHeader.js"></script>
-    <script src="js/gallery.js?v=20260713-3"></script>
+    <script src="js/includeHeader.js?v=20260817-ada3"></script>
+    <script src="js/gallery.js?v=20260817-ada2"></script>
 </body>
 </html>

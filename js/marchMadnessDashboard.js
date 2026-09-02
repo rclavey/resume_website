@@ -1,4 +1,5 @@
 const MARCH_MADNESS_DATA_URL = `data/march-madness-dashboard.json?v=${Date.now()}`;
+const mmReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const mmState = {
     data: null,
@@ -71,7 +72,7 @@ function chartOptions({ horizontal = false, percentage = false, zeroBaseline = f
         responsive: true,
         maintainAspectRatio: false,
         indexAxis: horizontal ? 'y' : 'x',
-        animation: { duration: 280 },
+        animation: { duration: mmReduceMotion ? 0 : 280 },
         interaction: { mode: 'nearest', intersect: false },
         plugins: {
             legend: { display: legend, labels: { color: mmColors.muted, boxWidth: 12, font: { size: 11, weight: 700 } } },

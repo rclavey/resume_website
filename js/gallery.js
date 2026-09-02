@@ -3,6 +3,7 @@ const galleryState = {
     visibleItems: [],
     activeFilter: 'All',
     activeIndex: 0,
+    returnFocus: null,
 };
 
 const galleryGrid = document.querySelector('#gallery-grid');
@@ -89,6 +90,15 @@ function showLightboxItem(index) {
         media.playsInline = true;
         media.preload = 'metadata';
         media.setAttribute('aria-label', item.alt);
+        if (item.captions) {
+            const captions = document.createElement('track');
+            captions.kind = 'captions';
+            captions.src = item.captions;
+            captions.srclang = 'en';
+            captions.label = 'English';
+            captions.default = true;
+            media.append(captions);
+        }
     } else {
         media = document.createElement('img');
         media.src = item.src;
@@ -107,6 +117,7 @@ function openLightbox(id) {
         return;
     }
 
+    galleryState.returnFocus = document.activeElement;
     showLightboxItem(index);
     document.body.classList.add('gallery-viewer-open');
     lightbox.showModal();
@@ -137,6 +148,13 @@ lightbox.addEventListener('click', event => {
 lightbox.addEventListener('close', () => {
     document.body.classList.remove('gallery-viewer-open');
     lightboxMedia.replaceChildren();
+    galleryState.returnFocus?.focus();
+    galleryState.returnFocus = null;
+});
+
+lightbox.addEventListener('cancel', event => {
+    event.preventDefault();
+    closeLightbox();
 });
 
 document.addEventListener('keydown', event => {
@@ -144,13 +162,18 @@ document.addEventListener('keydown', event => {
         return;
     }
     if (event.key === 'ArrowLeft') {
+        event.preventDefault();
         showLightboxItem(galleryState.activeIndex - 1);
     } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
         showLightboxItem(galleryState.activeIndex + 1);
+    } else if (event.key === 'Escape') {
+        event.preventDefault();
+        closeLightbox();
     }
 });
 
-fetch('data/gallery.json?v=20260713-3', { cache: 'no-store' })
+fetch('data/gallery.json?v=20260817-ada', { cache: 'no-store' })
     .then(response => {
         if (!response.ok) {
             throw new Error(`Gallery data request failed: ${response.status}`);

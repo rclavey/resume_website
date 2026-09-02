@@ -5,7 +5,7 @@
     --hp-soft: #edf4f5;
     --hp-ice: #007f91;
     --hp-blue: #315fa8;
-    --hp-red: #d34855;
+    --hp-red: #ca3f4c;
     --hp-gold: #a86f16;
     --hp-green: #4e7a2c;
     --hp-paper: #fff;
@@ -62,6 +62,7 @@
 .hp-segmented legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .hp-segmented label { display: block; cursor: pointer; }
 .hp-segmented input { position: absolute; opacity: 0; pointer-events: none; }
+.hp-segmented input:focus-visible + span { outline: 3px solid #005f55; outline-offset: -3px; }
 .hp-segmented span { min-height: 42px; padding: 10px 15px; display: grid; place-items: center; color: var(--hp-muted); background: #fff; font-size: .78rem; font-weight: 850; text-transform: none; }
 .hp-segmented label + label span { border-left: 1px solid #becbd3; }
 .hp-segmented input:checked + span { color: #fff; background: var(--hp-ink); }
@@ -133,7 +134,7 @@
 .hp-table-wrap tbody tr:last-child td { border-bottom: 0; }
 .hp-table-wrap tbody tr:hover { background: #f5f8f9; }
 .hp-table-wrap td:not(:nth-child(2)) { font-variant-numeric: tabular-nums; }
-.hp-text-button { border: 0; color: var(--hp-ice); background: transparent; font: inherit; font-size: .75rem; font-weight: 850; cursor: pointer; }
+.hp-text-button { display: inline-flex; min-height: 24px; padding-block: 1px; border: 0; color: var(--hp-ice); background: transparent; align-items: center; font: inherit; font-size: .75rem; font-weight: 850; cursor: pointer; }
 .hp-rank { color: var(--hp-muted); font-weight: 850; }
 .hp-team-cell { color: var(--hp-ink); font-weight: 850; }
 .hp-prob-high { color: #23651e; font-weight: 850; }

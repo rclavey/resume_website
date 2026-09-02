@@ -9,6 +9,8 @@ let gameOver = false;
 let waitingForAi = true;
 let aiModel = null;
 let modelLoadPromise = null;
+let lastHumanColumn = 0;
+let returnFocusToBoard = false;
 
 const boardElement = document.getElementById('connect-four-board');
 const statusElement = document.getElementById('game-status');
@@ -20,18 +22,20 @@ function createEmptyBoard() {
 
 function renderBoard() {
     boardElement.innerHTML = '';
+    boardElement.setAttribute('aria-busy', String(waitingForAi));
 
     for (let col = 0; col < COLS; col += 1) {
         const columnButton = document.createElement('button');
         columnButton.type = 'button';
         columnButton.className = 'game-column';
-        columnButton.setAttribute('aria-label', `Drop piece in column ${col + 1}`);
+        columnButton.setAttribute('aria-label', columnStateLabel(col));
         columnButton.disabled = gameOver || waitingForAi || board[0][col] !== 0;
         columnButton.addEventListener('click', () => handleHumanMove(col));
 
         for (let row = 0; row < ROWS; row += 1) {
             const cell = document.createElement('span');
             cell.className = 'game-cell';
+            cell.setAttribute('aria-hidden', 'true');
             if (board[row][col] === HUMAN) {
                 cell.classList.add('human');
             } else if (board[row][col] === AI) {
@@ -44,11 +48,39 @@ function renderBoard() {
     }
 }
 
+function columnStateLabel(col) {
+    const pieces = [];
+    for (let row = ROWS - 1; row >= 0; row -= 1) {
+        if (board[row][col] === HUMAN) {
+            pieces.push('your piece');
+        } else if (board[row][col] === AI) {
+            pieces.push('AI piece');
+        }
+    }
+
+    const state = pieces.length
+        ? `${pieces.length} of ${ROWS} spaces filled, bottom to top: ${pieces.join(', ')}`
+        : 'empty';
+    const action = board[0][col] === 0 ? `Drop your piece in column ${col + 1}.` : 'Column full.';
+    return `Column ${col + 1}, ${state}. ${action}`;
+}
+
+function focusPlayableColumn(preferredColumn = 0) {
+    if (!returnFocusToBoard || gameOver) {
+        return;
+    }
+    const buttons = [...boardElement.querySelectorAll('.game-column:not(:disabled)')];
+    const preferred = boardElement.querySelectorAll('.game-column')[preferredColumn];
+    (preferred && !preferred.disabled ? preferred : buttons[0])?.focus();
+}
+
 function handleHumanMove(col) {
     if (gameOver || waitingForAi) {
         return;
     }
 
+    returnFocusToBoard = boardElement.contains(document.activeElement);
+    lastHumanColumn = col;
     const row = dropPiece(col, HUMAN);
     if (row === -1) {
         setStatus('That column is full. Choose another column.');
@@ -79,6 +111,7 @@ function finishIfGameEnded(player) {
         gameOver = true;
         setStatus(player === HUMAN ? 'You win.' : 'The AI wins.');
         renderBoard();
+        newGameButton.focus();
         return true;
     }
 
@@ -86,6 +119,7 @@ function finishIfGameEnded(player) {
         gameOver = true;
         setStatus('Tie game.');
         renderBoard();
+        newGameButton.focus();
         return true;
     }
 
@@ -114,6 +148,7 @@ async function requestAiMove() {
 
         if (!finishIfGameEnded(AI)) {
             setStatus('Your move. Choose a column.');
+            focusPlayableColumn(lastHumanColumn);
         }
     } catch (error) {
         console.error(error);
@@ -248,6 +283,7 @@ function resetGame() {
     board = createEmptyBoard();
     gameOver = false;
     waitingForAi = !aiModel;
+    returnFocusToBoard = false;
     setStatus(aiModel ? 'Your move. Choose a column.' : 'Loading the abbreviated AI...');
     renderBoard();
     if (!aiModel) {

@@ -5,7 +5,7 @@
     --mm-line-strong: #b9c0c6;
     --mm-paper: #ffffff;
     --mm-ground: #f3f5f4;
-    --mm-green: #147d64;
+    --mm-green: #11775f;
     --mm-green-soft: #e7f3ef;
     --mm-red: #c14953;
     --mm-red-soft: #f8eaec;
@@ -491,10 +491,13 @@ body {
 
 .mm-team-button,
 .mm-player-button {
-    padding: 0;
+    display: inline-flex;
+    min-height: 24px;
+    padding: 2px 0;
     border: 0;
     background: transparent;
     color: var(--mm-ink);
+    align-items: center;
     font: inherit;
     font-weight: 800;
     text-align: left;
@@ -1171,7 +1174,7 @@ body {
     .mm-metric-strip article:nth-child(n+4) { border-top: 1px solid var(--mm-line); }
     .mm-champion-spotlight { grid-template-columns: 1fr 0.7fr; }
     .mm-champion-path { grid-column: 1 / -1; }
-    .mm-champion-spotlight button { position: absolute; opacity: 0; pointer-events: none; }
+    .mm-champion-spotlight button { grid-column: 1 / -1; justify-self: start; }
     .mm-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .mm-search-field { grid-column: 1 / -1; }
     .mm-toolbar button { justify-self: start; }

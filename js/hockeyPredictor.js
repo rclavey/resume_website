@@ -398,7 +398,7 @@ async function hpInitialize() {
         hp('hp-league-b').innerHTML = hpLeagueOptions('NHL');
         hpFillTeamSelect('NHL', hp('hp-team-a'), 'Carolina Hurricanes');
         hpFillTeamSelect('NHL', hp('hp-team-b'), 'Florida Panthers', 1);
-        hp('hp-source-links').innerHTML = hpState.data.sources.map((source) => `<a href="${hpEscape(source.url)}" target="_blank" rel="noopener noreferrer">${hpEscape(source.label)} ↗</a>`).join('');
+        hp('hp-source-links').innerHTML = hpState.data.sources.map((source) => `<a href="${hpEscape(source.url)}" target="_blank" rel="noopener noreferrer">${hpEscape(source.label)} <span class="sr-only">(opens in a new tab)</span><span aria-hidden="true">↗</span></a>`).join('');
         hpBindEvents();
         hpRenderLeague();
         hp('hp-loading').hidden = true;

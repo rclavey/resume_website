@@ -7,8 +7,8 @@
     --canvas: #f4f6f8;
     --line: #dfe5eb;
     --line-strong: #c8d1da;
-    --teal: #008a7a;
-    --coral: #f05a3b;
+    --teal: #006f63;
+    --coral: #c7432a;
     --violet: #6251d8;
     --gold: #b77813;
     --shadow: 0 22px 60px rgba(17, 19, 21, 0.11);
@@ -26,6 +26,38 @@ html {
     scroll-behavior: smooth;
 }
 
+.skip-link {
+    position: fixed;
+    z-index: 1000;
+    top: 8px;
+    left: 8px;
+    padding: 10px 14px;
+    border: 2px solid currentColor;
+    border-radius: var(--radius);
+    color: #ffffff;
+    background: var(--ink);
+    font-weight: 850;
+    text-decoration: none;
+    transform: translateY(-160%);
+}
+
+.skip-link:focus {
+    color: #ffffff;
+    transform: translateY(0);
+}
+
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
 body {
     min-height: 100vh;
     margin: 0;
@@ -40,7 +72,7 @@ body {
     background-size: 36px 36px, 36px 36px, auto;
 }
 
-header {
+body > header {
     position: sticky;
     top: 0;
     z-index: 20;
@@ -237,10 +269,10 @@ a:hover {
     color: var(--teal);
 }
 
-a:focus-visible,
-button:focus-visible {
-    outline: 3px solid #006e63;
-    outline-offset: 3px;
+:where(a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 3px solid #005f55 !important;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 7px #ffffff !important;
 }
 
 footer {
@@ -1138,14 +1170,15 @@ main > ul li:last-child {
 .game-cell.human {
     border-color: rgba(255, 255, 255, 0.36);
     background:
-        radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.75), transparent 22%),
+        radial-gradient(circle at center, transparent 0 31%, rgba(255, 255, 255, 0.88) 33% 41%, transparent 43%),
         var(--coral);
 }
 
 .game-cell.ai {
     border-color: rgba(255, 255, 255, 0.36);
     background:
-        radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.75), transparent 22%),
+        linear-gradient(45deg, transparent 44%, rgba(255, 255, 255, 0.9) 45% 55%, transparent 56%),
+        linear-gradient(-45deg, transparent 44%, rgba(255, 255, 255, 0.9) 45% 55%, transparent 56%),
         var(--violet);
 }
 
@@ -1172,11 +1205,16 @@ main > ul li:last-child {
 }
 
 .human-disc {
-    background: var(--coral);
+    background:
+        radial-gradient(circle at center, transparent 0 27%, #ffffff 31% 43%, transparent 47%),
+        var(--coral);
 }
 
 .ai-disc {
-    background: var(--violet);
+    background:
+        linear-gradient(45deg, transparent 38%, #ffffff 40% 60%, transparent 62%),
+        linear-gradient(-45deg, transparent 38%, #ffffff 40% 60%, transparent 62%),
+        var(--violet);
 }
 
 .resume-header {
@@ -1459,5 +1497,22 @@ pre {
     *::after {
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+
+@media (forced-colors: active) {
+    .site-brand::before,
+    .project-card::before,
+    .resume-card::before,
+    .app-card::before,
+    .link-card::before {
+        background: CanvasText;
+    }
+
+    .game-cell,
+    .legend-disc {
+        border: 2px solid CanvasText;
     }
 }

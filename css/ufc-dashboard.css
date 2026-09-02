@@ -541,7 +541,7 @@
 }
 
 .analytics-toolbar input[type="range"] {
-    height: 22px;
+    min-height: 24px;
     padding: 0;
     accent-color: var(--teal);
 }
@@ -633,10 +633,13 @@
 }
 
 .fighter-table-button {
-    padding: 0;
+    display: inline-flex;
+    min-height: 24px;
+    padding: 2px 0;
     border: 0;
     color: var(--ink);
     background: transparent;
+    align-items: center;
     font: inherit;
     font-weight: 820;
     cursor: pointer;
@@ -1603,6 +1606,10 @@
     color: white;
     border-color: var(--ink);
     background: var(--ink);
+}
+
+.model-card.primary h3 {
+    color: #ffffff !important;
 }
 
 .model-card header {
