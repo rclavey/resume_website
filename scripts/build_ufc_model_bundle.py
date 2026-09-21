@@ -221,7 +221,15 @@ def train_base_logistic(model_data, feature_columns, future_rows):
     zero_variance = [column for column in train_x if train_x[column].nunique() <= 1]
     train_x.drop(columns=zero_variance, inplace=True)
     reduced, final_columns = remove_multicollinearity(sm.add_constant(train_x).astype(float), threshold=10.0)
-    result = sm.Logit(train_y.astype(float), reduced).fit(disp=False)
+    logit_model = sm.Logit(train_y.astype(float), reduced)
+    try:
+        result = logit_model.fit(disp=False)
+    except np.linalg.LinAlgError:
+        # Future rows are included to keep the exported feature schema stable.
+        # They can create a singular Hessian when a current card has a
+        # degenerate stance or metric combination, so use the same bounded
+        # regularized fallback as the training pipeline.
+        result = logit_model.fit_regularized(method="l1", alpha=0.1, disp=False)
     return {"features": final_columns, "coefficients": [float(result.params[column]) for column in final_columns]}
 
 
